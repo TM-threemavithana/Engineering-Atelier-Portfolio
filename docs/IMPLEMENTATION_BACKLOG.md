@@ -225,6 +225,7 @@
 
 ### EA-006 Execution record
 - Status: DONE
+- Git commit: `881716a` (`style: configure Tailwind v4 global CSS tokens and accessible utilities (EA-006)`)
 - Approved implementation plan: [ea_006_global_css_and_utilities_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_006_global_css_and_utilities_plan.md) (2026-10-13)
 - Scope: Stylesheet architecture (`tokens.css` authoritative theme + `global.css` resets, typography, focus, utilities), single-chain `@import`, visible unclipped keyboard focus outlines (`#F0CF78`, 3px solid, 3px offset), accessible skip-link with `#main-content` target, `.container-atelier` responsive gutters (16px / 24px / 32px), `.reading-column` (max-w 74ch), `.surface-card`, `.surface-card-interactive` with `@media (hover: hover) and (pointer: fine)` hover guard, `.surface-pill`, and strict `@media (prefers-reduced-motion: reduce)`.
 - Files created/changed: `src/styles/tokens.css`, `src/styles/global.css`, `src/layouts/BaseLayout.astro`, `src/pages/index.astro`, `docs/IMPLEMENTATION_BACKLOG.md`
