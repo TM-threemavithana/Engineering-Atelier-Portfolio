@@ -315,40 +315,47 @@
 
 ### EA-010 Execution record
 - Status: DONE
-- Approved implementation plan: Approved by owner on 2026-10-13 with 8 required corrections
-- Scope: Lint/type/format/check scripts, ESLint flat config with Astro security rules, Prettier formatting with Astro 5 whitespace compression, reproducible local test runner, and unified quality verification pipeline (`npm run verify`).
-- Node.js Engine Verification:
-  - Host environment: Node `v22.22.0`, npm `10.9.4`.
-  - Package selection: Pinned `eslint@^9.39.5` and `eslint-plugin-astro@^1.7.0` (engine requirement `^18.18.0 || ^20.9.0 || >=21.1.0`), perfectly satisfying Node v22.22.0 without engine mismatch, bypasses, or `--force`.
-  - Added dependencies in `devDependencies`: `eslint@^9.39.5`, `eslint-plugin-astro@^1.7.0`, `typescript-eslint@^8.71.2`, `prettier@^3.9.10`, `prettier-plugin-astro@^1.1.1`, and `tsx@^4.23.15`.
-- Configuration Architecture:
-  - `eslint.config.mjs`: Flat config covering `.astro`, `.ts`, `.tsx`, `.js`, `.mjs`. Enforces strict TypeScript rules (`@typescript-eslint/no-unused-vars`: error, `@typescript-eslint/no-explicit-any`: error), global ignores (`dist/**`, `.astro/**`, `node_modules/**`, `public/**`, `package-lock.json`), and security rule `astro/no-set-html-directive`: 'error'.
-  - `.prettierrc.mjs`: Prettier with `prettier-plugin-astro`, Astro parser override, and `astroCompressHTML: 'html'` for Astro 5-compatible whitespace handling.
-  - `.prettierignore`: Explicitly protects `docs/`, `design/`, `templates/`, `prompts/`, `AGENTS.md`, `README.md`, `MANIFEST.json`, `dist/`, and `package-lock.json` from automatic rewriting.
-  - `package.json` scripts:
-    - `npm run check`: `astro check`
-    - `npm run lint`: `eslint .`
-    - `npm run lint:fix`: `eslint . --fix`
-    - `npm run format`: `prettier --write src/ tests/ *.mjs *.json`
-    - `npm run format:check`: `prettier --check src/ tests/ *.mjs *.json`
-    - `npm run test`: `tsx --test "tests/**/*.test.ts"` (Node TAP runner with dynamic glob discovery)
-    - `npm run verify`: `npm run check && npm run lint && npm run format:check && npm run test && npm run build`
+- Approved implementation plan: [ea_010_ci_and_preview_deployment_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_010_ci_and_preview_deployment_plan.md) (approved with 4 required adjustments by owner on 2026-10-13)
+- Scope: GitHub Actions CI workflow, comprehensive security risk assessment and remediation matrix (`docs/SECURITY_AND_PREVIEW_PLAN.md`), deterministic post-build production artifact verification test (`tests/artifact-verification.test.ts`), and access-controlled preview deployment strategy.
+- GitHub Actions CI Architecture (`.github/workflows/ci.yml`):
+  - Environment: Official `ubuntu-latest` runner with `node-version: 22.x` (matching host `v22.22.0`) and native npm dependency caching.
+  - Security & Least Privilege: Enforces `permissions: contents: read` (downscopes GitHub's automatically issued `GITHUB_TOKEN` to read-only repository contents). Zero deployment tokens, write permissions, or external secrets requested or exposed.
+  - Workflow Triggers & Concurrency: Push/pull_request on `master` and `main`. Strictly avoids `pull_request_target`. Cancels redundant runs with `concurrency.cancel-in-progress: true`.
+  - Sequential Pipeline: Executes `npm ci`, `npm run check`, `npm run lint`, `npm run format:check`, `npm run test`, `npm run build`, `npm run verify:artifacts`, and non-blocking `npm audit`.
+  - Zero Push: Workflow created and verified locally; zero remote push performed without owner approval.
+- Production Artifact Verification (`tests/artifact-verification.test.ts`):
+  - Deterministic test integrated into both `npm run test` and `npm run verify:artifacts`.
+  - Verifies `dist/index.html` exists and contains valid markup.
+  - Verifies mandatory `<meta name="robots" content="noindex, nofollow">` is present while `isProductionApproved` is false.
+  - Verifies `<link rel="canonical">` and `og:url` are strictly omitted when `PUBLIC_SITE_URL` is unset.
+  - Verifies XML sitemaps are absent when unconfigured.
+  - Verifies development fixtures (`dev-test` route, `TestInteractiveIsland`, `TestMdxNote`) are completely excluded from production output.
+  - Verifies DRAFT project routes (`/projects/`, `streamforge`, `devforge`) are strictly absent.
+  - Verifies unapproved writing (`/writing/`) and résumé (`resume.pdf`) routes are strictly absent.
+  - Verifies zero placeholder strings, credentials, or fake domains (`example.com`, `localhost`, `[Awaiting Confirmation]`).
+  - Verifies compiled CSS bundle and `dist/favicon.svg` exist.
+- Security Risk Assessment (`docs/SECURITY_AND_PREVIEW_PLAN.md`):
+  - Rigorous analysis covering all 9 npm audit findings (1 critical, 6 high, 2 low).
+  - Explicitly documents that static hosting removes the need for an application server, but build tools and CI workflows still process code and dependencies (avoids unqualified "zero public exploitability" claims).
+  - Verifies `braces@3.0.3` (GHSA-vfj7-8cjw-p6xm) has no available patched release upstream; accepted as temporary risk mitigated by author-controlled static glob patterns.
+  - Avoids destructive `npm audit fix --force`.
+- Preview Deployment Strategy:
+  - Establishes that `robots.txt` and `noindex` do not provide access control or authentication.
+  - Evaluates Cloudflare Pages with Cloudflare Access (One-Time PIN/OAuth) and Vercel Deployment Protection as enterprise-grade access-controlled preview staging for Milestone 5.
+  - Zero external hosting provider or domain configured during Milestone 1.
 - Commands actually executed:
-  - `npm ci`: Clean install completed in 1m (exit code 0).
-  - Intentional lint violation check: Added `set:html` tag and unused frontmatter variable to `src/pages/index.astro`; confirmed `npm run lint` failed with exit code 1 and reported 2 errors; cleanly reverted.
-  - `npm run verify`: All 5 gates passed with exit code 0:
-    - `check`: 12 files checked, 0 errors, 0 warnings, 0 hints
-    - `lint`: 0 errors, 0 warnings
-    - `format:check`: All matched files use Prettier code style
-    - `test`: 1 test passed (TAP version 13, `tests/ea008-verification.test.ts`), 0 failures
-    - `build`: 1 static page built in 2.38s
-  - `npm audit`: 9 vulnerabilities documented in risk register (2 low, 6 high, 1 critical) from upstream Astro, sharp, esbuild, and braces. Breaking upgrade avoided; mitigated by static-only generation (`output: "static"`).
-- Content truth: Zero fabricated personal data, employer history, or production domains; all candidate projects remain in DRAFT status.
-- Owner signoff: Approved with required corrections; implemented and verified on 2026-10-13
+  - `npm ls typescript`: Confirmed single, deduped `typescript@5.9.3` across all tooling.
+  - `npx tsx tests/artifact-verification.test.ts`: Passed all 9 artifact invariant assertions.
+  - `npm run test`: Discovered and passed 2 test suites (`tests/artifact-verification.test.ts` and `tests/ea008-verification.test.ts`), 2 pass, 0 fail.
+  - `npm run verify`: Passed all 6 pipeline stages (`check`, `lint`, `format:check`, `test`, `build`, `verify:artifacts`) with exit code 0.
+  - `npm audit`: Documented 9 advisories in risk register with threat context and mitigations.
+- Content truth: Zero personal data, employers, or production domains fabricated; all candidate projects remain in DRAFT status.
+- Milestone Gate G1: Passed (Reproducible toolchain, CI verification, and architecture review complete).
+- Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
 
-### EA-010 Execution record
-- Status: TODO (Next ticket)
-- Scope: CI checks and deployment strategy (GitHub Actions workflows, preview deployment plan, release gates)
+### EA-011 Execution record
+- Status: TODO (Next ticket — Milestone 2: Header and Navigation)
+- Scope: Desktop header, navigation links, accessible mobile menu, focus trap/return
 
 
 

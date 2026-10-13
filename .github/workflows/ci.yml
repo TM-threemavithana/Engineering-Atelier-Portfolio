@@ -1,0 +1,70 @@
+name: CI Quality Assurance
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+# Principle of Least Privilege: Restrict automatic GITHUB_TOKEN to read-only repository contents.
+# Zero deployment credentials, external tokens, or repository write access granted.
+permissions:
+  contents: read
+
+# Cancel redundant in-progress runs when new commits are pushed to the same branch or PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify Quality Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        # Official GitHub Action: v4 provides Node 20 runtime and Git sparse-checkout support
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        # Official GitHub Action: v4 provides built-in npm lockfile hash caching
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Log Runner Environment
+        run: |
+          echo "Node version: $(node -v)"
+          echo "npm version:  $(npm -v)"
+          echo "Runner OS:    ${{ runner.os }}"
+
+      - name: Install Dependencies (npm ci)
+        run: npm ci
+
+      - name: Verify Types and Astro Schema (npm run check)
+        run: npm run check
+
+      - name: Verify ESLint Rules & Security Directives (npm run lint)
+        run: npm run lint
+
+      - name: Verify Prettier Code Formatting (npm run format:check)
+        run: npm run format:check
+
+      - name: Execute Automated Test Suite (npm run test)
+        run: npm run test
+
+      - name: Execute Static Production Build (npm run build)
+        run: npm run build
+
+      - name: Verify Production Artifacts & Security Safeguards (npm run verify:artifacts)
+        run: npm run verify:artifacts
+
+      - name: Dependency Risk Audit (Informational Reporting)
+        # Informational step: logs upstream advisories without blocking builds unless evaluated
+        run: npm audit || true
