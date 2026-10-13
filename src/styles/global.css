@@ -1,0 +1,194 @@
+@import "./tokens.css";
+
+/* ==========================================================================
+   Root & Base Elements
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-padding-top: 5rem;
+  font-size: 16px;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-mobile);
+  line-height: 1.6;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 16px base body font on mobile viewports (<1024px), 17px on desktop (>=1024px) */
+@media (min-width: 1024px) {
+  body {
+    font-size: var(--text-body-desktop);
+  }
+}
+
+/* ==========================================================================
+   Typography Hierarchy & Elements
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--color-fg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: var(--text-h1);
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: var(--text-h2);
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: var(--text-h3);
+  line-height: 1.3;
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+}
+
+/* Selection Highlight */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* ==========================================================================
+   Accessible Keyboard Focus (WCAG 2.2 AA SC 2.4.7 & SC 2.4.11 / AAA SC 2.4.13)
+   ========================================================================== */
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Reusable class for custom interactive controls */
+.focus-ring:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Semantic Utilities & Layout Containers
+   ========================================================================== */
+
+/* Standard container with responsive gutters */
+.container-atelier {
+  width: 100%;
+  max-width: 80rem; /* 1280px */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem; /* 16px on mobile */
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-atelier {
+    padding-left: 1.5rem; /* 24px on tablet */
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-atelier {
+    padding-left: 2rem; /* 32px on desktop */
+    padding-right: 2rem;
+  }
+}
+
+/* Constrained reading column for case studies (<= 74ch) */
+.reading-column {
+  width: 100%;
+  max-width: 74ch;
+}
+
+/* Surface containers */
+.surface-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.surface-card-interactive {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  transition: transform var(--duration-card) var(--ease-premium),
+              border-color var(--duration-hover) var(--ease-premium),
+              box-shadow var(--duration-hover) var(--ease-premium);
+}
+
+/* Hover-only transitions guarded by pointer media query */
+@media (hover: hover) and (pointer: fine) {
+  .surface-card-interactive:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-border-hover);
+  }
+}
+
+.surface-pill {
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-tag);
+}
+
+/* Accessible skip-link for keyboard navigation (WCAG 2.4.1) */
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 50;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-surface);
+  color: var(--color-accent);
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-button);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transform: translateY(-200%);
+  transition: transform var(--duration-tap) var(--ease-premium);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Reduced Motion Guard (WCAG 2.2 AA SC 2.3.3)
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .surface-card-interactive:hover {
+    transform: none !important;
+  }
+  .skip-link {
+    transition: none !important;
+  }
+}

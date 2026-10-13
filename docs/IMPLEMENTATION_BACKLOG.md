@@ -200,16 +200,18 @@
 ---
 
 ### EA-005 Execution record
-- Status: REVIEW
+- Status: DONE
+- Initial Git commit: `a95da5c` (`a95da5c810f6a1213f239b320a750d24d3c31fbe`)
 - Approved implementation plan: [ea_005_scaffold_astro_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_005_scaffold_astro_plan.md) (2026-10-13)
 - Files created/changed: `.gitignore`, `package.json`, `package-lock.json`, `astro.config.mjs`, `tsconfig.json`, `src/styles/tokens.css`, `src/layouts/BaseLayout.astro`, `src/pages/index.astro`, `public/robots.txt`, `public/favicon.svg`, `docs/IMPLEMENTATION_BACKLOG.md`
 - Commands actually executed:
   - `git init`: Initialized Git on master branch
+  - `git commit -m "chore: initialize Astro portfolio foundation"`: Commit `a95da5c` (33 files committed, clean working tree)
   - `npm install`: Added 377 packages, generated `package-lock.json`
-  - `npm ci`: Added 377 packages in 33s (reproducible clean install verified)
+  - `npm ci`: Added 377 packages in 33s & 45s (reproducible clean install verified)
   - `npm run check`: 5 files checked, 0 errors, 0 warnings, 0 hints
-  - `npm run build`: Static output generated in `dist/` in 970ms (`output: "static"`)
-  - `git status`: Verified clean repository tracking, `.gitignore` working
+  - `npm run build`: Static output generated in `dist/` in 1.64s (`output: "static"`)
+  - `git status`: Working tree clean, zero uncommitted or leaked artifacts
 - Actual installed versions:
   - `astro`: 5.18.2
   - `tailwindcss`: 4.3.3
@@ -219,7 +221,33 @@
 - Browser/a11y evidence: `dist/index.html` (2,931 bytes) and `dist/_astro/index.B2JbRU2z.css` (15,986 bytes) compiled cleanly with all `@theme` design tokens and skip link
 - Content verified by: Baseline test page only; zero personal identity or unverified claims; all candidate projects remain in DRAFT
 - Deviations / ADRs: None
-- Owner signoff: Pending review
+- Owner signoff: Approved by owner on 2026-10-13 (Commit `a95da5c` recorded)
+
+### EA-006 Execution record
+- Status: DONE
+- Approved implementation plan: [ea_006_global_css_and_utilities_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_006_global_css_and_utilities_plan.md) (2026-10-13)
+- Scope: Stylesheet architecture (`tokens.css` authoritative theme + `global.css` resets, typography, focus, utilities), single-chain `@import`, visible unclipped keyboard focus outlines (`#F0CF78`, 3px solid, 3px offset), accessible skip-link with `#main-content` target, `.container-atelier` responsive gutters (16px / 24px / 32px), `.reading-column` (max-w 74ch), `.surface-card`, `.surface-card-interactive` with `@media (hover: hover) and (pointer: fine)` hover guard, `.surface-pill`, and strict `@media (prefers-reduced-motion: reduce)`.
+- Files created/changed: `src/styles/tokens.css`, `src/styles/global.css`, `src/layouts/BaseLayout.astro`, `src/pages/index.astro`, `docs/IMPLEMENTATION_BACKLOG.md`
+- Commands actually executed:
+  - `npm run check`: 5 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run build`: Static output generated in `dist/` in 1.06s (`output: "static"`)
+  - `git remote -v`: `origin https://github.com/TM-threemavithana/Engineering-Atelier-Portfolio.git` (confirmed remote, development server remains local only)
+  - `npm audit --json`: 3 dependency advisories documented as unresolved (`esbuild` low, `sharp` high, `astro` critical). Remediation requires major breaking upgrade `astro@7.3.8`. Mitigated by static-only generation (`output: "static"`) with zero runtime server or dynamic image processing attack surface.
+  - Browser real-browser verification (`browser_subagent`):
+    - Verified desktop (1440x900) canvas `#080D17`, text `#F3F7FF`, cards `#111C2B`, decorative borders `#34465D`, strong boundary `#5A7597`
+    - Verified keyboard navigation: Tab reveals `.skip-link` at top-left with gold focus ring (`#F0CF78`, 3px solid, 3px offset, 11.35:1 contrast against surface); activating transfers focus to `#main-content`; Tab navigates through buttons and links with visible unclipped focus outlines
+    - Verified responsive viewports: 1024px, 768px, 390px, 320px; 0 horizontal overflow across all viewports; body font scales smoothly (16px mobile / 17px desktop)
+    - Verified reduced motion CSS overrides and safe hover media queries
+- Generated CSS: `dist/_astro/index.CCdjpDm_.css` (19,466 bytes) contains compiled tokens, utilities, and media queries
+- Content verified by: Baseline test page only; zero personal identity or unverified claims; all candidate projects remain in DRAFT
+- Deviations / ADRs: None
+- Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
+
+### EA-007 Execution record
+- Status: TODO (Next ticket)
+- Scope: Integrate React, MDX and sitemap; verify official Astro integrations and compatibility
+
+
 
 
 
