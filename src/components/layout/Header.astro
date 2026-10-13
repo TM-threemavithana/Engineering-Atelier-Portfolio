@@ -1,0 +1,131 @@
+---
+import { getPublishedNavItems, isNavItemActive } from '../../data/navigation';
+import NavItem from './NavItem.astro';
+
+export interface Props {
+  currentPathname?: string;
+}
+
+const { currentPathname = '/' } = Astro.props;
+const publishedItems = getPublishedNavItems();
+---
+
+<header
+  role="banner"
+  class="sticky top-0 z-40 w-full bg-[var(--color-bg)]/90 backdrop-blur-md border-b border-[var(--color-border)] transition-colors"
+>
+  <div class="container-atelier flex items-center justify-between h-16 sm:h-20">
+    <!-- Brand Wordmark Landmark -->
+    <a
+      href="/"
+      class="group inline-flex items-center min-w-[44px] min-h-[44px] px-2 rounded-[var(--radius-button)] text-[var(--color-fg)] hover:text-[var(--color-accent)] transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+    >
+      <span
+        class="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--color-fg)] group-hover:text-[var(--color-accent)] transition-colors"
+      >
+        EA
+      </span>
+      <span
+        class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] ml-1.5 transition-transform group-hover:scale-125"
+        aria-hidden="true"
+      ></span>
+      <span class="sr-only">Engineering Atelier — Home</span>
+    </a>
+
+    <!-- Desktop Navigation (>= 768px) -->
+    <nav aria-label="Main Navigation" class="hidden md:flex items-center">
+      <ul class="flex items-center gap-1 lg:gap-2">
+        {publishedItems.map((item) => (
+          <NavItem item={item} isActive={isNavItemActive(currentPathname, item.href)} />
+        ))}
+      </ul>
+    </nav>
+
+    <!-- Mobile Navigation Disclosure (< 768px, Semantic CSS-first details/summary) -->
+    <details class="mobile-nav-details relative md:hidden">
+      <summary
+        class="mobile-nav-toggle flex items-center justify-center w-11 h-11 rounded-[var(--radius-button)] text-[var(--color-fg)] hover:text-[var(--color-accent)] hover:bg-[var(--color-surface)] cursor-pointer list-none select-none transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+        aria-label="Toggle navigation menu"
+      >
+        <!-- Icon: Hamburger (Visible when closed) -->
+        <svg
+          class="icon-hamburger w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+          ></path>
+        </svg>
+
+        <!-- Icon: Close (Visible when open) -->
+        <svg
+          class="icon-close hidden w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </summary>
+
+      <!-- Dropdown Menu Panel -->
+      <nav
+        aria-label="Mobile Navigation"
+        class="mobile-nav-dropdown absolute top-full right-0 mt-2 w-56 p-2 bg-[var(--color-surface)] border border-[var(--color-border-strong)] rounded-[var(--radius-card)] shadow-2xl z-50"
+      >
+        <ul class="flex flex-col gap-1">
+          {publishedItems.map((item) => (
+            <NavItem item={item} isActive={isNavItemActive(currentPathname, item.href)} />
+          ))}
+        </ul>
+      </nav>
+    </details>
+  </div>
+</header>
+
+<style>
+  /* Hide standard browser disclosure triangle */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary {
+    list-style: none;
+  }
+
+  /* Toggle between Hamburger and Close icon on details[open] */
+  details[open] .icon-hamburger {
+    display: none;
+  }
+  details[open] .icon-close {
+    display: block;
+  }
+</style>
+
+<script>
+  // Progressive enhancement: close mobile disclosure on Escape or outside click
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const details = document.querySelector<HTMLDetailsElement>('.mobile-nav-details[open]');
+      if (details) {
+        details.open = false;
+        const summary = details.querySelector<HTMLElement>('summary');
+        summary?.focus();
+      }
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const details = document.querySelector<HTMLDetailsElement>('.mobile-nav-details[open]');
+    if (details && !details.contains(e.target as Node)) {
+      details.open = false;
+    }
+  });
+</script>

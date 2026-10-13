@@ -363,8 +363,43 @@
 - Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
 
 ### EA-011 Execution record
-- Status: TODO (Next ticket — Milestone 2: Header and Navigation)
-- Scope: Desktop header, navigation links, accessible mobile menu, focus trap/return
+- Status: DONE
+- Git commit: (Pending local commit)
+- Approved implementation plan: Approved by owner on 2026-10-13 with 3 required corrections:
+  1. No dead links to unbuilt routes (`/projects/`, `/about/`, `/contact/`).
+  2. CSS-first semantic disclosure mobile navigation using `<details>` and `<summary>` without unnecessary React islands or `aria-modal`.
+  3. Extended production validation for link integrity, zoom, viewports, and JS-disabled navigation.
+- Scope: Sticky dark navy header (`#080D17`, `bg-[var(--color-bg)]/90 backdrop-blur-md`), hairline border (`var(--color-border)`), temporary `EA` wordmark with accent dot, desktop `<nav aria-label="Main Navigation">`, reusable `NavItem.astro` with monospace index numbers (`01.`), 44x44px touch targets, gold focus ring (`#F0CF78`, 3px, 11.35:1 contrast), semantic CSS-first mobile disclosure `<details class="mobile-nav-details">` with `<summary class="mobile-nav-toggle">`, SVG hamburger and close toggling via CSS, and progressive enhancement keyboard Escape / outside click closing.
+- Navigation Route Safety Architecture:
+  - Centralized in `src/data/navigation.ts`.
+  - Only verified, existing routes (`/`) have `isPublished: true`.
+  - Future routes (`/projects/`, `/about/`, `/contact/`) configured with `isPublished: false` until respective milestone tickets.
+  - Future routes (`/writing/`, `/resume.pdf`) gated strictly by `featureFlags`.
+  - Helper `getPublishedNavItems()` guarantees zero 404 links or placeholder routes in generated markup.
+- Files created/changed:
+  - `src/data/navigation.ts` (created)
+  - `src/components/layout/NavItem.astro` (created)
+  - `src/components/layout/Header.astro` (created)
+  - `src/layouts/BaseLayout.astro` (modified: integrated Header component)
+  - `tests/unit/navigation.test.ts` (created: route safety, feature flags, file existence, active state)
+  - `tests/artifacts/artifact-verification.ts` (modified: Section 10 header landmark, link integrity, semantic disclosure, aria-current assertions)
+  - `docs/CONTENT_STATUS.md` (modified: EA-011 marked DONE)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: EA-011 execution record)
+- Commands actually executed:
+  - `npx tsx --test "tests/unit/**/*.test.ts"`: Both unit test suites passed cleanly (2 pass, 0 fail).
+  - `npm run format`: Prettier formatted all files cleanly with Astro 5 compatibility.
+  - `npm run verify`: Full verification pipeline passed with exit code 0 (`check` [0 errors] -> `lint` [0 errors] -> `format:check` [clean] -> `test` [2 pass, 0 fail] -> `build` [1 static page in 2.55s] -> `verify:artifacts` [all 10 suites pass]).
+  - `npm run preview -- --port 4321`: Started local preview server for real-browser verification.
+  - Browser verification (`browser_subagent`):
+    - Verified desktop 1440x900 header, wordmark, nav item `01. Home`, active styling.
+    - Verified keyboard navigation: Tab to skip-link, Tab to `EA` wordmark (gold ring `#F0CF78`), Tab to `01. Home` (gold ring `#F0CF78`). Unclipped, visible, compliant with WCAG 2.2 SC 2.4.11 / 2.4.13.
+    - Verified responsive breakpoints: 1440px, 1024px, 768px, 390px, 320px.
+    - Verified zero horizontal overflow on mobile viewports (`scrollWidth === clientWidth` on both 390px and 320px).
+    - Verified mobile `<details>` disclosure: clicking hamburger opens dropdown panel; hamburger icon switches to close (X); touch target >= 44x44px; pressing Escape closes menu and restores focus to summary; clicking outside closes menu.
+    - Verified No-JavaScript resilience: `<details>` / `<summary>` opens and closes natively via browser engine without JS; all links navigate natively.
+- Content truth: Temporary `EA` monogram retained; zero fabricated routes, personal names, employer names, or credentials; candidate projects remain in DRAFT status.
+- Next Ticket: EA-012 — Buttons, links and shared UI primitives (Milestone 2).
+
 
 
 

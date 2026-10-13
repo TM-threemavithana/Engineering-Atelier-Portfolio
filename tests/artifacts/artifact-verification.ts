@@ -119,4 +119,72 @@ const faviconPath = path.join(distDir, 'favicon.svg');
 assert.ok(fs.existsSync(faviconPath), 'Favicon must exist in dist/favicon.svg');
 console.log('✓ Static asset integrity confirmed: CSS bundle and favicon present');
 
+// 10. Verify EA-011 Navigation and Header Production Markup
+assert.ok(
+  indexHtml.includes('<header role="banner"'),
+  'dist/index.html must contain header banner'
+);
+assert.ok(
+  indexHtml.includes('Engineering Atelier — Home'),
+  'Wordmark accessible text must be present'
+);
+assert.ok(
+  indexHtml.includes('<details class="mobile-nav-details'),
+  'Mobile navigation must use semantic <details> disclosure'
+);
+assert.ok(
+  indexHtml.includes('<summary class="mobile-nav-toggle'),
+  'Mobile navigation must use semantic <summary> toggle'
+);
+assert.ok(
+  !indexHtml.includes('aria-modal'),
+  'Non-modal disclosure must strictly NOT contain aria-modal'
+);
+
+// Extract all internal links inside <nav> tags
+const navMatches = indexHtml.match(/<nav[^>]*>([\s\S]*?)<\/nav>/g) || [];
+assert.ok(navMatches.length >= 2, 'Both desktop and mobile navigation landmarks must be present');
+
+for (const navBlock of navMatches) {
+  const hrefMatches = [...navBlock.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+  for (const href of hrefMatches) {
+    if (href.startsWith('/')) {
+      // Map to physical file in dist/
+      const targetFile =
+        href === '/'
+          ? path.join(distDir, 'index.html')
+          : path.join(distDir, href.replace(/^\/|\/$/g, ''), 'index.html');
+      assert.ok(
+        fs.existsSync(targetFile),
+        `Navigation link "${href}" must resolve to an existing generated file: ${targetFile}`
+      );
+    }
+  }
+}
+
+// Assert unbuilt or disabled routes are NOT present in navigation
+const forbiddenNavRoutes = ['/projects/', '/about/', '/contact/', '/writing/', '/resume.pdf'];
+for (const forbiddenRoute of forbiddenNavRoutes) {
+  assert.ok(
+    !indexHtml.includes(`href="${forbiddenRoute}"`),
+    `Unbuilt or disabled route "${forbiddenRoute}" must not be linked in production navigation`
+  );
+}
+
+// Assert only the current page has aria-current="page"
+const aTagsWithAriaCurrent = indexHtml.match(/<a\b[^>]*\baria-current="page"[^>]*>/gi) || [];
+assert.ok(aTagsWithAriaCurrent.length > 0, 'Current page must have aria-current="page"');
+for (const tag of aTagsWithAriaCurrent) {
+  const hrefMatch = tag.match(/href="([^"]+)"/i);
+  assert.ok(hrefMatch, 'Tag with aria-current="page" must have an href attribute');
+  assert.equal(
+    hrefMatch[1],
+    '/',
+    'Only the exact current page ("/") must receive aria-current="page" on index.html'
+  );
+}
+console.log(
+  '✓ Header and Navigation production integrity confirmed: zero 404 links, semantic disclosure, correct aria-current'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

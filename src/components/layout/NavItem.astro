@@ -1,0 +1,33 @@
+---
+import type { NavItemConfig } from '../../data/navigation';
+
+export interface Props {
+  item: NavItemConfig;
+  isActive: boolean;
+}
+
+const { item, isActive } = Astro.props;
+---
+
+<li class="list-none">
+  <a
+    href={item.href}
+    aria-current={isActive ? 'page' : undefined}
+    class:list={[
+      'group inline-flex items-center min-h-[44px] px-3 py-2 text-sm font-medium rounded-[var(--radius-button)] transition-colors duration-150',
+      'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]',
+      isActive
+        ? 'text-[var(--color-accent)] bg-[var(--color-surface-alt)] font-semibold border border-[var(--color-border-strong)]'
+        : 'text-[var(--color-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-surface)]',
+    ]}
+  >
+    <span
+      class="text-xs font-mono text-[var(--color-accent)] mr-1.5 opacity-75 group-hover:opacity-100 transition-opacity"
+      aria-hidden="true"
+    >
+      {item.number}.
+    </span>
+    <span>{item.label}</span>
+    {isActive && <span class="sr-only"> (current page)</span>}
+  </a>
+</li>
