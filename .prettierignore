@@ -1,0 +1,12 @@
+dist/
+node_modules/
+.astro/
+package-lock.json
+public/
+AGENTS.md
+README.md
+MANIFEST.json
+docs/
+design/
+templates/
+prompts/

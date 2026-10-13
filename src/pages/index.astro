@@ -1,5 +1,5 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout
@@ -9,22 +9,31 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <main id="main-content" tabindex="-1" class="container-atelier py-12 sm:py-16 focus:outline-none">
     <!-- Header Landmark -->
     <header class="border-b border-[var(--color-border-strong)] pb-8 mb-10">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-[var(--color-accent)] font-mono text-xs mb-4">
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-[var(--color-accent)] font-mono text-xs mb-4"
+      >
         <span class="w-2 h-2 rounded-full bg-[var(--color-accent)]" aria-hidden="true"></span>
         <span>EA-008 Layout &amp; Metadata Utilities</span>
       </div>
-      <h1 class="font-['Space_Grotesk'] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-fg)] mb-4">
+      <h1
+        class="font-['Space_Grotesk'] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--color-fg)] mb-4"
+      >
         Engineering Atelier
       </h1>
       <p class="reading-column text-[var(--color-muted)] text-base lg:text-lg leading-relaxed">
-        Building reliable systems. Creating meaningful experiences. This baseline validates Tailwind CSS v4 global tokens, responsive container gutters, WCAG 2.2 AA/AAA focus appearance, and accessible semantic utilities.
+        Building reliable systems. Creating meaningful experiences. This baseline validates Tailwind
+        CSS v4 global tokens, responsive container gutters, WCAG 2.2 AA/AAA focus appearance, and
+        accessible semantic utilities.
       </p>
     </header>
 
     <!-- Section 1: Surface Containers & Border Semantics -->
     <section id="semantic-utilities" aria-labelledby="tokens-heading" class="space-y-6 mb-12">
       <div class="flex items-center justify-between">
-        <h2 id="tokens-heading" class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)]">
+        <h2
+          id="tokens-heading"
+          class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)]"
+        >
           Surface Containers &amp; Border Semantics
         </h2>
         <span class="surface-pill px-2.5 py-0.5 text-xs font-mono text-[var(--color-muted)]">
@@ -42,9 +51,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             Surface Card (.surface-card)
           </h3>
           <p class="text-[var(--color-muted)] text-sm mb-4 leading-relaxed">
-            Decorative hairline stroke (<code class="text-xs text-[var(--color-fg)]">#34465D</code>, 1.78:1) with distinct background fill (<code class="text-xs text-[var(--color-fg)]">#111C2B</code>).
+            Decorative hairline stroke (<code class="text-xs text-[var(--color-fg)]">#34465D</code>,
+            1.78:1) with distinct background fill (
+            <code class="text-xs text-[var(--color-fg)]">#111C2B</code>).
           </p>
-          <div class="surface-pill inline-block px-2 py-1 text-xs font-mono text-[var(--color-muted)]">
+          <div
+            class="surface-pill inline-block px-2 py-1 text-xs font-mono text-[var(--color-muted)]"
+          >
             Fill separation provides boundary
           </div>
         </article>
@@ -58,15 +71,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             Interactive Card (.surface-card-interactive)
           </h3>
           <p class="text-[var(--color-muted)] text-sm mb-4 leading-relaxed">
-            Hover lift (<code class="text-xs text-[var(--color-fg)]">translateY(-4px)</code>) guarded by <code class="text-xs text-[var(--color-fg)]">(hover: hover) and (pointer: fine)</code>.
+            Hover lift (<code class="text-xs text-[var(--color-fg)]">translateY(-4px)</code>)
+            guarded by{' '}
+            <code class="text-xs text-[var(--color-fg)]">(hover: hover) and (pointer: fine)</code>.
           </p>
-          <div class="surface-pill inline-block px-2 py-1 text-xs font-mono text-[var(--color-accent)]">
+          <div
+            class="surface-pill inline-block px-2 py-1 text-xs font-mono text-[var(--color-accent)]"
+          >
             Hover sheen: #94F5E6
           </div>
         </article>
 
         <!-- Standalone Semantic Boundary Card -->
-        <article class="p-6 rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border-strong)]">
+        <article
+          class="p-6 rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border-strong)]"
+        >
           <div class="text-xs font-mono text-[var(--color-focus)] uppercase tracking-wider mb-2">
             Essential UI Boundary
           </div>
@@ -74,9 +93,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             Strong Boundary (--color-border-strong)
           </h3>
           <p class="text-[var(--color-muted)] text-sm mb-4 leading-relaxed">
-            Component boundary (<code class="text-xs text-[var(--color-fg)]">#5A7597</code>, 3.61:1 against surface), exceeding WCAG 2.2 SC 1.4.11 (&ge; 3.0:1).
+            Component boundary (<code class="text-xs text-[var(--color-fg)]">#5A7597</code>, 3.61:1
+            against surface), exceeding WCAG 2.2 SC 1.4.11 (&ge; 3.0:1).
           </p>
-          <div class="surface-pill inline-block px-2 py-1 text-xs font-mono text-[var(--color-focus)]">
+          <div
+            class="surface-pill inline-block px-2 py-1 text-xs font-mono text-[var(--color-focus)]"
+          >
             3.61:1 High-contrast boundary
           </div>
         </article>
@@ -86,11 +108,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <!-- Section 2: Interactive Controls & Keyboard Focus -->
     <section aria-labelledby="focus-heading" class="surface-card p-6 sm:p-8 space-y-6 mb-12">
       <div>
-        <h2 id="focus-heading" class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)] mb-2">
+        <h2
+          id="focus-heading"
+          class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)] mb-2"
+        >
           Interactive Controls &amp; Keyboard Focus
         </h2>
         <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed">
-          Tab through the controls below to verify visible, unclipped keyboard focus outlines (<code class="text-xs text-[var(--color-focus)]">#F0CF78</code>, 3px solid, 3px offset; 11.35:1 contrast against surface).
+          Tab through the controls below to verify visible, unclipped keyboard focus outlines (
+          <code class="text-xs text-[var(--color-focus)]">#F0CF78</code>, 3px solid, 3px offset;
+          11.35:1 contrast against surface).
         </p>
       </div>
 
@@ -123,15 +150,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <!-- Section 3: Responsive Reading Column & Non-JS Resilience -->
     <section aria-labelledby="reading-heading" class="space-y-4">
-      <h2 id="reading-heading" class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)]">
+      <h2
+        id="reading-heading"
+        class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)]"
+      >
         Reading Column &amp; Non-JavaScript Resilience
       </h2>
       <div class="reading-column surface-card p-6 space-y-3">
         <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed">
-          The <code class="text-xs text-[var(--color-accent)]">.reading-column</code> utility constrains prose line length to 74 characters (<code class="text-xs text-[var(--color-fg)]">max-w-[74ch]</code>), preventing visual fatigue across widescreen monitors.
+          The <code class="text-xs text-[var(--color-accent)]">.reading-column</code> utility
+          constrains prose line length to 74 characters (
+          <code class="text-xs text-[var(--color-fg)]">max-w-[74ch]</code>), preventing visual
+          fatigue across widescreen monitors.
         </p>
         <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed">
-          Zero client-side JavaScript is required to render layout, apply typography, or manage interactive CSS hover and keyboard focus states. All candidate projects remain strictly gated in <code class="text-xs text-[var(--color-warning)]">DRAFT</code> status.
+          Zero client-side JavaScript is required to render layout, apply typography, or manage
+          interactive CSS hover and keyboard focus states. All candidate projects remain strictly
+          gated in <code class="text-xs text-[var(--color-warning)]">DRAFT</code> status.
         </p>
       </div>
     </section>

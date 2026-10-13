@@ -1,7 +1,7 @@
 ---
-import type { PageMetaProps } from "../utils/seo";
-import { resolvePageMeta } from "../utils/seo";
-import "../styles/global.css";
+import type { PageMetaProps } from '../utils/seo';
+import { resolvePageMeta } from '../utils/seo';
+import '../styles/global.css';
 
 export type Props = PageMetaProps;
 
@@ -9,7 +9,7 @@ const props = Astro.props;
 const meta = resolvePageMeta(props, Astro.url.pathname, Astro.site);
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang={meta.language}>
   <head>
     <meta charset="UTF-8" />
@@ -33,9 +33,7 @@ const meta = resolvePageMeta(props, Astro.url.pathname, Astro.site);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-fg)]">
-    <a href="#main-content" class="skip-link">
-      Skip to main content
-    </a>
+    <a href="#main-content" class="skip-link"> Skip to main content </a>
     <slot />
   </body>
 </html>

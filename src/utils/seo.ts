@@ -100,9 +100,7 @@ export function resolvePageMeta(
     ? `${props.title.trim()} | ${siteConfig.brandName}`
     : siteConfig.defaultTitle;
 
-  const description = props.description
-    ? props.description.trim()
-    : siteConfig.defaultDescription;
+  const description = props.description ? props.description.trim() : siteConfig.defaultDescription;
 
   const canonicalUrl = formatCanonicalUrl(
     currentPathname,

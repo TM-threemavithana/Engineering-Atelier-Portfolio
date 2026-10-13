@@ -12,7 +12,8 @@
 - `EA-006` — **DONE** (Tailwind v4 Global CSS Tokens & Accessible Utilities)  
 - `EA-007` — **DONE** (Integrate React, MDX and Sitemap)  
 - `EA-008` — **DONE** (Baseline Layout and Metadata Utilities)  
-- `EA-009` — **TODO** (Lint, Type, Format, and Check Scripts)  
+- `EA-009` — **DONE** (Lint, Type, Format, and Check Scripts)  
+- `EA-010` — **TODO** (CI Checks and Deployment Strategy)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 
