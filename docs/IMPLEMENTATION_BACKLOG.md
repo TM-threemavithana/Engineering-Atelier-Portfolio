@@ -264,6 +264,7 @@
 
 ### EA-008 Execution record
 - Status: DONE
+- Git commit: `6cfee68` (`feat: implement baseline layout and metadata utilities (EA-008)`)
 - Approved implementation plan: [ea_008_baseline_layout_metadata_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_008_baseline_layout_metadata_plan.md) (2026-10-13, approved with 4 corrections)
 - Scope: Reusable production `BaseLayout.astro`, strictly typed `src/data/featureFlags.ts`, `src/data/siteConfig.ts`, `src/utils/domain.ts`, and `src/utils/seo.ts`. Default development `noindex, nofollow` metadata protection. Deterministic canonical URL and `og:url` omission when `PUBLIC_SITE_URL` is unset. Trailing-slash and query-param normalization. Rejection of unapproved external canonical overrides. Accessible skip navigation targeting `<main id="main-content" tabindex="-1">`. Zero client-side JavaScript overhead.
 - Files created/changed: `src/utils/domain.ts`, `astro.config.mjs`, `src/data/featureFlags.ts`, `src/data/siteConfig.ts`, `src/utils/seo.ts`, `src/layouts/BaseLayout.astro`, `src/pages/index.astro`, `tests/ea008-verification.test.ts`, `docs/CONTENT_STATUS.md`, `docs/IMPLEMENTATION_BACKLOG.md`
