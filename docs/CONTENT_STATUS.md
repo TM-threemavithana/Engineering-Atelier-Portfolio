@@ -8,7 +8,10 @@
 - `EA-002` — **DONE** (Identity, Sitemap, Feature Flags Approved)  
 - `EA-003` — **DONE** (Responsive Wireframes & Visual Architecture Approved)  
 - `EA-004` — **DONE** (Tokens, Deterministic Contrast, ADR-001 to ADR-007 Approved)  
-- `EA-005` — **IN PROGRESS (Plan In Review)** (Scaffold Astro + Strict TypeScript)  
+- `EA-005` — **DONE** (Scaffold Astro + Strict TypeScript)  
+- `EA-006` — **DONE** (Tailwind v4 Global CSS Tokens & Accessible Utilities)  
+- `EA-007` — **DONE** (Integrate React, MDX and Sitemap)  
+- `EA-008` — **TODO** (Baseline Layout and Metadata Utilities)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

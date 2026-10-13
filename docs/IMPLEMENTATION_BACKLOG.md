@@ -245,8 +245,25 @@
 - Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
 
 ### EA-007 Execution record
+- Status: DONE
+- Approved implementation plan: [ea_007_react_mdx_sitemap_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_007_react_mdx_sitemap_plan.md) (2026-10-13, approved with Corrections A, B, and C)
+- Scope: Official `@astrojs/react@4.4.2` with `react@19.3.0`, `react-dom@19.3.0`, `@types/react@19.3.0`, `@types/react-dom@19.3.0`; `@astrojs/mdx@4.3.14`; `@astrojs/sitemap@3.7.4`. Strict TypeScript with `jsx: "react-jsx"`, `jsxImportSource: "react"`.
+- Defensive Sitemap Architecture: `getValidatedProductionSiteUrl` in `astro.config.mjs` validates `PUBLIC_SITE_URL` against localhost, 127.0.0.1, example domains, and malformed strings. When unset or invalid, sitemap generation is completely disabled. When valid, sitemap applies `APPROVED_PUBLISHED_ROUTES` whitelist matching (`Set(['/'])`), ensuring zero drafts, fixtures, or preview routes enter sitemap XML.
+- Development Fixture Isolation: `TestInteractiveIsland.tsx` and `TestMdxNote.mdx` isolated in `src/components/dev/`. Verified via temporary dev route, which was completely removed before production build. Production `dist/` contains zero test fixtures, zero test controls, and zero client JavaScript on `index.html`.
+- Content truth: All 4 candidate projects remain strictly in DRAFT status; zero unverified project claims or personal data published.
+- Commands actually executed:
+  - `npm install`: Added official Astro 5 integrations with React 19
+  - `npm ci`: Verified reproducible clean install with pinned `package-lock.json`
+  - `npm run check`: 6 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run build`: Static build passed in 2.12s (`output: "static"`)
+  - Browser verification (`browser_subagent`): Verified React 19 island hydration in real browser (`client:idle` updating state from 0 to 1 to 2 clicks); verified MDX typography, heading, and code block parsing; verified gold focus ring
+  - Conditional sitemap verification: Validated generation with temporary test domain `https://portfolio-test.engineering` (only `/` included); validated rejection and suppression of `http://localhost:4321`; confirmed default build without `PUBLIC_SITE_URL` generates zero sitemap files
+  - `npm audit`: 4 vulnerabilities logged as unresolved (`astro` critical, `sharp` high, `esbuild` low, `@astrojs/mdx` via astro). Breaking major upgrade to `astro@7.3.8` avoided. Mitigated by static-only generation (`output: "static"`) with zero runtime server or dynamic image processing attack surface.
+- Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
+
+### EA-008 Execution record
 - Status: TODO (Next ticket)
-- Scope: Integrate React, MDX and sitemap; verify official Astro integrations and compatibility
+- Scope: Baseline layout and metadata utilities (BaseLayout, default title/description, canonical helper, skip link, site language and favicon placeholder only as approved)
 
 
 

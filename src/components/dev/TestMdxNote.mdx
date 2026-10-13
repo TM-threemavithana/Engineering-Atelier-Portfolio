@@ -1,0 +1,13 @@
+### Development MDX Compilation Verification
+
+This isolated component tests that `@astrojs/mdx` parses markdown syntax, code elements, and typography correctly under Astro 5.
+
+- **Markdown Parsing:** Verified via Astro MDX compiler.
+- **Candidate Projects:** All 4 candidate projects remain strictly in `draft: true` status.
+- **Production Guard:** Excluded from production routes and static sitemaps.
+
+```typescript
+// Architectural verification note
+const isCandidateDraft = true;
+export const gateCheck = () => !isCandidateDraft;
+```
