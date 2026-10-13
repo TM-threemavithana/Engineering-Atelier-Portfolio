@@ -1,21 +1,22 @@
 import assert from 'node:assert/strict';
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-console.log('--- Starting Production Artifact Verification Suite ---');
+console.log('--- Starting Post-Build Production Artifact Verification Suite ---');
 
 const distDir = path.resolve('dist');
 const indexHtmlPath = path.join(distDir, 'index.html');
 
-// 1. Ensure build output exists (trigger build if running against clean working tree)
-if (!fs.existsSync(indexHtmlPath)) {
-  console.log('dist/index.html not found. Executing static build for artifact verification...');
-  execSync('npm run build', { stdio: 'inherit' });
-}
-
-assert.ok(fs.existsSync(distDir), 'Output directory dist/ must exist');
-assert.ok(fs.existsSync(indexHtmlPath), 'dist/index.html must exist');
+// 1. Invariant: Output directory dist/ and dist/index.html must exist from a prior build.
+// Strict failure if dist/ is absent: tests must never silently rebuild or mask missing output.
+assert.ok(
+  fs.existsSync(distDir),
+  'Output directory dist/ must exist. Run npm run build before verifying artifacts.'
+);
+assert.ok(
+  fs.existsSync(indexHtmlPath),
+  'dist/index.html must exist. Run npm run build before verifying artifacts.'
+);
 
 const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
 assert.ok(indexHtml.length > 500, 'dist/index.html must not be empty or truncated');

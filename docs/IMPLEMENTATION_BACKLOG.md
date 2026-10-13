@@ -315,16 +315,22 @@
 
 ### EA-010 Execution record
 - Status: DONE
+- Git commit: `e552d98` (`fix: separate unit tests from post-build artifact verification (EA-010)`, on top of `64d1311`)
 - Approved implementation plan: [ea_010_ci_and_preview_deployment_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_010_ci_and_preview_deployment_plan.md) (approved with 4 required adjustments by owner on 2026-10-13)
-- Scope: GitHub Actions CI workflow, comprehensive security risk assessment and remediation matrix (`docs/SECURITY_AND_PREVIEW_PLAN.md`), deterministic post-build production artifact verification test (`tests/artifact-verification.test.ts`), and access-controlled preview deployment strategy.
+- Scope: GitHub Actions CI workflow, comprehensive security risk assessment and remediation matrix (`docs/SECURITY_AND_PREVIEW_PLAN.md`), clean separation of independent unit tests (`tests/unit/`) from post-build artifact verification (`tests/artifacts/`), deterministic post-build production artifact verification test (`tests/artifacts/artifact-verification.ts`), and access-controlled preview deployment strategy.
+- CI Reliability & Clean Pipeline Separation:
+  - Clean Test Hierarchy: Separated independent unit tests (`tests/unit/**/*.test.ts`) from post-build artifact verification (`tests/artifacts/artifact-verification.ts`).
+  - Unit Test Independence: `npm run test` (`tsx --test "tests/unit/**/*.test.ts"`) executes strictly without requiring or expecting `dist/`. Passes cleanly on fresh clones before `dist/` exists.
+  - Strict Artifact Gating: `tests/artifacts/artifact-verification.ts` requires pre-existing `dist/` and `dist/index.html`. Zero silent auto-rebuilding; fails immediately with `AssertionError` if `dist/` is absent, preventing false passes or stale artifact inspections.
+  - Validated Pipeline Sequence: `npm run check` &rarr; `npm run lint` &rarr; `npm run format:check` &rarr; `npm run test` &rarr; `npm run build` &rarr; `npm run verify:artifacts`.
 - GitHub Actions CI Architecture (`.github/workflows/ci.yml`):
   - Environment: Official `ubuntu-latest` runner with `node-version: 22.x` (matching host `v22.22.0`) and native npm dependency caching.
   - Security & Least Privilege: Enforces `permissions: contents: read` (downscopes GitHub's automatically issued `GITHUB_TOKEN` to read-only repository contents). Zero deployment tokens, write permissions, or external secrets requested or exposed.
   - Workflow Triggers & Concurrency: Push/pull_request on `master` and `main`. Strictly avoids `pull_request_target`. Cancels redundant runs with `concurrency.cancel-in-progress: true`.
   - Sequential Pipeline: Executes `npm ci`, `npm run check`, `npm run lint`, `npm run format:check`, `npm run test`, `npm run build`, `npm run verify:artifacts`, and non-blocking `npm audit`.
   - Zero Push: Workflow created and verified locally; zero remote push performed without owner approval.
-- Production Artifact Verification (`tests/artifact-verification.test.ts`):
-  - Deterministic test integrated into both `npm run test` and `npm run verify:artifacts`.
+- Production Artifact Verification (`tests/artifacts/artifact-verification.ts`):
+  - Dedicated script executed via `npm run verify:artifacts` only after `npm run build`.
   - Verifies `dist/index.html` exists and contains valid markup.
   - Verifies mandatory `<meta name="robots" content="noindex, nofollow">` is present while `isProductionApproved` is false.
   - Verifies `<link rel="canonical">` and `og:url` are strictly omitted when `PUBLIC_SITE_URL` is unset.
@@ -343,11 +349,14 @@
   - Establishes that `robots.txt` and `noindex` do not provide access control or authentication.
   - Evaluates Cloudflare Pages with Cloudflare Access (One-Time PIN/OAuth) and Vercel Deployment Protection as enterprise-grade access-controlled preview staging for Milestone 5.
   - Zero external hosting provider or domain configured during Milestone 1.
-- Commands actually executed:
+- Commands actually executed & Clean Workspace Verification Evidence:
   - `npm ls typescript`: Confirmed single, deduped `typescript@5.9.3` across all tooling.
-  - `npx tsx tests/artifact-verification.test.ts`: Passed all 9 artifact invariant assertions.
-  - `npm run test`: Discovered and passed 2 test suites (`tests/artifact-verification.test.ts` and `tests/ea008-verification.test.ts`), 2 pass, 0 fail.
-  - `npm run verify`: Passed all 6 pipeline stages (`check`, `lint`, `format:check`, `test`, `build`, `verify:artifacts`) with exit code 0.
+  - Clean State Simulation: Removed `dist/` directory completely (`Test-Path dist` = False).
+  - Independent Unit Test Verification: Executed `npm run test` on clean state without `dist/`; passed cleanly (1 pass, 0 fail).
+  - Missing Artifact Failure Verification: Executed `npm run verify:artifacts` without `dist/`; failed immediately with `AssertionError: Output directory dist/ must exist. Run npm run build before verifying artifacts.` (exit code 1).
+  - Failure Propagation Verification: Introduced intentional assertion failure; confirmed `npm run verify` halted immediately with exit code 1; reverted cleanly.
+  - `npm ci`: Clean install completed in 50s from lockfile with zero warnings/errors.
+  - `npm run verify`: Passed all 6 pipeline stages from clean state (`check`, `lint`, `format:check`, `test`, `build`, `verify:artifacts`) with exit code 0.
   - `npm audit`: Documented 9 advisories in risk register with threat context and mitigations.
 - Content truth: Zero personal data, employers, or production domains fabricated; all candidate projects remain in DRAFT status.
 - Milestone Gate G1: Passed (Reproducible toolchain, CI verification, and architecture review complete).

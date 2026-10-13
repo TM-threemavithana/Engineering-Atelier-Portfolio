@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { getValidatedProductionSiteUrl } from '../src/utils/domain';
-import { normalizePathname, formatCanonicalUrl, resolvePageMeta } from '../src/utils/seo';
-import { featureFlags } from '../src/data/featureFlags';
-import { siteConfig } from '../src/data/siteConfig';
+import { getValidatedProductionSiteUrl } from '../../src/utils/domain';
+import { normalizePathname, formatCanonicalUrl, resolvePageMeta } from '../../src/utils/seo';
+import { featureFlags } from '../../src/data/featureFlags';
+import { siteConfig } from '../../src/data/siteConfig';
 
 console.log('--- Starting EA-008 Verification Suite ---');
 
