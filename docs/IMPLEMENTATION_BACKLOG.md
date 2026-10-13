@@ -281,6 +281,40 @@
 
 ### EA-009 Execution record
 - Status: DONE
+- Git commit: `9012cb2` (`build: configure ESLint, Prettier, tsx test runner, and verify script (EA-009)`)
+- Approved implementation plan: Approved by owner on 2026-10-13 with 8 required corrections
+- Scope: Lint/type/format/check scripts, ESLint flat config with Astro security rules, Prettier formatting with Astro 5 whitespace compression, reproducible local test runner, and unified quality verification pipeline (`npm run verify`).
+- Node.js Engine Verification:
+  - Host environment: Node `v22.22.0`, npm `10.9.4`.
+  - Package selection: Pinned `eslint@^9.39.5` and `eslint-plugin-astro@^1.7.0` (engine requirement `^18.18.0 || ^20.9.0 || >=21.1.0`), perfectly satisfying Node v22.22.0 without engine mismatch, bypasses, or `--force`.
+  - Added dependencies in `devDependencies`: `eslint@^9.39.5`, `eslint-plugin-astro@^1.7.0`, `typescript-eslint@^8.71.2`, `prettier@^3.9.10`, `prettier-plugin-astro@^1.1.1`, and `tsx@^4.23.15`.
+- Configuration Architecture:
+  - `eslint.config.mjs`: Flat config covering `.astro`, `.ts`, `.tsx`, `.js`, `.mjs`. Enforces strict TypeScript rules (`@typescript-eslint/no-unused-vars`: error, `@typescript-eslint/no-explicit-any`: error), global ignores (`dist/**`, `.astro/**`, `node_modules/**`, `public/**`, `package-lock.json`), and security rule `astro/no-set-html-directive`: 'error'.
+  - `.prettierrc.mjs`: Prettier with `prettier-plugin-astro`, Astro parser override, and `astroCompressHTML: 'html'` for Astro 5-compatible whitespace handling.
+  - `.prettierignore`: Explicitly protects `docs/`, `design/`, `templates/`, `prompts/`, `AGENTS.md`, `README.md`, `MANIFEST.json`, `dist/`, and `package-lock.json` from automatic rewriting.
+  - `package.json` scripts:
+    - `npm run check`: `astro check`
+    - `npm run lint`: `eslint .`
+    - `npm run lint:fix`: `eslint . --fix`
+    - `npm run format`: `prettier --write src/ tests/ *.mjs *.json`
+    - `npm run format:check`: `prettier --check src/ tests/ *.mjs *.json`
+    - `npm run test`: `tsx --test "tests/**/*.test.ts"` (Node TAP runner with dynamic glob discovery)
+    - `npm run verify`: `npm run check && npm run lint && npm run format:check && npm run test && npm run build`
+- Commands actually executed:
+  - `npm ci`: Clean install completed in 1m (exit code 0).
+  - Intentional lint violation check: Added `set:html` tag and unused frontmatter variable to `src/pages/index.astro`; confirmed `npm run lint` failed with exit code 1 and reported 2 errors; cleanly reverted.
+  - `npm run verify`: All 5 gates passed with exit code 0:
+    - `check`: 12 files checked, 0 errors, 0 warnings, 0 hints
+    - `lint`: 0 errors, 0 warnings
+    - `format:check`: All matched files use Prettier code style
+    - `test`: 1 test passed (TAP version 13, `tests/ea008-verification.test.ts`), 0 failures
+    - `build`: 1 static page built in 2.38s
+  - `npm audit`: 9 vulnerabilities documented in risk register (2 low, 6 high, 1 critical) from upstream Astro, sharp, esbuild, and braces. Breaking upgrade avoided; mitigated by static-only generation (`output: "static"`).
+- Content truth: Zero fabricated personal data, employer history, or production domains; all candidate projects remain in DRAFT status.
+- Owner signoff: Approved with required corrections; implemented and verified on 2026-10-13
+
+### EA-010 Execution record
+- Status: DONE
 - Approved implementation plan: Approved by owner on 2026-10-13 with 8 required corrections
 - Scope: Lint/type/format/check scripts, ESLint flat config with Astro security rules, Prettier formatting with Astro 5 whitespace compression, reproducible local test runner, and unified quality verification pipeline (`npm run verify`).
 - Node.js Engine Verification:
