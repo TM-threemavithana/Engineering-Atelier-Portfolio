@@ -246,6 +246,7 @@
 
 ### EA-007 Execution record
 - Status: DONE
+- Git commit: `325f0e8` (`feat: integrate React, MDX and defensive sitemap (EA-007)`)
 - Approved implementation plan: [ea_007_react_mdx_sitemap_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_007_react_mdx_sitemap_plan.md) (2026-10-13, approved with Corrections A, B, and C)
 - Scope: Official `@astrojs/react@4.4.2` with `react@19.3.0`, `react-dom@19.3.0`, `@types/react@19.3.0`, `@types/react-dom@19.3.0`; `@astrojs/mdx@4.3.14`; `@astrojs/sitemap@3.7.4`. Strict TypeScript with `jsx: "react-jsx"`, `jsxImportSource: "react"`.
 - Defensive Sitemap Architecture: `getValidatedProductionSiteUrl` in `astro.config.mjs` validates `PUBLIC_SITE_URL` against localhost, 127.0.0.1, example domains, and malformed strings. When unset or invalid, sitemap generation is completely disabled. When valid, sitemap applies `APPROVED_PUBLISHED_ROUTES` whitelist matching (`Set(['/'])`), ensuring zero drafts, fixtures, or preview routes enter sitemap XML.
