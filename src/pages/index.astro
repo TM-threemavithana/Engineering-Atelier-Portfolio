@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Engineering Atelier — EA-005 Baseline"
+  description="Development-only baseline page verifying Astro v5, strict TypeScript, and Tailwind v4 tokens."
+>
+  <main id="main-content" class="max-w-4xl mx-auto px-6 py-16">
+    <header class="border-b border-[var(--color-border-strong)] pb-8 mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-[var(--color-accent)] font-mono text-xs mb-4">
+        <span class="w-2 h-2 rounded-full bg-[var(--color-accent)]"></span>
+        EA-005 Development Baseline
+      </div>
+      <h1 class="font-['Space_Grotesk'] text-4xl sm:text-5xl font-bold tracking-tight text-[var(--color-fg)] mb-4">
+        Engineering Atelier
+      </h1>
+      <p class="text-[var(--color-muted)] text-lg max-w-2xl leading-relaxed">
+        Tooling and framework baseline verified. This page validates static HTML generation, strict TypeScript, and Tailwind CSS v4 design tokens.
+      </p>
+    </header>
+
+    <section aria-labelledby="tokens-test" class="space-y-6">
+      <h2 id="tokens-test" class="font-['Space_Grotesk'] text-2xl font-bold text-[var(--color-fg)]">
+        Design Token Verification
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-6 rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)]">
+          <span class="text-xs font-mono text-[var(--color-muted)] uppercase tracking-wider block mb-2">Surface Token</span>
+          <p class="text-[var(--color-fg)] font-medium">Elevated Surface (111C2B)</p>
+          <p class="text-[var(--color-muted)] text-sm mt-1">Decorative border 34465D containment</p>
+        </div>
+        <div class="p-6 rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border-strong)]">
+          <span class="text-xs font-mono text-[var(--color-accent)] uppercase tracking-wider block mb-2">UI Boundary Token</span>
+          <p class="text-[var(--color-fg)] font-medium">Strong Border (5A7597)</p>
+          <p class="text-[var(--color-muted)] text-sm mt-1">3.61:1 WCAG SC 1.4.11 boundary standard</p>
+        </div>
+      </div>
+      <div class="pt-4">
+        <span class="inline-block px-4 py-2 rounded-[var(--radius-button)] bg-[var(--color-surface)] text-[var(--color-accent)] border border-[var(--color-accent)] font-semibold text-sm">
+          Accent Token: #5EEAD4
+        </span>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

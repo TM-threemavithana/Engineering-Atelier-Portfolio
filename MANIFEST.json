@@ -1,0 +1,79 @@
+{
+  "name": "Engineering Atelier Antigravity Starter Pack",
+  "version": "1.0",
+  "generated": "2026-10-13",
+  "status": "SPECIFICATION ONLY; NOT A RUNNING WEBSITE",
+  "ticketCount": 36,
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sizeBytes": 3959,
+      "sha256": "beb48f08068a8fa9ac2dc8c97f8f840ac67f40d6395c9e5e03c693d20f75a719"
+    },
+    {
+      "path": "MASTER_SPEC_PRINTABLE.docx",
+      "sizeBytes": 62423,
+      "sha256": "a6790b5c6d72c0a8f4a88ceff857586ed04cd41e24726af86fbad3c3b34103c9"
+    },
+    {
+      "path": "README.md",
+      "sizeBytes": 3330,
+      "sha256": "8892fffab48c10b71dbdf81fbc6e2a3791e6e49399a9c035e6fee62e7b2a9cf7"
+    },
+    {
+      "path": "design/INTERACTION_RULES.md",
+      "sizeBytes": 1918,
+      "sha256": "33e73e452b34e5473406d602a72a2539496183fc07fcf9faa3735749bce1a2c1"
+    },
+    {
+      "path": "design/tokens.reference.css",
+      "sizeBytes": 1183,
+      "sha256": "3a244433c40721a34beaee08bf2425753dddc41988cf225601db362289d11f73"
+    },
+    {
+      "path": "docs/CONTENT_AND_EVIDENCE.md",
+      "sizeBytes": 6064,
+      "sha256": "1cbb1fda3b265e343fe5016026726cf647baf36e4580cdd68a274274838ad970"
+    },
+    {
+      "path": "docs/IMPLEMENTATION_BACKLOG.md",
+      "sizeBytes": 12888,
+      "sha256": "234a58ddedf46e76f1e95aa0ed20325f5cb7cde56f16fa979454ce13098f9363"
+    },
+    {
+      "path": "docs/MASTER_SPEC.md",
+      "sizeBytes": 44676,
+      "sha256": "f9e509f65c2cf42b1d8231644207d924d76ecb049f7ebcc6cb2b2aa11b2e14f1"
+    },
+    {
+      "path": "docs/QUALITY_PLAN.md",
+      "sizeBytes": 6930,
+      "sha256": "7fa58014960f99d4773ff9e10e98078a9ff4fb328dbaacdb5e01a1e333f2403d"
+    },
+    {
+      "path": "prompts/PHASE_PROMPTS.md",
+      "sizeBytes": 3219,
+      "sha256": "b9b80388d110b2201bc0a98259b0561379f7ddb38ea347a83cf5b13364d86753"
+    },
+    {
+      "path": "prompts/START_HERE.txt",
+      "sizeBytes": 830,
+      "sha256": "315521e9bcc0dd1bedce71b23b2bb70eee7b4315b07267e74f57da0a795e669d"
+    },
+    {
+      "path": "templates/content.config.reference.ts",
+      "sizeBytes": 2189,
+      "sha256": "9d0d2d3b2b44250f6041b668a581d02d68e0d72ac9e64057be75addd66fc9909"
+    },
+    {
+      "path": "templates/project-case-study.mdx",
+      "sizeBytes": 1802,
+      "sha256": "0ed77ecfacd94ae0b0bd58735464e36f0d00fa9bf0c15761272279eb8861caba"
+    },
+    {
+      "path": "templates/writing-article.mdx",
+      "sizeBytes": 636,
+      "sha256": "aa528c4a34abd8e4a71446e4ca35a45104cd2e7120a61a121700c90ee611c0e1"
+    }
+  ]
+}

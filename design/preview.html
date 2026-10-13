@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Atelier — Visual Direction C Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #080d17;
+      --color-surface: #111c2b;
+      --color-surface-alt: #17263a;
+      --color-fg: #f3f7ff;
+      --color-muted: #a5b7ce;
+      --color-accent: #5eead4;
+      --color-accent-hover: #94f5e6;
+      --color-border: #34465d;          /* Decorative container containment (1.78:1 against surface, backed by surface fill difference) */
+      --color-border-strong: #5a7597;   /* Semantic UI component boundary (3.61:1 against surface, exceeding WCAG 2.2 SC 1.4.11 3:1 requirement) */
+      --color-danger: #ff9eab;
+      --color-warning: #fcd34d;
+      --color-focus: #f0cf78;           /* High-visibility gold focus outline (11.35:1 against surface) */
+      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-card: 14px;
+      --radius-btn: 8px;
+      --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-size: 16px;
+    }
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-fg);
+      font-family: var(--font-body);
+      font-size: 1rem;                  /* 16px mobile base */
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 80px;
+    }
+    @media (min-width: 1024px) {
+      body {
+        font-size: 1.0625rem;           /* 17px desktop base */
+      }
+    }
+    :focus-visible {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    /* Toolbar for Testing Viewports */
+    .viewport-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #0d1524;
+      border-bottom: 1px solid var(--color-border-strong);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--color-muted);
+    }
+    .viewport-bar strong { color: var(--color-accent); }
+    .viewport-links a {
+      color: var(--color-fg);
+      text-decoration: none;
+      margin-left: 16px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--color-border-strong);
+      background: var(--color-surface);
+    }
+    .viewport-links a:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    /* Layout Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    /* Navigation */
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-wordmark {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      color: var(--color-fg);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--color-surface-alt);
+      color: var(--color-accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--color-border-strong);
+    }
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+      align-items: center;
+    }
+    nav a {
+      color: var(--color-muted);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 180ms ease;
+    }
+    nav a:hover { color: var(--color-accent); }
+    /* Hero Section (Asymmetric 7:5) */
+    .hero {
+      padding: 80px 0 100px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .hero-overline {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: var(--color-accent);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero-overline::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--color-accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--color-accent);
+    }
+    .hero-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.5vw, 4.2rem);
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--color-fg);
+      margin-bottom: 24px;
+    }
+    .hero-sub {
+      font-size: 1.0625rem;
+      color: var(--color-muted);
+      line-height: 1.65;
+      margin-bottom: 36px;
+      max-width: 540px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--color-surface);
+      color: var(--color-fg);
+      border: 1.5px solid var(--color-accent);
+      padding: 14px 28px;
+      border-radius: var(--radius-btn);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 180ms var(--ease-premium);
+      min-height: 48px;
+    }
+    .btn-primary:hover {
+      background: var(--color-accent);
+      color: var(--color-bg);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(94, 234, 212, 0.25);
+    }
+    .btn-secondary {
+      color: var(--color-muted);
+      font-size: 15px;
+      text-decoration: none;
+      padding: 14px 20px;
+      transition: color 180ms ease;
+    }
+    .btn-secondary:hover { color: var(--color-fg); }
+    /* Architecture Blueprint Card (Conceptual Model) */
+    .arch-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .arch-card::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      right: -40%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(94, 234, 212, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .arch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .arch-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--color-fg);
+      text-transform: uppercase;
+    }
+    .arch-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-accent);
+      background: rgba(94, 234, 212, 0.1);
+      border: 1px solid rgba(94, 234, 212, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .arch-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .node-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .node-box {
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-fg);
+      transition: all 180ms ease;
+    }
+    .node-box:hover {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    .node-arrow {
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .arch-meta {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-muted);
+    }
+    /* Section Headings */
+    .section-head {
+      margin-bottom: 40px;
+    }
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--color-fg);
+    }
+    /* Case Studies Teaser */
+    .case-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 100px;
+    }
+    .case-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 32px;
+      transition: all 220ms var(--ease-premium);
+    }
+    .case-card:hover {
+      border-color: var(--color-accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+    .card-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-warning);
+      background: rgba(252, 211, 77, 0.1);
+      border: 1px solid rgba(252, 211, 77, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-fg);
+      margin-bottom: 12px;
+    }
+    .card-desc {
+      color: var(--color-muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .card-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-muted);
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    /* Responsive Media Queries */
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 48px 0 64px;
+        gap: 40px;
+      }
+      .case-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      nav ul { display: none; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn-primary { justify-content: center; width: 100%; }
+      body { font-size: 1rem; }
+      .hero-sub { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport-bar">
+    <div><strong>Engineering Atelier</strong> — Visual Direction C Prototype (Corrected)</div>
+    <div class="viewport-links">
+      <span>Inspect Layouts:</span>
+      <a href="visual-references/desktop-home-wireframe.jpg" target="_blank">Desktop 1440px</a>
+      <a href="visual-references/mobile-home-wireframe.jpg" target="_blank">Mobile 390px</a>
+      <a href="visual-references/case-study-wireframe.jpg" target="_blank">Case Study</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="nav-wrap">
+        <a href="#" class="brand-wordmark">
+          EA <span class="brand-tag">Atelier</span>
+        </a>
+        <nav aria-label="Main Navigation">
+          <ul>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- HERO SECTION -->
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="hero-content">
+          <div class="hero-overline">Software Engineer</div>
+          <h1 id="hero-heading" class="hero-h1">
+            Building reliable systems. Creating meaningful experiences.
+          </h1>
+          <p class="hero-sub">
+            Software Engineer focused on Java, Scala, backend architecture, distributed systems, and thoughtful full-stack development.
+          </p>
+          <div class="hero-actions">
+            <a href="#projects" class="btn-primary">
+              Explore Selected Work
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+            <a href="#about" class="btn-secondary">About My Approach &rarr;</a>
+          </div>
+        </div>
+
+        <div class="arch-card" aria-label="Conceptual Architecture Model">
+          <div class="arch-header">
+            <span class="arch-title">Topology // Event Ingestion</span>
+            <span class="arch-badge">Conceptual Model</span>
+          </div>
+          <div class="arch-diagram">
+            <div class="node-row">
+              <div class="node-box">Client (gRPC)</div>
+              <span class="node-arrow">&rarr;</span>
+              <div class="node-box">Buffered Channel</div>
+            </div>
+            <div class="node-row">
+              <div class="node-box">Pipeline Handler</div>
+              <span class="node-arrow">&rarr;</span>
+              <div class="node-box">Consensus Log</div>
+            </div>
+            <div class="node-row">
+              <div class="node-box">Storage Engine</div>
+              <span class="node-arrow">&rarr;</span>
+              <div class="node-box">Peer Replica</div>
+            </div>
+          </div>
+          <div class="arch-meta">
+            <span>Model: Candidate Architecture</span>
+            <span>Status: In Clearance</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURED WORK TEASER (DRAFT SAFEGUARDS) -->
+      <section id="projects" class="section-head">
+        <div class="section-eyebrow">Candidate Projects</div>
+        <h2 class="section-title">Selected Engineering Work</h2>
+      </section>
+
+      <div class="case-grid">
+        <article class="case-card">
+          <span class="card-status">DRAFT // Under Clearance</span>
+          <h3 class="card-title">StreamForge: Distributed Log Engine (Candidate)</h3>
+          <p class="card-desc">
+            Conceptual architecture and prototype exploration for an event-log engine with gRPC streaming and consensus replication. Technical write-up and repository undergo evidence clearance before publication.
+          </p>
+          <div class="card-tags">
+            <span class="tag">Java 21</span>
+            <span class="tag">gRPC</span>
+            <span class="tag">Raft Model</span>
+            <span class="tag">DRAFT</span>
+          </div>
+        </article>
+
+        <article class="case-card">
+          <span class="card-status">DRAFT // Under Clearance</span>
+          <h3 class="card-title">DevForge: Type-Safe Orchestrator (Candidate)</h3>
+          <p class="card-desc">
+            Developer task orchestration CLI exploration built around Scala, functional effects, and container execution boundaries. Currently held in draft state pending repository clearance.
+          </p>
+          <div class="card-tags">
+            <span class="tag">Scala 3</span>
+            <span class="tag">Functional Effects</span>
+            <span class="tag">CLI UX</span>
+            <span class="tag">DRAFT</span>
+          </div>
+        </article>
+      </div>
+    </main>
+  </div>
+
+</body>
+</html>

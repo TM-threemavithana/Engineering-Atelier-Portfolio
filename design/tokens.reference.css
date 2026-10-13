@@ -1,0 +1,27 @@
+/* ENGINEERING ATELIER — REFERENCE ONLY. Integrate after EA-004 design approval. */
+@theme {
+  --color-bg: #080d17;
+  --color-surface: #111c2b;
+  --color-surface-alt: #17263a;
+  --color-fg: #f3f7ff;
+  --color-muted: #a5b7ce;
+  --color-accent: #5eead4;
+  --color-accent-hover: #94f5e6;
+  --color-border: #34465d;
+  --color-danger: #ff9eab;
+  --color-focus: #f0cf78;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --radius-card: 0.875rem;
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root { color-scheme: dark; }
+html { scroll-padding-top: 6rem; }
+body { background: var(--color-bg); color: var(--color-fg); font-family: var(--font-body); }
+:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+::selection { background: var(--color-accent); color: var(--color-bg); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surface & Canvas Colors */
+  --color-bg: #080d17;
+  --color-surface: #111c2b;
+  --color-surface-alt: #17263a;
+  --color-border: #34465d;
+  --color-border-strong: #5a7597;
+  --color-border-hover: #94f5e6;
+
+  /* Typography Colors */
+  --color-fg: #f3f7ff;
+  --color-muted: #a5b7ce;
+
+  /* Accent & Interactive States */
+  --color-accent: #5eead4;
+  --color-accent-hover: #94f5e6;
+  --color-focus: #f0cf78;
+  --color-danger: #ff9eab;
+  --color-warning: #fcd34d;
+
+  /* Font Families */
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Fluid Typography Clamps */
+  --text-h1: clamp(2.4rem, 4.5vw, 4.2rem);
+  --text-h2: clamp(1.8rem, 3.2vw, 2.75rem);
+  --text-h3: clamp(1.35rem, 2.2vw, 1.75rem);
+  --text-body-mobile: 1rem;
+  --text-body-desktop: 1.0625rem;
+
+  /* Radii & Easings */
+  --radius-card: 0.875rem;
+  --radius-button: 0.5rem;
+  --radius-tag: 0.25rem;
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-tap: 150ms;
+  --duration-hover: 180ms;
+  --duration-card: 220ms;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-padding-top: 5rem;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 1024px) {
+  body {
+    font-size: 1.0625rem;
+  }
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
