@@ -1,26 +1,36 @@
 ---
-interface Props {
-  title?: string;
-  description?: string;
-}
-
-const {
-  title = "Engineering Atelier — Baseline",
-  description = "Minimal baseline verification for Engineering Atelier portfolio."
-} = Astro.props;
-
+import type { PageMetaProps } from "../utils/seo";
+import { resolvePageMeta } from "../utils/seo";
 import "../styles/global.css";
+
+export type Props = PageMetaProps;
+
+const props = Astro.props;
+const meta = resolvePageMeta(props, Astro.url.pathname, Astro.site);
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang={meta.language}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <meta name="theme-color" content={meta.themeColor} />
+    <meta name="color-scheme" content="dark" />
+
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
+    <meta name="robots" content={meta.robots} />
+
+    {meta.canonicalUrl && <link rel="canonical" href={meta.canonicalUrl} />}
+
+    <meta property="og:title" content={meta.ogTitle} />
+    <meta property="og:description" content={meta.ogDescription} />
+    <meta property="og:type" content={meta.ogType} />
+    {meta.ogUrl && <meta property="og:url" content={meta.ogUrl} />}
+    {meta.ogImage && <meta property="og:image" content={meta.ogImage} />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-fg)]">
     <a href="#main-content" class="skip-link">

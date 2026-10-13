@@ -263,8 +263,24 @@
 - Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
 
 ### EA-008 Execution record
+- Status: DONE
+- Approved implementation plan: [ea_008_baseline_layout_metadata_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_008_baseline_layout_metadata_plan.md) (2026-10-13, approved with 4 corrections)
+- Scope: Reusable production `BaseLayout.astro`, strictly typed `src/data/featureFlags.ts`, `src/data/siteConfig.ts`, `src/utils/domain.ts`, and `src/utils/seo.ts`. Default development `noindex, nofollow` metadata protection. Deterministic canonical URL and `og:url` omission when `PUBLIC_SITE_URL` is unset. Trailing-slash and query-param normalization. Rejection of unapproved external canonical overrides. Accessible skip navigation targeting `<main id="main-content" tabindex="-1">`. Zero client-side JavaScript overhead.
+- Files created/changed: `src/utils/domain.ts`, `astro.config.mjs`, `src/data/featureFlags.ts`, `src/data/siteConfig.ts`, `src/utils/seo.ts`, `src/layouts/BaseLayout.astro`, `src/pages/index.astro`, `tests/ea008-verification.test.ts`, `docs/CONTENT_STATUS.md`, `docs/IMPLEMENTATION_BACKLOG.md`
+- Commands actually executed:
+  - `npx tsx tests/ea008-verification.test.ts`: Passed all unit assertions (domain validation, pathname normalization, canonical formatting, override rejection, default robots, feature flag gating)
+  - `npm run check`: 11 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run build`: Static build passed in 2.29s (`output: "static"`)
+  - HTML inspection: Verified `dist/index.html` renders `<html lang="en">`, `<meta name="theme-color" content="#080d17">`, `<meta name="color-scheme" content="dark">`, `<title>Baseline Verification | Engineering Atelier</title>`, `<meta name="robots" content="noindex, nofollow">`, skip-link, and landmark `<main id="main-content" tabindex="-1">`. Confirmed `<link rel="canonical">` and `og:url` are strictly omitted when site URL is unset.
+  - Isolated canonical test: Tested with temporary `$env:PUBLIC_SITE_URL="https://portfolio-test.engineering"`, verified `<link rel="canonical" href="https://portfolio-test.engineering/">` and `<meta property="og:url" content="https://portfolio-test.engineering/">` render cleanly while maintaining `noindex, nofollow` protection. Reset to default unset state, verified clean omission.
+  - Browser verification (`browser_subagent`): Verified `document.title`, `meta[name="robots"]`, `meta[name="theme-color"]`, null canonical, Tab key revealing skip link with gold focus outline (`#F0CF78`), Enter transferring focus to `#main-content`, and subsequent Tab focusing interactive controls.
+  - `npm audit`: 4 vulnerabilities remain documented and unresolved in risk register (mitigated by static-only generation).
+- Content truth: Verified Option B positioning copy and temporary `EA` wordmark; zero fabricated personal identity, contact data, employer history, or production domains; all 4 candidate projects remain strictly in DRAFT.
+- Owner signoff: Approved with required adjustments; implemented and verified on 2026-10-13
+
+### EA-009 Execution record
 - Status: TODO (Next ticket)
-- Scope: Baseline layout and metadata utilities (BaseLayout, default title/description, canonical helper, skip link, site language and favicon placeholder only as approved)
+- Scope: Lint/type/format/check scripts (strict TypeScript, ESLint, formatter, commands, import conventions)
 
 
 
