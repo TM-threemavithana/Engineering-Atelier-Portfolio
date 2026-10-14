@@ -61,6 +61,12 @@
 
 ### EA-018 — Core responsive visual polish pass (M)
 **Depends:** 013,015,016,017. **Scope:** typography, section rhythm, editorial asymmetric layouts, cross-browser screenshots. **Accept:** no horizontal overflow at viewport matrix or 200% zoom, no clipped content. **Verify:** screenshot review and keyboard. **AC:** 03,09,14,15.
+- *Milestone 2 Polish Backlog items (from EA-015 approval):*
+  - Improve mobile readability and reduce overly dense labels on About page.
+  - Recheck tablet layout and visual balance across pages.
+  - Replace temporary monogram-based identity with verified personal branding when available.
+  - Add genuine education and professional experience milestones once owner approves the information.
+  - Verify each technical familiarity classification before production release.
 
 ## Milestone 3 — Verified project system
 
