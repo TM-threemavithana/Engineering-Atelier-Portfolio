@@ -510,6 +510,12 @@
 - Content truth:
   - Zero fabricated projects, metrics, or personal credentials.
   - Architecture blueprint explicitly tagged as `Conceptual Model` with `Status: Illustrative Architecture`.
+- Remaining Hero Improvements (Tracked for polish / EA-018):
+  - Improve architecture diagram readability at 320px and 390px.
+  - Reduce the oversized desktop blueprint heading to improve visual hierarchy.
+  - Review conceptual architecture arrows and technical flow for logical consistency.
+  - Preserve the approved hero headline, CTA, colors, and responsive composition.
+  - Do not introduce unverified technical claims or metrics.
 - Next Ticket: EA-014 — Homepage featured work and capability sections (Milestone 2).
 
 
