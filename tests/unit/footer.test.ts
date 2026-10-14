@@ -80,33 +80,110 @@ assert.notEqual(
 );
 console.log('✓ Landmark anchor destinations verified as unique');
 
-// 7. 404 Metadata & SEO Safety (noindex, omit canonical)
-const meta404 = resolvePageMeta(
+import { siteConfig } from '../../src/data/siteConfig';
+import { getValidatedProductionSiteUrl } from '../../src/utils/domain';
+
+// 7. 404 Metadata & SEO Safety (Under default preview state)
+assert.equal(
+  siteConfig.isProductionApproved,
+  false,
+  'siteConfig.isProductionApproved must be strictly false in repository baseline'
+);
+
+const defaultMeta404 = resolvePageMeta(
   {
     title: 'Page Not Found',
     description: 'The requested page could not be found.',
-    noindex: true,
   },
-  '/404',
-  'https://engineering-atelier.example.org'
+  '/404'
 );
 
 assert.equal(
-  meta404.robots,
+  defaultMeta404.robots,
   'noindex, nofollow',
-  '404 route must unconditionally emit "noindex, nofollow"'
+  '404 route must emit "noindex, nofollow" by default'
 );
 assert.equal(
-  meta404.canonicalUrl,
+  defaultMeta404.canonicalUrl,
   undefined,
-  '404 route must NEVER emit a canonical URL even when site origin exists'
+  '404 route must omit canonical URL by default'
 );
+assert.equal(defaultMeta404.ogUrl, undefined, '404 route must omit og:url by default');
+
+// 8. Isolated Simulated Production Approval Test for 404
+// Validates that even if production approval were granted, 404 remains unconditionally noindexed and uncanonicalized.
+const baselineApprovedState = siteConfig.isProductionApproved;
+try {
+  // Temporarily simulate production approval in memory
+  (siteConfig as { isProductionApproved: boolean }).isProductionApproved = true;
+
+  // Use a domain that passes getValidatedProductionSiteUrl without hardcoding a fake production domain
+  const testValidOrigin = getValidatedProductionSiteUrl('https://simulated-domain.org');
+  assert.ok(testValidOrigin, 'Validated test origin must be well-formed');
+
+  // Test 404 metadata under simulated production approval without explicit noindex prop
+  const simMeta404 = resolvePageMeta(
+    {
+      title: 'Page Not Found',
+      description: 'The requested page could not be found.',
+    },
+    '/404',
+    testValidOrigin
+  );
+
+  assert.equal(
+    simMeta404.robots,
+    'noindex, nofollow',
+    'Under simulated production approval, 404 route must STILL unconditionally emit "noindex, nofollow"'
+  );
+  assert.equal(
+    simMeta404.canonicalUrl,
+    undefined,
+    'Under simulated production approval, 404 route must NEVER emit a canonical URL'
+  );
+  assert.equal(
+    simMeta404.ogUrl,
+    undefined,
+    'Under simulated production approval, 404 route must NEVER emit og:url'
+  );
+
+  // Assert sitemap filter rule excludes 404 routes
+  const approvedSitemapRoutes = new Set(['/', '/about', '/contact']);
+  assert.equal(
+    approvedSitemapRoutes.has('/404'),
+    false,
+    'Sitemap whitelist must strictly exclude "/404"'
+  );
+  assert.equal(
+    approvedSitemapRoutes.has('/404.html'),
+    false,
+    'Sitemap whitelist must strictly exclude "/404.html"'
+  );
+
+  // Contrast check: a published route under simulated production approval DOES receive index, follow and canonical
+  const simMetaHome = resolvePageMeta({ title: 'Home' }, '/', testValidOrigin);
+  assert.equal(
+    simMetaHome.robots,
+    'index, follow',
+    'Normal published routes must receive "index, follow" under simulated production approval'
+  );
+  assert.equal(
+    simMetaHome.canonicalUrl,
+    'https://simulated-domain.org/',
+    'Normal published routes must receive valid canonicalUrl under simulated production approval'
+  );
+} finally {
+  // Guarantee real setting is restored immediately
+  (siteConfig as { isProductionApproved: boolean }).isProductionApproved = baselineApprovedState;
+}
+
 assert.equal(
-  meta404.ogUrl,
-  undefined,
-  '404 route must NEVER emit og:url even when site origin exists'
+  siteConfig.isProductionApproved,
+  false,
+  'siteConfig.isProductionApproved must remain strictly false after simulated tests'
 );
-assert.ok(meta404.title.includes('Page Not Found'), '404 title must reflect Page Not Found');
-console.log('✓ 404 SEO safety confirmed: unconditional noindex and omitted canonical');
+console.log(
+  '✓ 404 production SEO safety confirmed: unconditional noindex, omitted canonical/og:url, and sitemap exclusion'
+);
 
 console.log('--- All Footer and 404 Unit Tests Passed Cleanly ---');

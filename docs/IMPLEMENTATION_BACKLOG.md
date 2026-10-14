@@ -712,6 +712,53 @@
   - `enableContactForm = false` preserved per ADR-003.
 - Next Ticket: EA-018 — Core responsive visual polish pass (Milestone 2).
 
+### EA-018 Execution Record (2026-10-14)
+- Ticket: EA-018 — Core responsive visual polish pass (Milestone 2: Premium Responsive Core Completion)
+- State: COMPLETED & VERIFIED
+- Files changed:
+  - `src/pages/404.astro` (modified: fixed flexbox vertical centering overflow on short viewports using `my-auto`, targeted `scroll-mt-16 sm:scroll-mt-20` on `<main id="main-content">`, exactly one `<main>` landmark preserved)
+  - `src/pages/index.astro` (modified: added targeted `scroll-mt-16 sm:scroll-mt-20` on `<main id="main-content">`)
+  - `src/pages/about.astro` (modified: added targeted `scroll-mt-16 sm:scroll-mt-20` on `<main id="main-content">`)
+  - `src/pages/contact.astro` (modified: added targeted `scroll-mt-16 sm:scroll-mt-20` on `<main id="main-content">`)
+  - `src/components/sections/HeroBlueprint.astro` (modified: authentic Raft consensus model distinguishing client ingestion, bounded buffering, leader log replication, durable WAL storage, peer follower replication with branching connectors; dual responsive SVGs: desktop viewBox `0 0 540 270`, mobile viewBox `0 0 320 460` with $\ge 11\text{px}$ rendered typography; reduced card heading size; targeted `scroll-mt-16 sm:scroll-mt-20`)
+  - `src/components/sections/TechnicalFamiliarity.astro` (modified: eliminated redundant category badge labels, added neutral `Tier 01..03` indicator badges, targeted `scroll-mt-16 sm:scroll-mt-20`)
+  - `src/components/sections/AboutIntro.astro` (modified: added targeted `scroll-mt-16 sm:scroll-mt-20` on `#about-intro`)
+  - `src/components/sections/EngineeringValues.astro` (modified: added targeted `scroll-mt-16 sm:scroll-mt-20` on `#values`)
+  - `src/components/sections/Capabilities.astro` (modified: added targeted `scroll-mt-16 sm:scroll-mt-20` on `#capabilities`, softened internal card divider borders to `border-t border-[var(--color-border)]/50`)
+  - `src/components/contact/ContactMethods.astro` (modified: replaced visible "Verified" badges with neutral "Profile" badges, changed overline to "PROFESSIONAL PROFILES", added targeted `scroll-mt-16 sm:scroll-mt-20` on `#direct-contact`, `#profiles`, and `#return-nav`)
+  - `src/data/contact.ts` (modified: simplified privacy copy to neutral, factual notice without sweeping guarantees)
+  - `src/components/contact/CopyEmail.tsx` (modified: eliminated deprecated `document.execCommand('copy')`, modern `navigator.clipboard.writeText` handling, accessible error guidance for rejected clipboard access)
+  - `src/components/layout/SiteFooter.astro` (modified: refined mobile vertical padding to `py-10 sm:py-14`)
+  - `tests/unit/footer.test.ts` (modified: added isolated simulated production origin 404 test verifying unconditional `noindex, nofollow`, omitted canonical, omitted `og:url`, and sitemap exclusion)
+  - `tests/artifacts/artifact-verification.ts` (modified: Section 14 assertions for neutral "Profile" badges and "PROFESSIONAL PROFILES" overline)
+  - `docs/CONTENT_STATUS.md` (modified: marked EA-018 DONE, Milestone 2 COMPLETE, EA-019 TODO)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: recorded EA-018 execution details)
+- Commands actually executed:
+  - `npm run check`: 63 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run lint`: 0 ESLint errors
+  - `npm run format`: 100% compliant with Prettier code style
+  - `npm run test`: 10 test suites pass (18 tests total: about, capabilities, contact, ea008, footer, hero, linkSafety, navigation, primitives, projects)
+  - `npm run verify:primitives`: Passed in isolated `tests/.test-dist/`
+  - `npm run build`: Production build generated in `dist/` with 4 pages (`index.html`, `about/index.html`, `contact/index.html`, `404.html`) in 4.09s
+  - `npm run verify:artifacts`: All 15 production artifact test suites pass
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser/a11y evidence:
+  - 500x505 short viewport: Verified 404 content does not overlap sticky header (`my-auto` centering), heading fully visible, return buttons operable.
+  - 320x568 minimum mobile viewport: Verified 404, Hero Blueprint, Capabilities, About, and Contact pages have zero horizontal overflow (`scrollWidth <= innerWidth`).
+  - Mobile 390x844: Verified mobile stacked SVG diagram for Hero Blueprint with rendered text size $\ge 11\text{px}$, branching consensus flows, and clean touch targets.
+  - Desktop 1440x900: Verified restrained header, branching Raft consensus architecture vector, clear node connections, neutral "Profile" tags, and clean vertical rhythm.
+  - Keyboard navigation: Full sequential Tab traversal across all interactive elements with visible focus rings (`#F0CF78`).
+  - Reduced-motion: Preserved instant focus jumps and disabled transition animations under `prefers-reduced-motion: reduce`.
+- Content truth:
+  - Conceptual Raft diagram accurately depicts client ingestion, bounded buffering, leader log replication, durable WAL storage, and follower replication with branching connectors.
+  - Neutral "Tier 01..03" badges on Technical Familiarity; no unverified claims ("Production Applied", "Active R&D").
+  - Neutral "Profile" badges and "PROFESSIONAL PROFILES" on Contact page.
+  - Simplified privacy notice without broad tracking/security guarantees.
+  - Zero candidate projects published (all 4 remain in DRAFT).
+  - `isProductionApproved: false` strictly preserved in repository baseline.
+- Next Ticket: EA-019 — Content Collections and Project Detail Infrastructure (Milestone 3).
+
+
 
 
 

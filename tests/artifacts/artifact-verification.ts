@@ -560,8 +560,18 @@ for (const ph of forbiddenPlaceholders) {
   );
 }
 
+// G. Neutral Social Profile Labelling (EA-018)
+assert.ok(
+  contactHtml.includes('PROFESSIONAL PROFILES'),
+  'dist/contact/index.html must contain neutral overline "PROFESSIONAL PROFILES"'
+);
+assert.ok(
+  !contactHtml.includes('VERIFIED PROFILES'),
+  'dist/contact/index.html must NOT contain misleading "VERIFIED PROFILES" overline'
+);
+
 console.log(
-  '✓ Contact page production integrity confirmed: single H1, exact verified email/social links, no-JS mailto, aria-live CopyEmail island, zero placeholders'
+  '✓ Contact page production integrity confirmed: single H1, exact verified email/social links, no-JS mailto, aria-live CopyEmail island, neutral profile labelling, zero placeholders'
 );
 
 // 15. Verify EA-017 Footer and Branded 404 Production Artifact Integrity

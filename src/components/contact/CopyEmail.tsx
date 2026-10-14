@@ -17,7 +17,7 @@ export default function CopyEmail({ email, className = '' }: CopyEmailProps) {
       if (
         typeof navigator !== 'undefined' &&
         navigator.clipboard &&
-        navigator.clipboard.writeText
+        typeof navigator.clipboard.writeText === 'function'
       ) {
         await navigator.clipboard.writeText(email);
         setStatus('copied');
@@ -25,34 +25,13 @@ export default function CopyEmail({ email, className = '' }: CopyEmailProps) {
         return;
       }
 
-      // Legacy fallback for environments with document.execCommand
-      if (typeof document !== 'undefined') {
-        const textArea = document.createElement('textarea');
-        textArea.value = email;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        textArea.setAttribute('readonly', '');
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-
-        if (successful) {
-          setStatus('copied');
-          setTimeout(() => setStatus('idle'), 2500);
-          return;
-        }
-      }
-
-      // If both modern and legacy failed
+      // Clipboard API unavailable in this context (e.g. non-HTTPS, restricted iframe)
       setStatus('error');
-      setTimeout(() => setStatus('idle'), 3500);
+      setTimeout(() => setStatus('idle'), 4000);
     } catch {
+      // Permission denied or clipboard write rejected
       setStatus('error');
-      setTimeout(() => setStatus('idle'), 3500);
+      setTimeout(() => setStatus('idle'), 4000);
     }
   }, [email]);
 
@@ -64,7 +43,9 @@ export default function CopyEmail({ email, className = '' }: CopyEmailProps) {
         aria-label={
           status === 'copied'
             ? 'Email address copied to clipboard'
-            : `Copy email address ${email} to clipboard`
+            : status === 'error'
+              ? 'Clipboard copy unavailable. Please use direct Send Email or copy manually.'
+              : `Copy email address ${email} to clipboard`
         }
         className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[var(--radius-button)] font-medium text-sm select-none min-h-[44px] min-w-[44px] transition-all duration-150 motion-reduce:transition-none bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-fg)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] cursor-pointer"
       >
@@ -102,8 +83,8 @@ export default function CopyEmail({ email, className = '' }: CopyEmailProps) {
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
-            <span className="font-['Space_Grotesk'] text-[var(--color-warning)] text-xs">
-              Direct Link Available
+            <span className="font-['Space_Grotesk'] text-[var(--color-warning)] text-xs font-medium">
+              Copy Unavailable
             </span>
           </>
         ) : (
@@ -130,7 +111,7 @@ export default function CopyEmail({ email, className = '' }: CopyEmailProps) {
       <div role="status" aria-live="polite" className="sr-only">
         {status === 'copied' && 'Email address copied to clipboard.'}
         {status === 'error' &&
-          'Unable to copy email automatically. Please use the direct Send Email button or copy manually.'}
+          'Clipboard access unavailable. Please use the direct Send Email button or copy manually from the displayed address.'}
       </div>
     </div>
   );

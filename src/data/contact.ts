@@ -73,7 +73,7 @@ export const contactConfig: ContactConfig = {
     },
   ],
   privacyNotice:
-    'Direct email communication is utilized to respect privacy and eliminate tracking. No marketing databases, cookies, or third-party form trackers are deployed.',
+    'Direct email is used for correspondence. This portfolio does not deploy tracking cookies, marketing databases, or third-party web forms.',
 };
 
 /**

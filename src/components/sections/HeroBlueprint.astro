@@ -5,7 +5,7 @@ import Tag from '../ui/Tag.astro';
 <div
   id="architecture-blueprint"
   tabindex="-1"
-  class="surface-card p-6 sm:p-8 rounded-[var(--radius-card)] border border-[var(--color-border)] relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-[var(--color-focus)] transition-colors duration-150"
+  class="surface-card p-5 sm:p-7 rounded-[var(--radius-card)] border border-[var(--color-border)] relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-[var(--color-focus)] transition-colors duration-150 scroll-mt-16 sm:scroll-mt-20"
   role="region"
   aria-labelledby="blueprint-heading"
   aria-describedby="blueprint-summary"
@@ -16,33 +16,34 @@ import Tag from '../ui/Tag.astro';
     aria-hidden="true"
   ></div>
 
-  <!-- Card Header -->
-  <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4 mb-6">
+  <!-- Card Header with Restrained Editorial Typography -->
+  <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-3 mb-5">
     <div class="flex items-center gap-2">
       <span
-        class="w-2 h-2 rounded-full bg-[var(--color-accent)] shrink-0"
+        class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] shrink-0"
         aria-hidden="true"
       ></span>
       <h2
         id="blueprint-heading"
-        class="font-mono text-xs sm:text-sm font-semibold tracking-wider text-[var(--color-fg)] uppercase"
+        class="font-mono text-xs font-semibold tracking-wider text-[var(--color-fg)] uppercase"
       >
-        Topology // Event Ingestion
+        Topology // Ingestion &amp; Consensus
       </h2>
     </div>
     <Tag label="Conceptual Model" variant="accent" size="sm" />
   </div>
 
-  <!-- Accessible Screen-Reader Description of Conceptual Flow -->
+  <!-- Accessible Screen-Reader Description of Conceptual Branching Flow -->
   <p id="blueprint-summary" class="sr-only">
-    Conceptual architecture diagram illustrating an event ingestion flow: gRPC clients stream
-    payloads into a buffered queue channel; an asynchronous pipeline handler ingests and validates
-    messages; records are appended to a distributed Raft consensus log; and persistent storage
-    commits state across peer replicas.
+    Conceptual architecture diagram illustrating an event ingestion and consensus topology: gRPC
+    clients stream payloads into a bounded in-memory buffered channel; the pipeline handler consumes
+    batches and routes them to the Raft consensus log; from the consensus log, flow branches
+    concurrently into local durable write-ahead log (WAL) storage engine commits and network
+    AppendEntries RPC replication to peer replicas across the cluster.
   </p>
 
-  <!-- Responsive Handcrafted Vector SVG Architecture Diagram -->
-  <div class="w-full my-2">
+  <!-- DESKTOP / TABLET VECTOR SVG (>= 640px) -->
+  <div class="hidden sm:block w-full my-2">
     <svg
       viewBox="0 0 540 270"
       fill="none"
@@ -79,29 +80,29 @@ import Tag from '../ui/Tag.astro';
         </marker>
       </defs>
 
-      <!-- ROW 1: INGESTION INGRESS -->
+      <!-- ROW 1: INGESTION INGRESS & BUFFERING -->
       <!-- Node 1: Client (gRPC) -->
       <g>
         <rect
           x="12"
           y="12"
-          width="196"
-          height="56"
+          width="200"
+          height="54"
           rx="6"
           class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
           stroke-width="1.5"
         />
-        <text x="28" y="36" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        <text x="24" y="34" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
           Client (gRPC)
         </text>
-        <text x="28" y="54" class="font-mono text-[11px] fill-[var(--color-muted)]">
-          Unary / Bidirectional Stream
+        <text x="24" y="52" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Unary &amp; Stream Ingress
         </text>
       </g>
 
-      <!-- Horizontal Connector: Node 1 -> Node 2 -->
+      <!-- Connector 1 -> 2: Stream Ingress to Buffered Channel -->
       <path
-        d="M 208 40 L 320 40"
+        d="M 212 39 L 320 39"
         stroke="var(--color-accent, #5EEAD4)"
         stroke-width="1.5"
         stroke-dasharray="4 3"
@@ -111,53 +112,54 @@ import Tag from '../ui/Tag.astro';
       <!-- Node 2: Buffered Channel -->
       <g>
         <rect
-          x="332"
+          x="328"
           y="12"
-          width="196"
-          height="56"
+          width="200"
+          height="54"
           rx="6"
           class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
           stroke-width="1.5"
         />
-        <text x="348" y="36" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        <text x="340" y="34" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
           Buffered Channel
         </text>
-        <text x="348" y="54" class="font-mono text-[11px] fill-[var(--color-muted)]">
+        <text x="340" y="52" class="font-mono text-[11px] fill-[var(--color-muted)]">
           Bounded In-Memory Queue
         </text>
       </g>
 
-      <!-- Vertical Connector: Node 2 -> Node 4 -->
+      <!-- Connector 2 -> 3: Buffer down to Pipeline Handler -->
       <path
-        d="M 430 68 L 430 96"
+        d="M 428 66 L 428 88 L 112 88 L 112 104"
         stroke="var(--color-border-strong, #5A7597)"
         stroke-width="1.5"
+        fill="none"
         marker-end="url(#bp-arrow-down)"
       />
 
-      <!-- ROW 2: PROCESSING & CONSENSUS -->
+      <!-- ROW 2: PROCESSING & CONSENSUS LEADER LOG -->
       <!-- Node 3: Pipeline Handler -->
       <g>
         <rect
           x="12"
-          y="106"
-          width="196"
-          height="56"
+          y="108"
+          width="200"
+          height="54"
           rx="6"
           class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
           stroke-width="1.5"
         />
-        <text x="28" y="130" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        <text x="24" y="130" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
           Pipeline Handler
         </text>
-        <text x="28" y="148" class="font-mono text-[11px] fill-[var(--color-muted)]">
-          Schema Validation &amp; Route
+        <text x="24" y="148" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Schema Validation &amp; Batching
         </text>
       </g>
 
-      <!-- Horizontal Connector: Node 3 -> Node 4 -->
+      <!-- Connector 3 -> 4: Handler to Consensus Log -->
       <path
-        d="M 208 134 L 320 134"
+        d="M 212 135 L 320 135"
         stroke="var(--color-accent, #5EEAD4)"
         stroke-width="1.5"
         marker-end="url(#bp-arrow-accent)"
@@ -166,75 +168,291 @@ import Tag from '../ui/Tag.astro';
       <!-- Node 4: Consensus Log -->
       <g>
         <rect
-          x="332"
-          y="106"
-          width="196"
-          height="56"
+          x="328"
+          y="108"
+          width="200"
+          height="54"
           rx="6"
-          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-accent)]"
           stroke-width="1.5"
         />
-        <text x="348" y="130" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        <text x="340" y="130" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
           Consensus Log
         </text>
-        <text x="348" y="148" class="font-mono text-[11px] fill-[var(--color-muted)]">
-          Raft Replicated Entries
+        <text x="340" y="148" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Raft Leader Sequence
         </text>
       </g>
 
-      <!-- Vertical Connector: Node 4 -> Node 6 -->
+      <!-- BRANCHING CONCURRENT WRITES FROM CONSENSUS LOG -->
+      <!-- Branch A (Durable Local Storage): Consensus Log down & left to Storage Engine -->
       <path
-        d="M 430 162 L 430 190"
-        stroke="var(--color-border-strong, #5A7597)"
+        d="M 378 162 L 378 184 L 112 184 L 112 200"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        stroke-dasharray="4 3"
+        fill="none"
+        marker-end="url(#bp-arrow-down)"
+      />
+      <text x="210" y="180" class="font-mono text-[9px] fill-[var(--color-muted)] select-none">
+        Local Commit (WAL)
+      </text>
+
+      <!-- Branch B (Follower Replication): Consensus Log straight down to Peer Replica -->
+      <path
+        d="M 478 162 L 478 200"
+        stroke="var(--color-accent, #5EEAD4)"
         stroke-width="1.5"
         marker-end="url(#bp-arrow-down)"
       />
+      <text x="486" y="184" class="font-mono text-[9px] fill-[var(--color-accent)] select-none">
+        RPC Sync
+      </text>
 
-      <!-- ROW 3: PERSISTENCE & REPLICATION -->
+      <!-- ROW 3: DURABLE STORAGE & CLUSTER REPLICATION -->
       <!-- Node 5: Storage Engine -->
       <g>
         <rect
           x="12"
-          y="200"
-          width="196"
-          height="56"
+          y="204"
+          width="200"
+          height="54"
           rx="6"
           class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
           stroke-width="1.5"
         />
-        <text x="28" y="224" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        <text x="24" y="226" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
           Storage Engine
         </text>
-        <text x="28" y="242" class="font-mono text-[11px] fill-[var(--color-muted)]">
+        <text x="24" y="244" class="font-mono text-[11px] fill-[var(--color-muted)]">
           Immutable WAL &amp; Compaction
         </text>
       </g>
 
-      <!-- Horizontal Connector: Node 5 -> Node 6 -->
+      <!-- Peer State Machine Convergence Line -->
       <path
-        d="M 208 228 L 320 228"
-        stroke="var(--color-accent, #5EEAD4)"
+        d="M 212 231 L 320 231"
+        stroke="var(--color-border-strong, #5A7597)"
         stroke-width="1.5"
-        stroke-dasharray="4 3"
+        stroke-dasharray="3 3"
         marker-end="url(#bp-arrow-accent)"
       />
+      <text x="238" y="225" class="font-mono text-[9px] fill-[var(--color-muted)] select-none">
+        Quorum State
+      </text>
 
       <!-- Node 6: Peer Replica -->
       <g>
         <rect
-          x="332"
-          y="200"
-          width="196"
-          height="56"
+          x="328"
+          y="204"
+          width="200"
+          height="54"
           rx="6"
           class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
           stroke-width="1.5"
         />
-        <text x="348" y="224" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        <text x="340" y="226" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
           Peer Replica
         </text>
-        <text x="348" y="242" class="font-mono text-[11px] fill-[var(--color-muted)]">
+        <text x="340" y="244" class="font-mono text-[11px] fill-[var(--color-muted)]">
           Follower State Machine
+        </text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- MOBILE VECTOR SVG (< 640px, Stacked Architecture Pipeline with Crisp Legible Typography) -->
+  <div class="block sm:hidden w-full my-2">
+    <svg
+      viewBox="0 0 320 460"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      class="w-full h-auto overflow-visible select-none"
+      role="img"
+      aria-label="Conceptual architecture topology diagram: Mobile View"
+    >
+      <defs>
+        <marker
+          id="bp-arrow-m-down"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="8"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto"
+        >
+          <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="var(--color-accent, #5EEAD4)" />
+        </marker>
+        <marker
+          id="bp-arrow-m-sub"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="8"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto"
+        >
+          <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="var(--color-border-strong, #5A7597)" />
+        </marker>
+      </defs>
+
+      <!-- Mobile Node 1: Client (gRPC) -->
+      <g>
+        <rect
+          x="10"
+          y="10"
+          width="300"
+          height="52"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="22" y="32" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Client (gRPC)
+        </text>
+        <text x="22" y="49" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Unary &amp; Stream Ingress
+        </text>
+      </g>
+
+      <!-- Arrow 1 -> 2 -->
+      <path
+        d="M 160 62 L 160 84"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-m-down)"
+      />
+
+      <!-- Mobile Node 2: Buffered Channel -->
+      <g>
+        <rect
+          x="10"
+          y="92"
+          width="300"
+          height="52"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="22" y="114" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Buffered Channel
+        </text>
+        <text x="22" y="131" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Bounded In-Memory Queue
+        </text>
+      </g>
+
+      <!-- Arrow 2 -> 3 -->
+      <path
+        d="M 160 144 L 160 166"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-m-down)"
+      />
+
+      <!-- Mobile Node 3: Pipeline Handler -->
+      <g>
+        <rect
+          x="10"
+          y="174"
+          width="300"
+          height="52"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="22" y="196" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Pipeline Handler
+        </text>
+        <text x="22" y="213" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Schema Validation &amp; Routing
+        </text>
+      </g>
+
+      <!-- Arrow 3 -> 4 -->
+      <path
+        d="M 160 226 L 160 248"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-m-down)"
+      />
+
+      <!-- Mobile Node 4: Consensus Log (Raft Leader) -->
+      <g>
+        <rect
+          x="10"
+          y="256"
+          width="300"
+          height="52"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-accent)]"
+          stroke-width="1.5"
+        />
+        <text x="22" y="278" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Consensus Log
+        </text>
+        <text x="22" y="295" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Raft Leader Sequence
+        </text>
+      </g>
+
+      <!-- Branching Split: Left to Storage Engine, Right to Peer Replica -->
+      <path
+        d="M 85 308 L 85 330"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        stroke-dasharray="3 2"
+        marker-end="url(#bp-arrow-m-down)"
+      />
+      <path
+        d="M 235 308 L 235 330"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-m-down)"
+      />
+
+      <!-- Mobile Node 5: Storage Engine -->
+      <g>
+        <rect
+          x="10"
+          y="338"
+          width="144"
+          height="62"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="18" y="360" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+          Storage Engine
+        </text>
+        <text x="18" y="378" class="font-mono text-[10px] fill-[var(--color-muted)]">
+          Immutable WAL
+        </text>
+        <text x="18" y="392" class="font-mono text-[9.5px] fill-[var(--color-accent)]">
+          Local Durable
+        </text>
+      </g>
+
+      <!-- Mobile Node 6: Peer Replica -->
+      <g>
+        <rect
+          x="166"
+          y="338"
+          width="144"
+          height="62"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="174" y="360" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+          Peer Replica
+        </text>
+        <text x="174" y="378" class="font-mono text-[10px] fill-[var(--color-muted)]">
+          Follower State
+        </text>
+        <text x="174" y="392" class="font-mono text-[9.5px] fill-[var(--color-accent)]">
+          Cluster Sync
         </text>
       </g>
     </svg>
@@ -242,7 +460,7 @@ import Tag from '../ui/Tag.astro';
 
   <!-- Card Footer / Honest Metadata -->
   <div
-    class="mt-6 pt-4 border-t border-[var(--color-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-[var(--color-muted)]"
+    class="mt-5 pt-3.5 border-t border-[var(--color-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-[var(--color-muted)]"
   >
     <div class="flex items-center gap-1.5">
       <span class="text-[var(--color-fg)] font-medium">Model:</span>

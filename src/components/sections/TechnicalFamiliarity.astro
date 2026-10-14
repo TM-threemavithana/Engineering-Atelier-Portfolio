@@ -22,7 +22,10 @@ const tierVariants: Record<
 <section
   id="familiarity"
   aria-labelledby="familiarity-heading"
-  class:list={['py-16 sm:py-24 border-t border-[var(--color-border)]', className]}
+  class:list={[
+    'py-16 sm:py-24 border-t border-[var(--color-border)] scroll-mt-16 sm:scroll-mt-20',
+    className,
+  ]}
 >
   <div class="container-atelier space-y-12 sm:space-y-16">
     <SectionHeading
@@ -33,7 +36,7 @@ const tierVariants: Record<
     />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {technicalFamiliarityTiers.map((tier) => {
+      {technicalFamiliarityTiers.map((tier, index) => {
         const config = tierVariants[tier.category] || {
           badgeVariant: 'default',
           tagVariant: 'default',
@@ -52,7 +55,7 @@ const tierVariants: Record<
                     : 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-muted)]',
                 ]}
               >
-                {tier.category}
+                Tier 0{index + 1}
               </span>
               <span class="font-['JetBrains_Mono'] text-xs text-[var(--color-muted)]">
                 {tier.technologies.length} tools

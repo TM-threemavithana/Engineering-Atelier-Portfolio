@@ -18,7 +18,11 @@ const verifiedProfiles = getVerifiedProfiles();
 
 <div class:list={['container-atelier space-y-16 sm:space-y-24 pb-20 sm:pb-28', className]}>
   <!-- Direct Email Section -->
-  <section id="direct-contact" aria-labelledby="direct-heading" class="space-y-8">
+  <section
+    id="direct-contact"
+    aria-labelledby="direct-heading"
+    class="scroll-mt-16 sm:scroll-mt-20 space-y-8"
+  >
     <div
       class="rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] p-8 sm:p-12 shadow-md relative overflow-hidden"
     >
@@ -89,7 +93,7 @@ const verifiedProfiles = getVerifiedProfiles();
   {verifiedProfiles.length > 0 && <section
     id="profiles"
     aria-labelledby="profiles-heading"
-    class="space-y-8"
+    class="scroll-mt-16 sm:scroll-mt-20 space-y-8"
   >
     <div class="space-y-2">
       <div class="flex items-center gap-2">
@@ -97,7 +101,7 @@ const verifiedProfiles = getVerifiedProfiles();
         <span
           class="font-['JetBrains_Mono'] text-xs font-semibold tracking-wider text-[var(--color-accent)] uppercase"
         >
-          VERIFIED PROFILES
+          PROFESSIONAL PROFILES
         </span>
       </div>
       <h2
@@ -127,9 +131,9 @@ const verifiedProfiles = getVerifiedProfiles();
               )}
             </div>
             <span
-              class="font-['JetBrains_Mono'] text-xs font-semibold px-2.5 py-1 rounded bg-[var(--color-surface-alt)] border border-[var(--color-accent)]/30 text-[var(--color-accent)]"
+              class="font-['JetBrains_Mono'] text-xs font-semibold px-2.5 py-1 rounded bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-fg)]/80"
             >
-              Verified
+              Profile
             </span>
           </div>
 
@@ -166,7 +170,7 @@ const verifiedProfiles = getVerifiedProfiles();
   <section
     id="return-nav"
     aria-labelledby="overview-heading"
-    class="pt-8 border-t border-[var(--color-border)]"
+    class="scroll-mt-16 sm:scroll-mt-20 pt-8 border-t border-[var(--color-border)]"
   >
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
