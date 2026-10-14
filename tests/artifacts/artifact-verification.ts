@@ -85,30 +85,108 @@ assert.ok(
 );
 console.log('✓ Development fixture isolation confirmed (dev-test & dev-primitives)');
 
-// 6. Verify exclusion of DRAFT candidate projects (EA-019)
-const projectsDir = path.join(distDir, 'projects');
+// 6. Verify EA-022 Projects Index & Exclusion of DRAFT candidate projects
+const projectsIndexHtml = path.join(distDir, 'projects', 'index.html');
 assert.ok(
-  !fs.existsSync(projectsDir),
-  'No /projects/ directory may exist while projects remain DRAFT'
+  fs.existsSync(projectsIndexHtml),
+  'dist/projects/index.html must exist in production build output'
+);
+const projectsHtml = fs.readFileSync(projectsIndexHtml, 'utf8');
+
+// Exactly single H1 on /projects/
+const projectsH1Matches = [...projectsHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
+assert.equal(
+  projectsH1Matches.length,
+  1,
+  `dist/projects/index.html must contain exactly one <h1> element, found ${projectsH1Matches.length}`
+);
+assert.ok(
+  projectsHtml.includes('Engineering Case Studies'),
+  'dist/projects/index.html must contain approved H1 "Engineering Case Studies"'
+);
+
+// Empty state copy verification (while 0 projects are published)
+const normalizedProjectsHtml = projectsHtml.replace(/\s+/g, ' ');
+assert.ok(
+  normalizedProjectsHtml.includes(
+    'Detailed project case studies are being prepared. In the meantime, explore my engineering approach, technical capabilities, and the systems I focus on building.'
+  ),
+  'dist/projects/index.html must contain exact approved empty state message'
+);
+
+// Recovery links verification
+assert.ok(
+  projectsHtml.includes('href="/about/"') &&
+    projectsHtml.includes('Explore Technical Capabilities'),
+  'dist/projects/index.html must link to /about/ with "Explore Technical Capabilities"'
+);
+assert.ok(
+  projectsHtml.includes('href="/contact/"') && projectsHtml.includes('Get in Touch'),
+  'dist/projects/index.html must link to /contact/ with "Get in Touch"'
+);
+
+// Draft candidate detail routes must NOT exist
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'projects', 'streamforge')),
+  'Draft StreamForge detail route must not exist'
+);
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'projects', 'devforge')),
+  'Draft DevForge detail route must not exist'
+);
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'projects', 'java-task-api')),
+  'Draft Java Task API detail route must not exist'
+);
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'projects', 'currency-auth-research')),
+  'Draft Currency Auth detail route must not exist'
 );
 assert.ok(
   !fs.existsSync(path.join(distDir, 'streamforge')),
-  'Draft StreamForge page must not exist'
+  'Draft StreamForge root page must not exist'
 );
-assert.ok(!fs.existsSync(path.join(distDir, 'devforge')), 'Draft DevForge page must not exist');
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'devforge')),
+  'Draft DevForge root page must not exist'
+);
 assert.ok(
   !fs.existsSync(path.join(distDir, 'java-task-api')),
-  'Draft Java Task API page must not exist'
+  'Draft Java Task API root page must not exist'
 );
 assert.ok(
   !fs.existsSync(path.join(distDir, 'currency-auth-research')),
-  'Draft Currency Auth page must not exist'
+  'Draft Currency Auth root page must not exist'
 );
 assert.ok(
   !fs.existsSync(path.join(distDir, 'currency-auth')),
-  'Draft Currency Auth page must not exist'
+  'Draft Currency Auth root page must not exist'
 );
-console.log('✓ Candidate project draft protection confirmed: zero draft project routes');
+
+// Ensure no draft names or unapproved metrics leak into projects index
+assert.ok(
+  !projectsHtml.includes('Currency Authentication Research'),
+  'Unapproved draft project title must not appear in /projects/'
+);
+assert.ok(
+  !projectsHtml.includes('StreamForge'),
+  'Unapproved draft project title must not appear in /projects/'
+);
+assert.ok(
+  !projectsHtml.includes('DevForge'),
+  'Unapproved draft project title must not appear in /projects/'
+);
+assert.ok(
+  !projectsHtml.includes('Java Task API'),
+  'Unapproved draft project title must not appear in /projects/'
+);
+assert.ok(
+  !projectsHtml.includes('96.67%'),
+  'Unapproved research metric must not appear in /projects/'
+);
+console.log(
+  '✓ Candidate project draft protection confirmed: zero draft project routes or content leaks'
+);
 
 // 7. Verify exclusion of unapproved writing and résumé routes
 const writingDir = path.join(distDir, 'writing');
@@ -195,13 +273,17 @@ for (const navBlock of navMatches) {
 }
 
 // Assert unbuilt or disabled routes are NOT present in navigation
-const forbiddenNavRoutes = ['/projects/', '/writing/', '/resume.pdf'];
+const forbiddenNavRoutes = ['/writing/', '/resume.pdf'];
 for (const forbiddenRoute of forbiddenNavRoutes) {
   assert.ok(
     !indexHtml.includes(`href="${forbiddenRoute}"`),
     `Unbuilt or disabled route "${forbiddenRoute}" must not be linked in production navigation`
   );
 }
+assert.ok(
+  indexHtml.includes('href="/projects/"'),
+  'Published route "/projects/" must be linked in production navigation'
+);
 assert.ok(
   indexHtml.includes('href="/about/"'),
   'Published route "/about/" must be linked in production navigation'
@@ -628,7 +710,7 @@ assert.ok(
 );
 
 // D. 404 Gating: Zero Links to Unpublished Routes
-const prohibited404Links = ['href="/projects/"', 'href="/writing/"', 'href="/resume.pdf"'];
+const prohibited404Links = ['href="/writing/"', 'href="/resume.pdf"'];
 for (const link of prohibited404Links) {
   assert.ok(
     !p404Html.includes(link),
@@ -636,9 +718,10 @@ for (const link of prohibited404Links) {
   );
 }
 
-// E. Global Landmark Structure across ALL Pages (Home, About, Contact, 404)
+// E. Global Landmark Structure across ALL 5 Production Pages (Home, Projects, About, Contact, 404)
 const allPageEntries = [
   { name: 'Home', path: path.join(distDir, 'index.html') },
+  { name: 'Projects', path: path.join(distDir, 'projects', 'index.html') },
   { name: 'About', path: path.join(distDir, 'about', 'index.html') },
   { name: 'Contact', path: path.join(distDir, 'contact', 'index.html') },
   { name: '404', path: path.join(distDir, '404.html') },

@@ -27,7 +27,8 @@
 - `EA-019` — **DONE** (Typed Project Content Schema — Astro 5 collections, Zod validation, strict HTTPS URLs, 4 candidate draft MDX files, 4-layer publication gate, independent schema unit tests)  
 - `EA-020` — **DONE** (Project Content Intake and Asset Clearance — Currency Authentication Research Git audit and manuscript reconciliation signed off by owner on all six conditions; score 16/18; candidate project strictly gated as draft pending CBSL statutory clearance and independent reproducibility)  
 - `EA-021` — **DONE** (Project Card and Feature Patterns — Reusable ProjectCard, FeaturedProjectCard, ProjectBlueprintFallback, ADR-002 accessible stretched link, safe navigation gating, isolated test harness, and 100% verified)  
-- `EA-022` — **IN PLANNING** (Projects Index and Empty Safeguards — Preparing implementation plan for owner review)  
+- `EA-022` — **DONE** (Projects Index and Empty Safeguards — Production /projects/ route, ProjectsEmptyState with exact recruiter-friendly copy, working links to /about/ and /contact/, navigation activation, fail-closed gating, isolated populated layout verified, 5 static production pages)  
+- `EA-023` — **IN PLANNING** (Case Study Template and Rich MDX — Authoring detailed implementation plan for owner review)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

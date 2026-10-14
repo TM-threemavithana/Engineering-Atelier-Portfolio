@@ -871,6 +871,92 @@
   - Zero fabricated engineering metrics or currency imagery.
 - Next Ticket: EA-022 — Projects index and empty safeguards (Milestone 3).
 
+### EA-022 Execution Record (2026-10-14)
+- Ticket: EA-022 — Projects index and empty safeguards (Milestone 3: Verified Project System)
+- State: COMPLETED & VERIFIED
+- Approved Implementation Plan: `ea_022_projects_index_and_empty_safeguards_plan.md` (approved with 6 required corrections on 2026-10-14)
+- Scope & Implemented Corrections:
+  1. Professional Empty-State Experience:
+     - Implemented `/projects/` index page with elegant, premium `ProjectsEmptyState.astro`.
+     - Single page H1: "Engineering Case Studies".
+     - Exact owner-approved copy: "Detailed project case studies are being prepared. In the meantime, explore my engineering approach, technical capabilities, and the systems I focus on building."
+     - Working direct links to `/about/` ("Explore Technical Capabilities") and `/contact/` ("Get in Touch").
+     - Zero mentions of internal audits, CBSL statutory clearance, or candidate project names.
+     - Zero fake projects, placeholder cards, or fabricated metrics.
+  2. Correct Project Publication Gating:
+     - Asynchronous collection API `fetchProjectsCollection()` and `getPublishedProjects()`.
+     - Strict 4-layer gate enforced: `draft: false`, `editorialApproval: true`, valid published rubric, approved published route.
+     - Activating `/projects/` index does NOT activate any `/projects/[slug]/` detail routes (`isRoutePublished` checks exact navigation registry).
+     - Fail-closed behavior: only falls back to `[]` in Node test runners where `astro:` ESM scheme is unsupported (`ERR_UNSUPPORTED_ESM_URL_SCHEME`, `MODULE_NOT_FOUND`); rethrows real Astro collection errors in build/runtime.
+  3. Future Populated-State Architecture:
+     - Supports up to 3 featured projects via `FeaturedProjectCard.astro`.
+     - Standard projects rendered in 2-column responsive grid via `ProjectCard.astro`.
+     - Guaranteed zero project duplication between featured and regular sections via `featuredIds` Set filtering.
+     - Deterministic sorting (featured first, then alphabetically by title).
+     - Filter controls omitted until $\ge 5$ verified published projects exist.
+  4. Metrics and Content Truth:
+     - Methodology $\ge 10$ characters is not treated as evidence of verification; metrics default to omission (`metrics={[]}`) in public pages unless explicitly cleared.
+     - Currency Authentication Research metrics, datasets, figures, and draft information strictly excluded.
+  5. SEO, Navigation and Accessibility:
+     - Created `src/pages/projects.astro` and `src/components/projects/ProjectsEmptyState.astro`.
+     - Activated `/projects/` in `src/data/navigation.ts` (`isPublished: true`).
+     - Published navigation updated across desktop header, mobile disclosure menu, and site footer.
+     - Exactly one `<main id="main-content">` landmark and single H1 on every page.
+     - Preserved `siteConfig.isProductionApproved = false`, `robots: noindex, nofollow`, no canonical URL without production domain, no sitemap.
+  6. Tests and Browser Acceptance:
+     - All 40 unit tests pass across 12 suites (`tests/unit/projectsIndex.test.ts` added).
+     - `verify:primitives` and `verify:project-cards` pass with isolated test harnesses and clean teardown.
+     - Production build generates exactly 5 static HTML pages (`/index.html`, `/projects/index.html`, `/about/index.html`, `/contact/index.html`, `/404.html`).
+     - `verify:artifacts` passes all 16 test suites confirming zero draft leakage and complete link integrity.
+     - Browser visual and accessibility testing completed across 1440px desktop, 1024px small desktop, 768px tablet, 390px mobile, 320px minimum mobile, visible focus indicators (`#F0CF78`), keyboard Tab navigation, and no-JS mode.
+- Files created:
+  - `src/components/projects/ProjectsEmptyState.astro` (created: professional empty state component with exact approved copy and working recovery links)
+  - `src/pages/projects.astro` (created: /projects/ route with empty safeguard and future populated layout)
+  - `tests/unit/projectsIndex.test.ts` (created: 5 unit tests for empty production state, navigation activation, detail route isolation, populated layout partitioning, and fail-closed publication gating)
+- Files modified:
+  - `src/data/projects.ts` (modified: added `getPublishedProjects()`, capped featured projects to 3, added fail-closed collection loading)
+  - `src/data/navigation.ts` (modified: set `/projects/` `isPublished: true`)
+  - `tests/unit/navigation.test.ts` (modified: updated tests for published `/projects/` route)
+  - `tests/unit/linkSafety.test.ts` (modified: updated tests for published `/projects/` route and unapproved detail routes)
+  - `tests/unit/footer.test.ts` (modified: updated footer navigation tests to include published `/projects/`)
+  - `tests/artifacts/artifact-verification.ts` (modified: Section 6 post-build assertions checking `/projects/index.html` empty state and absence of draft detail routes; Section 10 and 15 navigation and 5-page landmark checks)
+  - `docs/CONTENT_STATUS.md` (modified: marked EA-022 DONE, EA-023 IN PLANNING)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: added EA-022 execution record)
+- Commands actually executed:
+  - `npm run check`: 74 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run lint`: 0 ESLint errors
+  - `npm run format:check`: 100% compliant with Prettier code style
+  - `npm run test`: 12 test suites pass (40 tests total across all unit test suites, 100% pass)
+  - `npm run verify:primitives`: Passed in isolated `tests/.test-dist/`
+  - `npm run verify:project-cards`: Passed in isolated `tests/.test-dist/`
+  - `npm run build`: Production build generated in `dist/` with 5 pages in 12.56s
+  - `npm run verify:artifacts`: All 16 production artifact test suites pass
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser & a11y evidence:
+  - Desktop 1440x900: Empty state card centered, watermark grid, status badge, single H1 "Engineering Case Studies", exact approved copy, working buttons to `/about/` and `/contact/`, active header link `02. Projects`.
+  - Desktop Focus: Sequential Tab navigation moves from skip-link $\to$ header nav $\to$ "Explore Technical Capabilities" button with visible unclipped gold focus ring (`#F0CF78`).
+  - Tablet 768x1024: Fluid reflow, centered card, balanced padding, zero horizontal scroll.
+  - Mobile 390x844: Full-width responsive stack, buttons stack vertically with touch targets $\ge 44 \times 44$px, mobile disclosure menu present, zero horizontal scroll.
+  - Mobile 320x568: Minimum mobile viewport resilience, zero horizontal overflow (`scrollWidth <= clientWidth`).
+  - Populated Fixture: Inspected isolated populated state at `dev-projects-populated.astro` across 1440px, 768px, and 390px viewports; verified 3 featured project cards with alternating layout and blueprint fallbacks, 2 regular project cards in 2-column grid, zero duplicate projects, and clean removal of temporary fixture.
+  - Screenshots recorded:
+    - Empty State Desktop 1440px: `empty_state_1440_1791999164695.png`
+    - Empty State Focus 1440px: `empty_state_focus_1440_1791999169965.png`
+    - Empty State Desktop 1024px: `empty_state_1024_1791999175757.png`
+    - Empty State Tablet 768px: `empty_state_768_1791999181268.png`
+    - Empty State Mobile 390px: `empty_state_390_1791999187523.png`
+    - Empty State Narrow Mobile 320px: `empty_state_320_1791999194757.png`
+    - Populated Fixture Desktop 1440px: `populated_fixture_1440_1791999217412.png`
+    - Populated Fixture Tablet 768px: `populated_fixture_768_1791999229949.png`
+    - Populated Fixture Mobile 390px: `populated_fixture_390_1791999237648.png`
+    - WebP recording: `ea022_browser_verification_1791999153578.webp`
+- Content truth & publication safety:
+  - All four candidate projects remain in strict DRAFT status (`draft: true`, `editorialApproval: false`).
+  - `siteConfig.isProductionApproved = false` strictly preserved.
+  - Zero project detail routes generated in `dist/projects/` (only `dist/projects/index.html` exists).
+  - Zero draft titles, candidate names, or unverified metrics leaked into production markup.
+- Next Ticket: EA-023 — Case study template and rich MDX (Milestone 3).
+
 
 
 

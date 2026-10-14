@@ -11,6 +11,10 @@ const publishedHrefs = publishedNav.map((item) => item.href);
 
 assert.ok(publishedHrefs.includes('/'), 'Published footer nav must include Home ("/")');
 assert.ok(
+  publishedHrefs.includes('/projects/'),
+  'Published footer nav must include Projects ("/projects/")'
+);
+assert.ok(
   publishedHrefs.includes('/about/'),
   'Published footer nav must include About ("/about/")'
 );
@@ -20,7 +24,7 @@ assert.ok(
 );
 
 // 2. Unpublished routes are strictly suppressed from navigation
-const unpublishedHrefs = ['/projects/', '/writing/', '/resume.pdf'];
+const unpublishedHrefs = ['/writing/', '/resume.pdf'];
 for (const unpub of unpublishedHrefs) {
   assert.ok(
     !publishedHrefs.includes(unpub),

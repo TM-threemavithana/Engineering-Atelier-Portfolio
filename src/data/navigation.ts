@@ -26,7 +26,7 @@ export const navigationConfig: NavItemConfig[] = [
     label: 'Projects',
     href: '/projects/',
     number: '02',
-    isPublished: false, // Milestone 3 (EA-022) — hidden until route exists
+    isPublished: true, // Milestone 3 (EA-022) — Projects route active with empty safeguards
   },
   {
     label: 'About',

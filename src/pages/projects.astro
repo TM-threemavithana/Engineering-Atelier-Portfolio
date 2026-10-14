@@ -1,0 +1,107 @@
+---
+/**
+ * @file src/pages/projects.astro
+ * @description Projects index page with elegant empty state and future populated layout.
+ *
+ * ARCHITECTURAL DESIGN (EA-022):
+ * - Strict 4-layer publication gating via getPublishedProjects().
+ * - When 0 projects are approved for publication: renders ProjectsEmptyState with exact approved copy.
+ * - Single H1 on page ("Engineering Case Studies") in both empty and populated states.
+ * - Exactly one <main id="main-content"> landmark.
+ * - Future populated layout partitions up to 3 featured projects and remaining standard projects with zero duplication.
+ * - Respects SEO rules: no canonical without public domain, robots noindex/nofollow in preview.
+ */
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPublishedProjects } from '../data/projects';
+import ProjectsEmptyState from '../components/projects/ProjectsEmptyState.astro';
+import FeaturedProjectCard from '../components/projects/FeaturedProjectCard.astro';
+import ProjectCard from '../components/projects/ProjectCard.astro';
+
+const publishedProjects = await getPublishedProjects();
+const featuredProjects = publishedProjects.filter((p) => p.featured).slice(0, 3);
+const featuredIds = new Set(featuredProjects.map((p) => p.id));
+const regularProjects = publishedProjects.filter((p) => !featuredIds.has(p.id));
+---
+
+<BaseLayout
+  title="Projects"
+  description="Engineering case studies, backend architectures, and production implementations."
+>
+  <main
+    id="main-content"
+    tabindex="-1"
+    class="focus:outline-none scroll-mt-16 sm:scroll-mt-20 py-12 sm:py-16 lg:py-20 flex-1 flex flex-col justify-center"
+  >
+    <div class="container-atelier w-full">
+      {publishedProjects.length === 0 ? (
+        <ProjectsEmptyState headingLevel="h1" />
+      ) : (
+        <div class="space-y-12 sm:space-y-16">
+          <!-- Page Header -->
+          <header class="max-w-3xl">
+            <div
+              class="inline-flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-[var(--color-accent)] font-mono text-xs uppercase tracking-wider mb-3 select-none"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
+              <span>SELECTED WORK</span>
+            </div>
+            <h1
+              class="font-['Space_Grotesk'] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--color-fg)] mb-4"
+            >
+              Engineering Case Studies
+            </h1>
+            <p class="text-[var(--color-muted)] text-base sm:text-lg leading-relaxed max-w-[70ch]">
+              Verified software systems, backend services, and distributed architectures.
+            </p>
+          </header>
+
+          <!-- Featured Projects Section -->
+          {featuredProjects.length > 0 && <section
+            id="featured-projects"
+            aria-labelledby="featured-projects-heading"
+            class="space-y-8"
+          >
+            <h2
+              id="featured-projects-heading"
+              class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)] mb-6"
+            >
+              Featured Architectures
+            </h2>
+            <div class="space-y-8">
+              {featuredProjects.map((project, idx) => (
+                <FeaturedProjectCard
+                  project={project}
+                  headingLevel="h3"
+                  imagePosition={idx % 2 === 1 ? 'right' : 'left'}
+                  metrics={[]}
+                />
+              ))}
+            </div>
+          </section>}
+
+          <!-- Regular Projects Section -->
+          {regularProjects.length > 0 && <section
+            id="regular-projects"
+            aria-labelledby="regular-projects-heading"
+            class="space-y-6"
+          >
+            <div class="border-t border-[var(--color-border)]/60 pt-8 sm:pt-10">
+              <h2
+                id="regular-projects-heading"
+                class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)] mb-6"
+              >
+                Additional Systems &amp; Studies
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                {regularProjects.map((project) => (
+                  <ProjectCard project={project} headingLevel="h3" />
+                ))}
+              </div>
+            </div>
+          </section>}
+        </div>
+      )}
+    </div>
+  </main>
+</BaseLayout>

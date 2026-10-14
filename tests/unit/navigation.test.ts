@@ -24,13 +24,13 @@ for (const item of publishedItems) {
 }
 console.log('✓ All returned navigation items have isPublished: true');
 
-// 2. Verify that unbuilt future routes are strictly hidden
+// 2. Verify published and unbuilt routes
 const projectsConfig = navigationConfig.find((i) => i.href === '/projects/');
 assert.ok(projectsConfig, 'Projects entry must be present in master navigationConfig');
 assert.equal(
   projectsConfig.isPublished,
-  false,
-  'Projects nav link must be isPublished: false until EA-022'
+  true,
+  'Projects nav link must be isPublished: true now that EA-022 is implemented'
 );
 
 const aboutConfig = navigationConfig.find((i) => i.href === '/about/');
@@ -48,7 +48,9 @@ assert.equal(
   true,
   'Contact nav link must be isPublished: true now that EA-016 is implemented'
 );
-console.log('✓ Published routes (Home, About, Contact) verified in master navigationConfig');
+console.log(
+  '✓ Published routes (Home, Projects, About, Contact) verified in master navigationConfig'
+);
 
 // 3. Verify feature flag gating for Writing and Resume
 const writingConfig = navigationConfig.find((i) => i.href === '/writing/');

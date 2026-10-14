@@ -7,7 +7,11 @@ console.log('--- Starting Link Safety Suite ---');
 assert.equal(isRoutePublished('/'), true, 'Root route "/" must be published');
 assert.equal(isRoutePublished('/favicon.svg'), true, 'Favicon must be an approved static asset');
 assert.equal(isRoutePublished('/robots.txt'), true, 'Robots.txt must be an approved static asset');
-assert.equal(isRoutePublished('/projects/'), false, 'Unbuilt "/projects/" must NOT be published');
+assert.equal(
+  isRoutePublished('/projects/'),
+  true,
+  'Built "/projects/" must be published in EA-022'
+);
 assert.equal(isRoutePublished('/about/'), true, 'Built "/about/" must be published in EA-015');
 assert.equal(isRoutePublished('/contact/'), true, 'Built "/contact/" must be published in EA-016');
 assert.equal(isRoutePublished('/writing/'), false, 'Unbuilt "/writing/" must NOT be published');
@@ -16,6 +20,11 @@ assert.equal(
   false,
   'Unapproved "/resume.pdf" must NOT be published'
 );
+assert.equal(
+  isRoutePublished('/projects/streamforge/'),
+  false,
+  'Unapproved project detail route must NOT be published'
+);
 console.log('✓ Published route and asset checks confirmed');
 
 // 2. Safe internal destination validation
@@ -23,6 +32,11 @@ const rootResult = validateLinkDestination('/');
 assert.equal(rootResult.isValid, true, 'Root "/" must be valid');
 assert.equal(rootResult.isExternal, false);
 assert.equal(rootResult.sanitizedHref, '/');
+
+const projectsResult = validateLinkDestination('/projects/');
+assert.equal(projectsResult.isValid, true, 'Published "/projects/" must be valid');
+assert.equal(projectsResult.isExternal, false);
+assert.equal(projectsResult.sanitizedHref, '/projects/');
 
 const aboutResult = validateLinkDestination('/about/');
 assert.equal(aboutResult.isValid, true, 'Published "/about/" must be valid');
@@ -40,7 +54,12 @@ assert.equal(faviconResult.sanitizedHref, '/favicon.svg');
 console.log('✓ Safe internal links validated successfully');
 
 // 3. Prohibited unbuilt internal routes
-const unbuiltRoutes = ['/projects/', '/writing/', '/resume.pdf'];
+const unbuiltRoutes = [
+  '/writing/',
+  '/resume.pdf',
+  '/projects/streamforge/',
+  '/projects/currency-auth-research/',
+];
 for (const route of unbuiltRoutes) {
   const result = validateLinkDestination(route);
   assert.equal(

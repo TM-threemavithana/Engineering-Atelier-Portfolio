@@ -70,13 +70,26 @@ export interface GenericProjectEntry {
 /**
  * Safely fetches the projects collection from Astro Content Layer.
  * In standalone Node.js environments (where astro:content is unavailable), falls back to empty array.
+ * In Astro runtime/build, rethrows unexpected errors to preserve fail-closed integrity.
  */
 export async function fetchProjectsCollection(): Promise<GenericProjectEntry[]> {
   try {
     const { getCollection } = await import('astro:content');
     return (await getCollection('projects')) as unknown as GenericProjectEntry[];
-  } catch {
-    return [];
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    const isVirtualModuleNotFound =
+      err?.code === 'ERR_MODULE_NOT_FOUND' ||
+      err?.code === 'MODULE_NOT_FOUND' ||
+      err?.code === 'ERR_UNSUPPORTED_ESM_URL_SCHEME' ||
+      (typeof err?.message === 'string' &&
+        (err.message.includes('astro:') || err.message.includes('astro:content')));
+
+    if (isVirtualModuleNotFound) {
+      return [];
+    }
+    // Fail-closed: rethrow real content-loading or schema validation errors in Astro runtime
+    throw error;
   }
 }
 
@@ -141,22 +154,49 @@ export async function getAllProjects(): Promise<ProjectItem[]> {
 }
 
 /**
+ * Returns all verified, published projects for the /projects/ index.
+ * Strictly enforces the 4-layer publication gate.
+ * Deterministically sorted:
+ * 1. Featured projects first (by title ascending)
+ * 2. Non-featured projects (by title ascending)
+ */
+export async function getPublishedProjects(
+  customEntries?: Array<GenericProjectEntry | ProjectItem>
+): Promise<ProjectItem[]> {
+  const items: ProjectItem[] = [];
+
+  if (customEntries) {
+    for (const item of customEntries) {
+      if (isProjectPublishable(item)) {
+        items.push('data' in item ? mapEntryToProjectItem(item) : item);
+      }
+    }
+  } else {
+    const collectionEntries = await fetchProjectsCollection();
+    for (const entry of collectionEntries) {
+      if (isProjectPublishable(entry)) {
+        items.push(mapEntryToProjectItem(entry));
+      }
+    }
+  }
+
+  // Deterministic sort:
+  // Featured first (by title), then non-featured (by title)
+  return items.sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return a.title.localeCompare(b.title);
+  });
+}
+
+/**
  * Returns only verified, published, featured projects for the homepage.
  * Strictly enforces the 4-layer publication gate.
+ * Limited to up to three explicitly approved featured projects (EA-022).
  */
 export async function getPublishedFeaturedProjects(
   customEntries?: Array<GenericProjectEntry | ProjectItem>
 ): Promise<ProjectItem[]> {
-  if (customEntries) {
-    return customEntries
-      .filter((item) => isProjectPublishable(item))
-      .map((item) => ('data' in item ? mapEntryToProjectItem(item) : item))
-      .filter((item) => item.featured);
-  }
-
-  const collectionEntries = await fetchProjectsCollection();
-  return collectionEntries
-    .filter((entry) => isProjectPublishable(entry))
-    .map(mapEntryToProjectItem)
-    .filter((item) => item.featured);
+  const published = await getPublishedProjects(customEntries);
+  return published.filter((item) => item.featured).slice(0, 3);
 }
