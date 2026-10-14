@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AboutIntro from '../components/sections/AboutIntro.astro';
+import EngineeringValues from '../components/sections/EngineeringValues.astro';
+import TechnicalFamiliarity from '../components/sections/TechnicalFamiliarity.astro';
+import Timeline from '../components/sections/Timeline.astro';
+import AboutClosing from '../components/sections/AboutClosing.astro';
+import { getVerifiedTimelineMilestones } from '../data/about';
+
+const verifiedMilestones = getVerifiedTimelineMilestones();
+---
+
+<BaseLayout
+  title="About"
+  description="Background, engineering values, and technical familiarity of Software Engineer focused on Java, Scala, and distributed systems."
+>
+  <main id="main-content" tabindex="-1" class="focus:outline-none">
+    <AboutIntro />
+    <EngineeringValues />
+    <TechnicalFamiliarity />
+    <Timeline milestones={verifiedMilestones} />
+    <AboutClosing />
+  </main>
+</BaseLayout>

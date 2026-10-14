@@ -1,0 +1,82 @@
+---
+import { technicalFamiliarityTiers } from '../../data/about';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Tag from '../ui/Tag.astro';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+const tierVariants: Record<
+  string,
+  { badgeVariant: 'accent' | 'default' | 'outline'; tagVariant: 'accent' | 'default' }
+> = {
+  'Primary Focus': { badgeVariant: 'accent', tagVariant: 'accent' },
+  'Working Knowledge': { badgeVariant: 'default', tagVariant: 'default' },
+  'Actively Exploring': { badgeVariant: 'outline', tagVariant: 'default' },
+};
+---
+
+<section
+  id="familiarity"
+  aria-labelledby="familiarity-heading"
+  class:list={['py-16 sm:py-24 border-t border-[var(--color-border)]', className]}
+>
+  <div class="container-atelier space-y-12 sm:space-y-16">
+    <SectionHeading
+      id="familiarity-heading"
+      eyebrow="STACK & TOOLS"
+      title="Technical Familiarity"
+      description="Technologies grouped by practical engineering application, operational familiarity, and active exploration without arbitrary percentage scoring."
+    />
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {technicalFamiliarityTiers.map((tier) => {
+        const config = tierVariants[tier.category] || {
+          badgeVariant: 'default',
+          tagVariant: 'default',
+        };
+
+        return <div
+          class="rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] p-6 sm:p-8 flex flex-col justify-between hover:border-[var(--color-accent)]/50 transition-colors shadow-sm"
+        >
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span
+                class:list={[
+                  "font-['JetBrains_Mono'] text-xs uppercase px-2.5 py-1 rounded font-semibold tracking-wider",
+                  config.badgeVariant === 'accent'
+                    ? 'bg-[var(--color-surface-alt)] border border-[var(--color-accent)]/40 text-[var(--color-accent)]'
+                    : 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-muted)]',
+                ]}
+              >
+                {tier.category}
+              </span>
+              <span class="font-['JetBrains_Mono'] text-xs text-[var(--color-muted)]">
+                {tier.technologies.length} tools
+              </span>
+            </div>
+
+            <h3 class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]">
+              {tier.category}
+            </h3>
+
+            <p class="text-sm text-[var(--color-muted)] leading-relaxed">
+              {tier.description}
+            </p>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-[var(--color-border)]/80">
+            <div class="flex flex-wrap gap-2">
+              {tier.technologies.map((tech) => (
+                <Tag label={tech} variant={config.tagVariant} size="sm" />
+              ))}
+            </div>
+          </div>
+        </div>;
+      })}
+    </div>
+  </div>
+</section>

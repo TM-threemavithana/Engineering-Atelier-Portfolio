@@ -96,9 +96,13 @@ export function resolvePageMeta(
   const rawSiteUrl = siteUrl instanceof URL ? siteUrl.origin : siteUrl;
   const validatedOrigin = getValidatedProductionSiteUrl(rawSiteUrl);
 
-  const title = props.title
-    ? `${props.title.trim()} | ${siteConfig.brandName}`
-    : siteConfig.defaultTitle;
+  let title = siteConfig.defaultTitle;
+  if (props.title) {
+    const trimmedTitle = props.title.trim();
+    title = trimmedTitle.endsWith(siteConfig.brandName)
+      ? trimmedTitle
+      : `${trimmedTitle} | ${siteConfig.brandName}`;
+  }
 
   const description = props.description ? props.description.trim() : siteConfig.defaultDescription;
 

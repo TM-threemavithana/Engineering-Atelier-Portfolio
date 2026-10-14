@@ -1,0 +1,46 @@
+---
+import Button from '../ui/Button.astro';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<section
+  id="closing"
+  aria-labelledby="closing-heading"
+  class:list={[
+    'py-16 sm:py-20 border-t border-[var(--color-border)] bg-[var(--color-surface)]/20',
+    className,
+  ]}
+>
+  <div class="container-atelier max-w-3xl mx-auto text-center space-y-6">
+    <div class="inline-flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-[var(--color-accent)]"></span>
+      <span
+        class="font-['JetBrains_Mono'] text-xs font-semibold tracking-wider text-[var(--color-accent)] uppercase"
+      >
+        NEXT STEPS
+      </span>
+    </div>
+
+    <h2
+      id="closing-heading"
+      class="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)]"
+    >
+      Explore Core Engineering Capabilities
+    </h2>
+
+    <p class="text-sm sm:text-base text-[var(--color-muted)] max-w-xl mx-auto leading-relaxed">
+      Review architectural practices, focus areas, and development workflows across backend systems
+      and web interfaces.
+    </p>
+
+    <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
+      <Button href="/" variant="primary"> Return to Overview </Button>
+      <Button href="/#capabilities" variant="secondary"> View Capabilities </Button>
+    </div>
+  </div>
+</section>

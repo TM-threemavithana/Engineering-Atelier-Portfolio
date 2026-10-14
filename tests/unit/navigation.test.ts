@@ -37,8 +37,8 @@ const aboutConfig = navigationConfig.find((i) => i.href === '/about/');
 assert.ok(aboutConfig, 'About entry must be present in master navigationConfig');
 assert.equal(
   aboutConfig.isPublished,
-  false,
-  'About nav link must be isPublished: false until EA-015'
+  true,
+  'About nav link must be isPublished: true now that EA-015 is implemented'
 );
 
 const contactConfig = navigationConfig.find((i) => i.href === '/contact/');
@@ -104,8 +104,8 @@ console.log('✓ isNavItemActive logic correctly identifies active page');
 // 6. Test hasPublishedDestinationsBeyondHome logic
 assert.equal(
   hasPublishedDestinationsBeyondHome(publishedItems),
-  false,
-  'Currently only Home is published, so hasPublishedDestinationsBeyondHome must return false'
+  true,
+  'Now that About is published alongside Home, hasPublishedDestinationsBeyondHome must return true'
 );
 
 // Simulate future milestone where Projects is published

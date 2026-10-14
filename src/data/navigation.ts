@@ -32,7 +32,7 @@ export const navigationConfig: NavItemConfig[] = [
     label: 'About',
     href: '/about/',
     number: '03',
-    isPublished: false, // Milestone 2 (EA-015) — hidden until route exists
+    isPublished: true, // Milestone 2 (EA-015) — About route implemented and verified
   },
   {
     label: 'Contact',

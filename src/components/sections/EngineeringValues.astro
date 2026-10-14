@@ -1,0 +1,64 @@
+---
+import { engineeringValues } from '../../data/about';
+import SectionHeading from '../ui/SectionHeading.astro';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<section
+  id="values"
+  aria-labelledby="values-heading"
+  class:list={[
+    'py-16 sm:py-24 border-t border-[var(--color-border)] bg-[var(--color-surface)]/20',
+    className,
+  ]}
+>
+  <div class="container-atelier space-y-12 sm:space-y-16">
+    <SectionHeading
+      id="values-heading"
+      eyebrow="CORE PHILOSOPHY"
+      title="Engineering Values"
+      description="Fundamental principles that govern architectural decisions, code authoring, and system verification."
+    />
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+      {engineeringValues.map((val) => <article
+        class="group relative flex flex-col justify-between rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] p-6 sm:p-8 hover:border-[var(--color-accent)]/60 transition-all duration-200 shadow-sm"
+      >
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span
+              class="font-['JetBrains_Mono'] text-sm font-bold text-[var(--color-accent)] tracking-wider"
+            >
+              {val.number}
+            </span>
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]/40 group-hover:bg-[var(--color-accent)] transition-colors"
+              aria-hidden="true"
+            ></span>
+          </div>
+
+          <h3
+            class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)] tracking-tight"
+          >
+            {val.title}
+          </h3>
+
+          <div
+            class="inline-block px-2.5 py-1 rounded bg-[var(--color-surface-alt)] border border-[var(--color-border)] font-['JetBrains_Mono'] text-xs text-[var(--color-accent)]"
+          >
+            {val.practice}
+          </div>
+
+          <p class="text-sm sm:text-base text-[var(--color-muted)] leading-relaxed pt-2">
+            {val.description}
+          </p>
+        </div>
+      </article>)}
+    </div>
+  </div>
+</section>

@@ -151,10 +151,10 @@ assert.ok(
   'Desktop navigation landmark must be present'
 );
 
-// When only Home is published, mobile disclosure toggle is hidden to eliminate redundant menu and clutter
+// Now that About is published alongside Home, mobile disclosure toggle is rendered for mobile viewports
 assert.ok(
-  !indexHtml.includes('<details class="mobile-nav-details'),
-  'Mobile disclosure trigger must be hidden when only Home is published'
+  indexHtml.includes('<details class="mobile-nav-details'),
+  'Mobile disclosure trigger must be present when multiple routes (Home and About) are published'
 );
 assert.ok(
   !indexHtml.includes('aria-modal'),
@@ -183,13 +183,17 @@ for (const navBlock of navMatches) {
 }
 
 // Assert unbuilt or disabled routes are NOT present in navigation
-const forbiddenNavRoutes = ['/projects/', '/about/', '/contact/', '/writing/', '/resume.pdf'];
+const forbiddenNavRoutes = ['/projects/', '/contact/', '/writing/', '/resume.pdf'];
 for (const forbiddenRoute of forbiddenNavRoutes) {
   assert.ok(
     !indexHtml.includes(`href="${forbiddenRoute}"`),
     `Unbuilt or disabled route "${forbiddenRoute}" must not be linked in production navigation`
   );
 }
+assert.ok(
+  indexHtml.includes('href="/about/"'),
+  'Published route "/about/" must be linked in production navigation'
+);
 
 // Assert only the current page has aria-current="page"
 const aTagsWithAriaCurrent = indexHtml.match(/<a\b[^>]*\baria-current="page"[^>]*>/gi) || [];
@@ -354,6 +358,119 @@ for (const match of sectionsWithLabelledBy) {
 }
 console.log(
   '✓ Capabilities and Engineering Approach confirmed; Featured Work gracefully omitted; aria-labelledby references validated'
+);
+
+// 13. Verify EA-015 About Page Production Artifact Integrity
+const aboutHtmlPath = path.join(distDir, 'about', 'index.html');
+assert.ok(
+  fs.existsSync(aboutHtmlPath),
+  'dist/about/index.html must exist in production build output'
+);
+const aboutHtml = fs.readFileSync(aboutHtmlPath, 'utf8');
+
+// A. Exactly Single H1 Element
+const aboutH1Matches = [...aboutHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
+assert.equal(
+  aboutH1Matches.length,
+  1,
+  `dist/about/index.html must contain exactly one <h1> element, found ${aboutH1Matches.length}`
+);
+assert.ok(
+  aboutHtml.includes('Disciplined engineering. Systems built with intentionality.'),
+  'dist/about/index.html must contain approved H1 title copy'
+);
+assert.ok(
+  aboutHtml.includes('Software Engineer focused on Java, Scala, backend architecture'),
+  'dist/about/index.html must contain approved positioning copy'
+);
+
+// B. Engineering Values Section & 3 Approved Principles
+assert.match(
+  aboutHtml,
+  /<section[^>]*id="values"[^>]*aria-labelledby="values-heading"[^>]*>/,
+  'dist/about/index.html must contain <section id="values" aria-labelledby="values-heading">'
+);
+assert.match(
+  aboutHtml,
+  /<h2[^>]*id="values-heading"[^>]*>[\s\S]*?Engineering Values[\s\S]*?<\/h2>/,
+  'dist/about/index.html must contain <h2> with id="values-heading" and title "Engineering Values"'
+);
+
+const expectedValues = [
+  'Understand Before Solving',
+  'Design for Maintainability',
+  'Verify Through Empirical Testing',
+];
+for (const val of expectedValues) {
+  assert.ok(
+    aboutHtml.includes(val),
+    `dist/about/index.html must contain engineering value: "${val}"`
+  );
+}
+
+// C. Technical Familiarity Section & 3 Honest Categories
+assert.match(
+  aboutHtml,
+  /<section[^>]*id="familiarity"[^>]*aria-labelledby="familiarity-heading"[^>]*>/,
+  'dist/about/index.html must contain <section id="familiarity" aria-labelledby="familiarity-heading">'
+);
+assert.match(
+  aboutHtml,
+  /<h2[^>]*id="familiarity-heading"[^>]*>[\s\S]*?Technical Familiarity[\s\S]*?<\/h2>/,
+  'dist/about/index.html must contain <h2> with id="familiarity-heading" and title "Technical Familiarity"'
+);
+
+const expectedFamiliarityTiers = ['Primary Focus', 'Working Knowledge', 'Actively Exploring'];
+for (const tier of expectedFamiliarityTiers) {
+  assert.ok(
+    aboutHtml.includes(tier),
+    `dist/about/index.html must contain familiarity tier: "${tier}"`
+  );
+}
+
+// Ensure no percentage meters or arbitrary scores in production About page
+assert.ok(
+  !/\d+%\s*(mastery|proficiency|skill)/i.test(aboutHtml),
+  'dist/about/index.html must not contain arbitrary percentage scores'
+);
+
+// D. Timeline Graceful Omission (Zero Unverified Milestones)
+assert.ok(
+  !aboutHtml.includes('id="timeline"'),
+  'Timeline section must be gracefully omitted from dist/about/index.html when 0 verified milestones exist'
+);
+assert.ok(
+  !aboutHtml.includes('Experience &amp; Education'),
+  'Timeline heading must be absent from dist/about/index.html when 0 verified milestones exist'
+);
+
+// E. Contact Route Safety Check
+assert.ok(
+  !aboutHtml.includes('href="/contact/"'),
+  'dist/about/index.html must strictly NOT link to unbuilt /contact/ route'
+);
+
+// F. Heading IDs and aria-labelledby consistency check on About page
+const aboutSectionsWithLabelledBy = [
+  ...aboutHtml.matchAll(/<section[^>]*\baria-labelledby="([^"]+)"[^>]*>/gi),
+];
+assert.ok(
+  aboutSectionsWithLabelledBy.length >= 3,
+  'At least 3 labelled sections must exist on About page (about-intro, values, familiarity)'
+);
+for (const match of aboutSectionsWithLabelledBy) {
+  const headingId = match[1];
+  assert.ok(
+    aboutHtml.includes(`id="${headingId}"`),
+    `Section aria-labelledby="${headingId}" in dist/about/index.html must correspond to element with id="${headingId}"`
+  );
+}
+
+// G. Published Navigation Item Check (About link appears in site header)
+assert.ok(aboutHtml.includes('href="/about/"'), 'Site header on About page must link to /about/');
+assert.ok(indexHtml.includes('href="/about/"'), 'Site header on Homepage must link to /about/');
+console.log(
+  '✓ About page production integrity confirmed: single H1, 3 values, 3 familiarity tiers, timeline gracefully omitted, zero broken contact links, aria-labelledby consistent'
 );
 
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

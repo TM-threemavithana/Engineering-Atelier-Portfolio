@@ -1,0 +1,83 @@
+---
+import type { TimelineMilestone } from '../../data/about';
+import SectionHeading from '../ui/SectionHeading.astro';
+import StatusLabel from '../ui/StatusLabel.astro';
+
+export interface Props {
+  milestones?: TimelineMilestone[];
+  class?: string;
+}
+
+const { milestones = [], class: className = '' } = Astro.props;
+
+// Strict filter: only verified milestones can appear
+const verifiedMilestones = milestones.filter((m) => m.isVerified);
+---
+
+{verifiedMilestones.length > 0 && <section
+  id="timeline"
+  aria-labelledby="timeline-heading"
+  class:list={['py-16 sm:py-24 border-t border-[var(--color-border)]', className]}
+>
+  <div class="container-atelier space-y-12 sm:space-y-16">
+    <SectionHeading
+      id="timeline-heading"
+      eyebrow="BACKGROUND & PROVENANCE"
+      title="Experience & Education"
+      description="Chronological record of verified professional engineering roles and foundational education."
+    />
+
+    <div class="max-w-3xl mx-auto">
+      <ol
+        class="relative border-l border-[var(--color-border)] ml-4 sm:ml-6 pl-6 sm:pl-8 space-y-12"
+      >
+        {verifiedMilestones.map((milestone) => <li class="relative group">
+          <!-- Visual Node Indicator -->
+          <div
+            class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-3 h-3 rounded-full bg-[var(--color-surface)] border-2 border-[var(--color-accent)] group-hover:bg-[var(--color-accent)] transition-colors"
+            aria-hidden="true"
+          />
+
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+              {milestone.datetime ? (
+                <time
+                  datetime={milestone.datetime}
+                  class="font-['JetBrains_Mono'] text-xs text-[var(--color-accent)] font-semibold"
+                >
+                  {milestone.period}
+                </time>
+              ) : (
+                <span
+                  class="font-['JetBrains_Mono'] text-xs text-[var(--color-accent)] font-semibold"
+                >
+                  {milestone.period}
+                </span>
+              )}
+
+              {milestone.statusTag && <StatusLabel tone="accent" label={milestone.statusTag} />}
+            </div>
+
+            <h3 class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]">
+              {milestone.title}
+            </h3>
+
+            {milestone.organization && <div class="text-sm font-medium text-[var(--color-fg)]/80">
+              {milestone.organization}
+            </div>}
+
+            <p class="text-sm sm:text-base text-[var(--color-muted)] leading-relaxed">
+              {milestone.description}
+            </p>
+
+            {milestone.highlights && milestone.highlights.length > 0 && <ul
+              class="pt-2 space-y-1 text-xs sm:text-sm text-[var(--color-muted)] list-disc list-inside"
+            >
+              {milestone.highlights.map((h) => <li>{h}</li>)}
+            </ul>}
+          </div>
+        </li>)}
+      </ol>
+    </div>
+  </div>
+</section>}
