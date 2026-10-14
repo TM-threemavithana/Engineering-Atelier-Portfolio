@@ -207,4 +207,72 @@ console.log(
   '✓ Header and Navigation production integrity confirmed: zero 404 links, semantic disclosure, correct aria-current'
 );
 
+// 11. Verify EA-013 Homepage Hero Production Markup
+const h1Elements = indexHtml.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi) || [];
+assert.equal(h1Elements.length, 1, 'dist/index.html must contain exactly one <h1> element');
+assert.match(
+  h1Elements[0],
+  /Building reliable systems\.\s+Creating meaningful experiences\./,
+  'H1 must contain exact approved headline'
+);
+
+// Verify overline and positioning text
+assert.match(indexHtml, /Software Engineer/, 'dist/index.html must contain overline role');
+assert.match(
+  indexHtml,
+  /Software Engineer focused on Java, Scala, backend architecture, distributed systems, and thoughtful full-stack development\./,
+  'dist/index.html must contain exact approved positioning text'
+);
+
+// Verify Hero CTA destination and label
+assert.match(
+  indexHtml,
+  /<a[^>]*href="#architecture-blueprint"[^>]*>[\s\S]*?Explore the Blueprint[\s\S]*?<\/a>/,
+  'Hero CTA must link to #architecture-blueprint with label "Explore the Blueprint"'
+);
+
+// Verify target anchor exists on blueprint card with accessible attributes
+assert.match(
+  indexHtml,
+  /<div[^>]*id="architecture-blueprint"[^>]*tabindex="-1"[^>]*role="region"[^>]*>/,
+  'Blueprint target must exist with id="architecture-blueprint", tabindex="-1", and role="region"'
+);
+
+// Verify honest conceptual modeling and absence of fabricated claims
+assert.ok(indexHtml.includes('Conceptual Model'), 'Blueprint must be labeled "Conceptual Model"');
+assert.ok(
+  indexHtml.includes('Illustrative Architecture'),
+  'Blueprint status must be "Illustrative Architecture"'
+);
+assert.ok(!indexHtml.includes('In Clearance'), 'Blueprint must not contain "In Clearance"');
+assert.ok(
+  !indexHtml.includes('P99'),
+  'Blueprint must strictly not contain "P99" or latency metrics'
+);
+assert.ok(
+  !indexHtml.includes('2.0ms') && !indexHtml.includes('1.2ms'),
+  'Blueprint must strictly not contain fabricated latency numbers'
+);
+
+// Verify accessible description and SVG vector labels
+assert.match(
+  indexHtml,
+  /id="blueprint-summary"[^>]*class="sr-only"/,
+  'Blueprint must contain screen-reader accessible summary'
+);
+const diagramLabels = [
+  'Client (gRPC)',
+  'Buffered Channel',
+  'Pipeline Handler',
+  'Consensus Log',
+  'Storage Engine',
+  'Peer Replica',
+];
+for (const label of diagramLabels) {
+  assert.ok(indexHtml.includes(label), `Blueprint must render readable vector label: "${label}"`);
+}
+console.log(
+  '✓ Homepage Hero production integrity confirmed: single H1, approved copy, valid in-page CTA, accessible vector diagram, zero fabricated metrics'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

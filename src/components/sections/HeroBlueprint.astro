@@ -1,0 +1,256 @@
+---
+import Tag from '../ui/Tag.astro';
+---
+
+<div
+  id="architecture-blueprint"
+  tabindex="-1"
+  class="surface-card p-6 sm:p-8 rounded-[var(--radius-card)] border border-[var(--color-border)] relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-[var(--color-focus)] transition-colors duration-150"
+  role="region"
+  aria-labelledby="blueprint-heading"
+  aria-describedby="blueprint-summary"
+>
+  <!-- Background radial subtle glow (nonessential decorative atmospheric sheen) -->
+  <div
+    class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[var(--color-accent)]/5 pointer-events-none blur-3xl motion-reduce:hidden"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Card Header -->
+  <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4 mb-6">
+    <div class="flex items-center gap-2">
+      <span
+        class="w-2 h-2 rounded-full bg-[var(--color-accent)] shrink-0"
+        aria-hidden="true"
+      ></span>
+      <h2
+        id="blueprint-heading"
+        class="font-mono text-xs sm:text-sm font-semibold tracking-wider text-[var(--color-fg)] uppercase"
+      >
+        Topology // Event Ingestion
+      </h2>
+    </div>
+    <Tag label="Conceptual Model" variant="accent" size="sm" />
+  </div>
+
+  <!-- Accessible Screen-Reader Description of Conceptual Flow -->
+  <p id="blueprint-summary" class="sr-only">
+    Conceptual architecture diagram illustrating an event ingestion flow: gRPC clients stream
+    payloads into a buffered queue channel; an asynchronous pipeline handler ingests and validates
+    messages; records are appended to a distributed Raft consensus log; and persistent storage
+    commits state across peer replicas.
+  </p>
+
+  <!-- Responsive Handcrafted Vector SVG Architecture Diagram -->
+  <div class="w-full my-2">
+    <svg
+      viewBox="0 0 540 270"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      class="w-full h-auto overflow-visible select-none"
+      role="img"
+      aria-label="Conceptual architecture topology diagram"
+    >
+      <defs>
+        <!-- Horizontal Accent Arrowhead Marker -->
+        <marker
+          id="bp-arrow-accent"
+          viewBox="0 0 10 10"
+          refX="8"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-accent, #5EEAD4)" />
+        </marker>
+
+        <!-- Vertical Boundary Arrowhead Marker -->
+        <marker
+          id="bp-arrow-down"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="8"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto"
+        >
+          <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="var(--color-border-strong, #5A7597)" />
+        </marker>
+      </defs>
+
+      <!-- ROW 1: INGESTION INGRESS -->
+      <!-- Node 1: Client (gRPC) -->
+      <g>
+        <rect
+          x="12"
+          y="12"
+          width="196"
+          height="56"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="28" y="36" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Client (gRPC)
+        </text>
+        <text x="28" y="54" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Unary / Bidirectional Stream
+        </text>
+      </g>
+
+      <!-- Horizontal Connector: Node 1 -> Node 2 -->
+      <path
+        d="M 208 40 L 320 40"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        stroke-dasharray="4 3"
+        marker-end="url(#bp-arrow-accent)"
+      />
+
+      <!-- Node 2: Buffered Channel -->
+      <g>
+        <rect
+          x="332"
+          y="12"
+          width="196"
+          height="56"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="348" y="36" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Buffered Channel
+        </text>
+        <text x="348" y="54" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Bounded In-Memory Queue
+        </text>
+      </g>
+
+      <!-- Vertical Connector: Node 2 -> Node 4 -->
+      <path
+        d="M 430 68 L 430 96"
+        stroke="var(--color-border-strong, #5A7597)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-down)"
+      />
+
+      <!-- ROW 2: PROCESSING & CONSENSUS -->
+      <!-- Node 3: Pipeline Handler -->
+      <g>
+        <rect
+          x="12"
+          y="106"
+          width="196"
+          height="56"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="28" y="130" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Pipeline Handler
+        </text>
+        <text x="28" y="148" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Schema Validation &amp; Route
+        </text>
+      </g>
+
+      <!-- Horizontal Connector: Node 3 -> Node 4 -->
+      <path
+        d="M 208 134 L 320 134"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-accent)"
+      />
+
+      <!-- Node 4: Consensus Log -->
+      <g>
+        <rect
+          x="332"
+          y="106"
+          width="196"
+          height="56"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="348" y="130" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Consensus Log
+        </text>
+        <text x="348" y="148" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Raft Replicated Entries
+        </text>
+      </g>
+
+      <!-- Vertical Connector: Node 4 -> Node 6 -->
+      <path
+        d="M 430 162 L 430 190"
+        stroke="var(--color-border-strong, #5A7597)"
+        stroke-width="1.5"
+        marker-end="url(#bp-arrow-down)"
+      />
+
+      <!-- ROW 3: PERSISTENCE & REPLICATION -->
+      <!-- Node 5: Storage Engine -->
+      <g>
+        <rect
+          x="12"
+          y="200"
+          width="196"
+          height="56"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="28" y="224" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Storage Engine
+        </text>
+        <text x="28" y="242" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Immutable WAL &amp; Compaction
+        </text>
+      </g>
+
+      <!-- Horizontal Connector: Node 5 -> Node 6 -->
+      <path
+        d="M 208 228 L 320 228"
+        stroke="var(--color-accent, #5EEAD4)"
+        stroke-width="1.5"
+        stroke-dasharray="4 3"
+        marker-end="url(#bp-arrow-accent)"
+      />
+
+      <!-- Node 6: Peer Replica -->
+      <g>
+        <rect
+          x="332"
+          y="200"
+          width="196"
+          height="56"
+          rx="6"
+          class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+          stroke-width="1.5"
+        />
+        <text x="348" y="224" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+          Peer Replica
+        </text>
+        <text x="348" y="242" class="font-mono text-[11px] fill-[var(--color-muted)]">
+          Follower State Machine
+        </text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Card Footer / Honest Metadata -->
+  <div
+    class="mt-6 pt-4 border-t border-[var(--color-border)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-[var(--color-muted)]"
+  >
+    <div class="flex items-center gap-1.5">
+      <span class="text-[var(--color-fg)] font-medium">Model:</span>
+      <span>Candidate Architecture</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <span class="text-[var(--color-fg)] font-medium">Status:</span>
+      <span class="text-[var(--color-accent)] font-medium">Illustrative Architecture</span>
+    </div>
+  </div>
+</div>
