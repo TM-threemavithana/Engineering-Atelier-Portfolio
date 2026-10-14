@@ -20,7 +20,8 @@
 - `EA-013` — **DONE** (Homepage Hero — Asymmetric Layout, Technical Vector Blueprint Card, Headline & Positioning Copy, Valid Anchor CTA)  
 - `EA-014` — **DONE** (Homepage Featured Work & Capabilities — Dual-Gated Graceful Omission, 3 Technical Focus Groups, 4-Stage Engineering Approach, Heading ID Accessibility)  
 - `EA-015` — **DONE** (About Page & Verified Timeline — Single H1, 3 Approved Values, 3 Technical Familiarity Tiers, Graceful Timeline Omission, Safe Alternative Navigation)  
-- `EA-016` — **TODO** (Contact Page and CopyEmail Fallback)  
+- `EA-016` — **DONE** (Contact Page & CopyEmail Fallback — Direct Mailto, Verified GitHub/LinkedIn, Progressive React Island, Zero Form Backends)  
+- `EA-017` — **TODO** (Footer and Branded 404)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 
@@ -36,9 +37,9 @@
 | **Positioning Headline** | **CONFIRMED** | *"Building reliable systems. Creating meaningful experiences."* | Owner approval (Option B) | **Approved** |
 | **Positioning Subheading** | **CONFIRMED** | *"Software Engineer focused on Java, Scala, backend architecture, distributed systems, and thoughtful full-stack development."* | Owner approval | **Approved** |
 | **Full / Display Name** | **Awaiting Confirmation** | Temporary Monogram `EA` (*Engineering Atelier*) | Owner instruction | Safe fallback active |
-| **Primary Contact Email** | **Awaiting Confirmation** | `[Awaiting Confirmation]` | Owner input pending | Direct mailto suppressed |
-| **GitHub Profile URL** | **Awaiting Confirmation** | `[Awaiting Confirmation]` | Owner input pending | Social icon suppressed |
-| **LinkedIn Profile URL** | **Awaiting Confirmation** | `[Awaiting Confirmation]` | Owner input pending | Social icon suppressed |
+| **Primary Contact Email** | **CONFIRMED** | `tharukamaduwantha62@gmail.com` | Owner explicit approval | **Approved** |
+| **GitHub Profile URL** | **CONFIRMED** | `https://github.com/TM-threemavithana` | Owner explicit approval | **Approved** |
+| **LinkedIn Profile URL** | **CONFIRMED** | `https://www.linkedin.com/in/tharuka-madhuwantha/` | Owner explicit approval | **Approved** |
 | **Public Location** | **Awaiting Confirmation** | Omitted from UI by default | Privacy consent pending | Completely hidden |
 | **Current Résumé PDF** | **Awaiting Confirmation** | None | Owner input pending | Gated by feature flag (`enableResume: false`) |
 | **Portrait / Image** | **Optional / Absent** | None | Owner input pending | Typographic hero used |

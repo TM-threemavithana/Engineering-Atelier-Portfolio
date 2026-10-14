@@ -8,11 +8,11 @@ Fill this table only with confirmed information. Leave pending items unknown; do
 | Field | Value | Status | Evidence/approval | Publish? |
 | --- | --- | --- | --- | --- |
 | Preferred public display name | `[OWNER TO SUPPLY]` | pending | — | no |
-| Professional title | `Software Engineer` (candidate wording) | pending | owner approval | no |
-| Headline/subtitle | `[APPROVE COPY]` | pending | owner approval | no |
-| Contact email | `[OWNER TO SUPPLY]` | pending | owner approval | no |
-| GitHub URL | `[OWNER TO SUPPLY]` | pending | confirm accessible and owned | no |
-| LinkedIn URL | `[OWNER TO SUPPLY]` | pending | confirm accessible and owned | no |
+| Professional title | `Software Engineer` | approved | owner approval | yes |
+| Headline/subtitle | `Building reliable systems. Creating meaningful experiences.` | approved | owner approval | yes |
+| Contact email | `tharukamaduwantha62@gmail.com` | approved | owner explicit approval | yes |
+| GitHub URL | `https://github.com/TM-threemavithana` | approved | owner explicit approval | yes |
+| LinkedIn URL | `https://www.linkedin.com/in/tharuka-madhuwantha/` | approved | owner explicit approval | yes |
 | Location/timezone | `[OPTIONAL]` | pending | consent | no |
 | Résumé PDF | `[CURRENT RESUME]` | pending | check content, embedded links | no |
 | Portrait | `[OPTIONAL IMAGE]` | pending | author/rights/consent | no |

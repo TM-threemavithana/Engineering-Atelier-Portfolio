@@ -1,0 +1,37 @@
+---
+import { contactConfig } from '../../data/contact';
+
+export interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<section
+  id="contact-hero"
+  aria-labelledby="contact-hero-heading"
+  class:list={['container-atelier py-12 sm:py-16 lg:py-20', className]}
+>
+  <div class="max-w-3xl space-y-6">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-[var(--color-accent)]"></span>
+      <span
+        class="font-['JetBrains_Mono'] text-xs font-semibold tracking-wider text-[var(--color-accent)] uppercase"
+      >
+        {contactConfig.eyebrow}
+      </span>
+    </div>
+
+    <h1
+      id="contact-hero-heading"
+      class="font-['Space_Grotesk'] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--color-fg)] leading-[1.15]"
+    >
+      {contactConfig.headline}
+    </h1>
+
+    <p class="text-base sm:text-lg lg:text-xl text-[var(--color-muted)] leading-relaxed">
+      {contactConfig.introParagraph}
+    </p>
+  </div>
+</section>

@@ -183,7 +183,7 @@ for (const navBlock of navMatches) {
 }
 
 // Assert unbuilt or disabled routes are NOT present in navigation
-const forbiddenNavRoutes = ['/projects/', '/contact/', '/writing/', '/resume.pdf'];
+const forbiddenNavRoutes = ['/projects/', '/writing/', '/resume.pdf'];
 for (const forbiddenRoute of forbiddenNavRoutes) {
   assert.ok(
     !indexHtml.includes(`href="${forbiddenRoute}"`),
@@ -193,6 +193,10 @@ for (const forbiddenRoute of forbiddenNavRoutes) {
 assert.ok(
   indexHtml.includes('href="/about/"'),
   'Published route "/about/" must be linked in production navigation'
+);
+assert.ok(
+  indexHtml.includes('href="/contact/"'),
+  'Published route "/contact/" must be linked in production navigation'
 );
 
 // Assert only the current page has aria-current="page"
@@ -444,10 +448,16 @@ assert.ok(
   'Timeline heading must be absent from dist/about/index.html when 0 verified milestones exist'
 );
 
-// E. Contact Route Safety Check
+// E. Published Navigation Item Checks (About & Contact appear in site header)
+assert.ok(aboutHtml.includes('href="/about/"'), 'Site header on About page must link to /about/');
+assert.ok(indexHtml.includes('href="/about/"'), 'Site header on Homepage must link to /about/');
 assert.ok(
-  !aboutHtml.includes('href="/contact/"'),
-  'dist/about/index.html must strictly NOT link to unbuilt /contact/ route'
+  aboutHtml.includes('href="/contact/"'),
+  'Site header on About page must link to published /contact/'
+);
+assert.ok(
+  indexHtml.includes('href="/contact/"'),
+  'Site header on Homepage must link to published /contact/'
 );
 
 // F. Heading IDs and aria-labelledby consistency check on About page
@@ -466,11 +476,92 @@ for (const match of aboutSectionsWithLabelledBy) {
   );
 }
 
-// G. Published Navigation Item Check (About link appears in site header)
-assert.ok(aboutHtml.includes('href="/about/"'), 'Site header on About page must link to /about/');
-assert.ok(indexHtml.includes('href="/about/"'), 'Site header on Homepage must link to /about/');
 console.log(
-  '✓ About page production integrity confirmed: single H1, 3 values, 3 familiarity tiers, timeline gracefully omitted, zero broken contact links, aria-labelledby consistent'
+  '✓ About page production integrity confirmed: single H1, 3 values, 3 familiarity tiers, timeline gracefully omitted, aria-labelledby consistent'
+);
+
+// 14. Verify EA-016 Contact Page Production Artifact Integrity
+const contactHtmlPath = path.join(distDir, 'contact', 'index.html');
+assert.ok(
+  fs.existsSync(contactHtmlPath),
+  'dist/contact/index.html must exist in production build output'
+);
+const contactHtml = fs.readFileSync(contactHtmlPath, 'utf8');
+
+// A. Exactly Single H1 Element
+const contactH1Matches = [...contactHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
+assert.equal(
+  contactH1Matches.length,
+  1,
+  `dist/contact/index.html must contain exactly one <h1> element, found ${contactH1Matches.length}`
+);
+assert.ok(
+  contactHtml.includes('Let&#39;s build reliable software together.') ||
+    contactHtml.includes("Let's build reliable software together."),
+  'dist/contact/index.html must contain approved H1 headline copy'
+);
+
+// B. Exact Verified Contact Details Present
+assert.ok(
+  contactHtml.includes('tharukamaduwantha62@gmail.com'),
+  'dist/contact/index.html must visibly display the approved email address'
+);
+assert.ok(
+  contactHtml.includes('href="mailto:tharukamaduwantha62@gmail.com"'),
+  'dist/contact/index.html must contain valid mailto link to approved email'
+);
+assert.ok(
+  contactHtml.includes('href="https://github.com/TM-threemavithana"'),
+  'dist/contact/index.html must contain link to exact approved GitHub profile'
+);
+assert.ok(
+  contactHtml.includes('href="https://www.linkedin.com/in/tharuka-madhuwantha/"'),
+  'dist/contact/index.html must contain link to exact approved LinkedIn profile'
+);
+
+// C. External Link Security Attributes
+assert.ok(
+  contactHtml.includes('rel="noopener noreferrer"'),
+  'External profile links must contain rel="noopener noreferrer"'
+);
+assert.ok(
+  contactHtml.includes('target="_blank"'),
+  'External profile links must contain target="_blank"'
+);
+
+// D. CopyEmail Island & Accessibility Live Region
+assert.ok(
+  contactHtml.includes('aria-live="polite"') && contactHtml.includes('role="status"'),
+  'dist/contact/index.html must contain accessible aria-live status live region for CopyEmail'
+);
+
+// E. Heading IDs and aria-labelledby consistency check on Contact page
+const contactSectionsWithLabelledBy = [
+  ...contactHtml.matchAll(/<section[^>]*\baria-labelledby="([^"]+)"[^>]*>/gi),
+];
+assert.ok(
+  contactSectionsWithLabelledBy.length >= 2,
+  'At least 2 labelled sections must exist on Contact page (contact-hero, direct-contact)'
+);
+for (const match of contactSectionsWithLabelledBy) {
+  const headingId = match[1];
+  assert.ok(
+    contactHtml.includes(`id="${headingId}"`),
+    `Section aria-labelledby="${headingId}" in dist/contact/index.html must correspond to element with id="${headingId}"`
+  );
+}
+
+// F. Negative Truth Checks: Zero Placeholder or Invented Strings
+const forbiddenPlaceholders = ['example.com', 'your-name', 'FILL_IN', '123-456-7890'];
+for (const ph of forbiddenPlaceholders) {
+  assert.ok(
+    !contactHtml.toLowerCase().includes(ph.toLowerCase()),
+    `dist/contact/index.html must not contain placeholder string "${ph}"`
+  );
+}
+
+console.log(
+  '✓ Contact page production integrity confirmed: single H1, exact verified email/social links, no-JS mailto, aria-live CopyEmail island, zero placeholders'
 );
 
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

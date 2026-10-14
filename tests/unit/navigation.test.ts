@@ -45,10 +45,10 @@ const contactConfig = navigationConfig.find((i) => i.href === '/contact/');
 assert.ok(contactConfig, 'Contact entry must be present in master navigationConfig');
 assert.equal(
   contactConfig.isPublished,
-  false,
-  'Contact nav link must be isPublished: false until EA-016'
+  true,
+  'Contact nav link must be isPublished: true now that EA-016 is implemented'
 );
-console.log('✓ Unbuilt routes (Projects, About, Contact) are strictly gated from public nav');
+console.log('✓ Published routes (Home, About, Contact) verified in master navigationConfig');
 
 // 3. Verify feature flag gating for Writing and Resume
 const writingConfig = navigationConfig.find((i) => i.href === '/writing/');

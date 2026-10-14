@@ -9,7 +9,7 @@ assert.equal(isRoutePublished('/favicon.svg'), true, 'Favicon must be an approve
 assert.equal(isRoutePublished('/robots.txt'), true, 'Robots.txt must be an approved static asset');
 assert.equal(isRoutePublished('/projects/'), false, 'Unbuilt "/projects/" must NOT be published');
 assert.equal(isRoutePublished('/about/'), true, 'Built "/about/" must be published in EA-015');
-assert.equal(isRoutePublished('/contact/'), false, 'Unbuilt "/contact/" must NOT be published');
+assert.equal(isRoutePublished('/contact/'), true, 'Built "/contact/" must be published in EA-016');
 assert.equal(isRoutePublished('/writing/'), false, 'Unbuilt "/writing/" must NOT be published');
 assert.equal(
   isRoutePublished('/resume.pdf'),
@@ -29,13 +29,18 @@ assert.equal(aboutResult.isValid, true, 'Published "/about/" must be valid');
 assert.equal(aboutResult.isExternal, false);
 assert.equal(aboutResult.sanitizedHref, '/about/');
 
+const contactResult = validateLinkDestination('/contact/');
+assert.equal(contactResult.isValid, true, 'Published "/contact/" must be valid');
+assert.equal(contactResult.isExternal, false);
+assert.equal(contactResult.sanitizedHref, '/contact/');
+
 const faviconResult = validateLinkDestination('/favicon.svg');
 assert.equal(faviconResult.isValid, true);
 assert.equal(faviconResult.sanitizedHref, '/favicon.svg');
 console.log('✓ Safe internal links validated successfully');
 
 // 3. Prohibited unbuilt internal routes
-const unbuiltRoutes = ['/projects/', '/contact/', '/writing/', '/resume.pdf'];
+const unbuiltRoutes = ['/projects/', '/writing/', '/resume.pdf'];
 for (const route of unbuiltRoutes) {
   const result = validateLinkDestination(route);
   assert.equal(
