@@ -1,0 +1,215 @@
+---
+/**
+ * @file src/components/projects/ProjectFactPanel.astro
+ * @description Structured engineering metadata fact panel for case studies.
+ *
+ * ARCHITECTURAL DESIGN (EA-023):
+ * - Displays verified engineering role, honest collaborative attribution, status, taxonomy, and tech stack.
+ * - Enforces strict HTTPS validation for external repository and live demo links.
+ * - Suppresses missing optional fields gracefully without empty labels or placeholder text.
+ * - Metric omission by default (Improvement 4): Numerical claims are strictly suppressed
+ *   unless explicitly cleared with claim-level verification approval.
+ */
+
+import type { ProjectStatus, ProjectCategory } from '../../data/schemas/projectSchema';
+import { isValidProjectHttpsUrl } from '../../data/schemas/projectSchema';
+import StatusLabel from '../ui/StatusLabel.astro';
+import Tag from '../ui/Tag.astro';
+import GitHubIcon from '../icons/GitHubIcon.astro';
+import ExternalLinkIcon from '../icons/ExternalLinkIcon.astro';
+
+export interface Props {
+  role: string;
+  collaborators?: string[];
+  status: ProjectStatus;
+  categories: ProjectCategory[];
+  technologies: string[];
+  repoUrl?: string;
+  demoUrl?: string;
+  publishedAt?: Date;
+  approvedClaims?: boolean;
+  metrics?: Array<{
+    name: string;
+    value: string;
+    methodology?: string;
+  }>;
+  class?: string;
+}
+
+const {
+  role,
+  collaborators = [],
+  status,
+  categories,
+  technologies,
+  repoUrl,
+  demoUrl,
+  publishedAt,
+  approvedClaims = false,
+  metrics = [],
+  class: className = '',
+} = Astro.props;
+
+// Status mapping to tone
+const toneMapping = {
+  completed: 'success',
+  prototype: 'warning',
+  'in-progress': 'accent',
+  research: 'neutral',
+} as const;
+
+const statusLabelText = {
+  completed: 'Completed System',
+  prototype: 'Prototype Architecture',
+  'in-progress': 'In Development',
+  research: 'Research Study',
+}[status];
+
+// Category label formatting
+const categoryLabels: Record<ProjectCategory, string> = {
+  backend: 'Backend Systems',
+  distributed: 'Distributed Architecture',
+  fullstack: 'Full-Stack Engineering',
+  research: 'Applied Research',
+  frontend: 'Frontend Systems',
+};
+
+// Validate external links with strict HTTPS validator
+const hasValidRepo = Boolean(repoUrl && isValidProjectHttpsUrl(repoUrl));
+const hasValidDemo = Boolean(demoUrl && isValidProjectHttpsUrl(demoUrl));
+
+// Claim-level publication gate: display metrics only when approvedClaims is explicitly true
+const displayMetrics = approvedClaims ? metrics : [];
+---
+
+<aside
+  class:list={[
+    'surface-card rounded-[var(--radius-card)] border border-[var(--color-border)] p-6 sm:p-7 space-y-6',
+    className,
+  ]}
+  aria-labelledby="fact-panel-heading"
+>
+  <!-- Fact Panel Header -->
+  <div class="flex items-center justify-between border-b border-[var(--color-border)]/40 pb-4">
+    <h2
+      id="fact-panel-heading"
+      class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-accent)]"
+    >
+      Project Specifications
+    </h2>
+    <StatusLabel label={statusLabelText} tone={toneMapping[status]} />
+  </div>
+
+  <div class="space-y-5 text-sm">
+    <!-- 1. Engineering Role -->
+    <div>
+      <span class="block font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">
+        Engineering Role
+      </span>
+      <span class="text-[var(--color-fg)] font-medium leading-relaxed">
+        {role}
+      </span>
+    </div>
+
+    <!-- 2. Collaborative Attribution (Rendered only when contributors exist) -->
+    {collaborators.length > 0 && <div>
+      <span class="block font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1">
+        Collaborators &amp; Team Attribution
+      </span>
+      <span class="text-[var(--color-muted)] leading-relaxed">
+        {collaborators.join(', ')}
+      </span>
+    </div>}
+
+    <!-- 3. Domain & Technical Focus -->
+    <div>
+      <span
+        class="block font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1.5"
+      >
+        Domain Classification
+      </span>
+      <div class="flex flex-wrap gap-1.5">
+        {categories.map((cat) => <span
+          class="px-2 py-0.5 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-xs font-mono text-[var(--color-fg)]"
+        >
+          {categoryLabels[cat] || cat}
+        </span>)}
+      </div>
+    </div>
+
+    <!-- 4. Technology Stack Tags -->
+    <div>
+      <span
+        class="block font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mb-1.5"
+      >
+        Technologies &amp; Libraries
+      </span>
+      <div class="flex flex-wrap gap-1.5" aria-label="Technologies used">
+        {technologies.map((tech) => (
+          <Tag label={tech} variant="default" size="sm" />
+        ))}
+      </div>
+    </div>
+
+    <!-- 5. Optional Verified Performance Metrics (Rendered only when approvedClaims is true) -->
+    {displayMetrics.length > 0 && <div class="border-t border-[var(--color-border)]/40 pt-4">
+      <span class="block font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">
+        Verified Evidence
+      </span>
+      <div class="grid grid-cols-2 gap-3">
+        {displayMetrics.map((metric) => <div
+          class="p-2.5 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]"
+        >
+          <span class="block text-lg font-bold font-['Space_Grotesk'] text-[var(--color-fg)]">
+            {metric.value}
+          </span>
+          <span
+            class="block text-xs font-mono text-[var(--color-muted)] truncate"
+            title={metric.methodology}
+          >
+            {metric.name}
+          </span>
+        </div>)}
+      </div>
+    </div>}
+
+    <!-- 6. External Resource Links -->
+    {(hasValidRepo || hasValidDemo) && <div
+      class="border-t border-[var(--color-border)]/40 pt-4 space-y-2"
+    >
+      <span class="block font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mb-2">
+        Artifact Links
+      </span>
+      <div class="flex flex-col gap-2">
+        {hasValidRepo && <a
+          href={repoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring inline-flex items-center gap-2 px-3 py-2 rounded-[var(--radius-button)] text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-fg)] bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface-alt)]/80 border border-[var(--color-border)] transition-colors min-h-[44px]"
+        >
+          <GitHubIcon class="w-4 h-4 text-[var(--color-accent)]" />
+          <span>Inspect Source Repository</span>
+          <span class="sr-only">(opens in new tab)</span>
+        </a>}
+
+        {hasValidDemo && <a
+          href={demoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring inline-flex items-center gap-2 px-3 py-2 rounded-[var(--radius-button)] text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-fg)] bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface-alt)]/80 border border-[var(--color-border)] transition-colors min-h-[44px]"
+        >
+          <ExternalLinkIcon class="w-4 h-4 text-[var(--color-accent)]" />
+          <span>View System Demonstration</span>
+          <span class="sr-only">(opens in new tab)</span>
+        </a>}
+      </div>
+    </div>}
+
+    <!-- 7. Publication / Clearance Notice -->
+    {publishedAt && <div class="border-t border-[var(--color-border)]/40 pt-3">
+      <span class="font-mono text-xs text-[var(--color-muted)]">
+        Published: {publishedAt.toISOString().split('T')[0]}
+      </span>
+    </div>}
+  </div>
+</aside>

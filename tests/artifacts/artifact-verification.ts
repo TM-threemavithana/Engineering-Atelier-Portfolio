@@ -828,4 +828,75 @@ console.log(
   '✓ Project card and blueprint production isolation confirmed: zero fixture or draft card leaks'
 );
 
+// 17. Verify EA-023 Case Study Template & Dynamic Route Production Invariants
+const projectsDir = path.join(distDir, 'projects');
+const projectDirEntries = fs.readdirSync(projectsDir);
+assert.deepEqual(
+  projectDirEntries,
+  ['index.html'],
+  `dist/projects/ must contain ONLY index.html, found: ${JSON.stringify(projectDirEntries)}`
+);
+
+// Verify dev-case-study fixture isolation
+const devCaseStudyDir = path.join(distDir, 'dev-case-study');
+assert.ok(
+  !fs.existsSync(devCaseStudyDir),
+  'dev-case-study route directory must not exist in production dist/'
+);
+
+// Verify zero leakage of fictional case-study test strings into any production page
+const fictionalCaseStudyPatterns = [
+  'Fictional Event Stream Gateway',
+  'StreamDispatcher.java',
+  'LMAX Disruptor',
+  'Ring Buffer In-Memory Queue',
+  'Three-tier ingestion topology',
+];
+
+for (const page of allPageEntries) {
+  const html = fs.readFileSync(page.path, 'utf8');
+  for (const pattern of fictionalCaseStudyPatterns) {
+    assert.ok(
+      !html.includes(pattern),
+      `${page.name} must NOT contain fictional case study pattern: "${pattern}"`
+    );
+  }
+}
+
+// Strictly verify total HTML pages across entire dist/ output equals exactly 5
+function findHtmlFiles(dir: string, baseDir: string = dir): string[] {
+  let results: string[] = [];
+  const list = fs.readdirSync(dir);
+  for (const file of list) {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+    if (stat && stat.isDirectory()) {
+      if (file !== '_astro') {
+        results = results.concat(findHtmlFiles(fullPath, baseDir));
+      }
+    } else if (file.endsWith('.html')) {
+      results.push(path.relative(baseDir, fullPath).replace(/\\/g, '/'));
+    }
+  }
+  return results.sort();
+}
+
+const allGeneratedHtmlFiles = findHtmlFiles(distDir);
+const expectedHtmlFiles = [
+  '404.html',
+  'about/index.html',
+  'contact/index.html',
+  'index.html',
+  'projects/index.html',
+].sort();
+
+assert.deepEqual(
+  allGeneratedHtmlFiles,
+  expectedHtmlFiles,
+  `Production dist/ must contain EXACTLY 5 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
+);
+console.log(
+  '✓ EA-023 Case Study production invariants confirmed: exactly 5 HTML pages, zero dynamic detail routes, zero fixture leaks'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

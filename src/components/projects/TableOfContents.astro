@@ -1,0 +1,106 @@
+---
+/**
+ * @file src/components/projects/TableOfContents.astro
+ * @description Accessible, responsive in-page table of contents for deep-dive technical case studies.
+ *
+ * ARCHITECTURAL DESIGN (EA-023):
+ * - Generated from actual rendered headings extracted by Astro 5 render(entry).
+ * - Only renders when content contains sufficient meaningful sections (minHeadings >= 3).
+ * - Semantic <nav aria-label="Table of Contents"> and <ol> list hierarchy.
+ * - Mobile: Collapsible semantic <details> disclosure to prevent pushing narrative content down.
+ * - Desktop: Sticky sidebar container with visible focus indicators (#F0CF78).
+ */
+
+export interface MarkdownHeading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+export interface Props {
+  headings: MarkdownHeading[];
+  minHeadings?: number;
+  maxDepth?: number;
+  title?: string;
+  class?: string;
+}
+
+const {
+  headings = [],
+  minHeadings = 3,
+  maxDepth = 3,
+  title = 'Table of Contents',
+  class: className = '',
+} = Astro.props;
+
+// Filter for eligible section headings (depth 2 and 3)
+const eligibleHeadings = headings.filter(
+  (h) => h.depth >= 2 && h.depth <= maxDepth && h.slug && h.text.trim().length > 0
+);
+
+// Graceful omission: do not render TOC if fewer than minHeadings exist
+const shouldRender = eligibleHeadings.length >= minHeadings;
+---
+
+{shouldRender && <nav
+  class:list={[
+    'table-of-contents my-8 lg:my-0 surface-card rounded-[var(--radius-card)] border border-[var(--color-border)] p-5 sm:p-6 text-sm',
+    className,
+  ]}
+  aria-label="Table of Contents"
+>
+  <!-- Desktop Header -->
+  <div class="hidden lg:flex items-center gap-2 border-b border-[var(--color-border)]/40 pb-3 mb-4">
+    <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true"></span>
+    <span
+      class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-accent)]"
+    >
+      {title}
+    </span>
+  </div>
+
+  <!-- Mobile Collapsible Disclosure -->
+  <details class="toc-mobile-details lg:hidden group">
+    <summary
+      class="flex items-center justify-between cursor-pointer list-none select-none focus-ring rounded-[var(--radius-button)] py-1 text-xs font-mono font-semibold uppercase tracking-wider text-[var(--color-accent)]"
+    >
+      <span class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true"></span>
+        <span>{title} ({eligibleHeadings.length} Sections)</span>
+      </span>
+      <span
+        class="text-[var(--color-muted)] group-open:rotate-180 transition-transform text-xs"
+        aria-hidden="true"
+      >
+        &#9662;
+      </span>
+    </summary>
+
+    <ol class="mt-4 pt-3 border-t border-[var(--color-border)]/40 space-y-2 font-mono text-xs">
+      {eligibleHeadings.map((heading) => <li
+        class:list={[heading.depth === 3 ? 'pl-4 text-[var(--color-muted)]' : '']}
+      >
+        <a
+          href={`#${heading.slug}`}
+          class="focus-ring rounded-[var(--radius-button)] text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors py-1 block"
+        >
+          {heading.text}
+        </a>
+      </li>)}
+    </ol>
+  </details>
+
+  <!-- Desktop Navigation List -->
+  <ol class="hidden lg:flex flex-col gap-2 font-mono text-xs">
+    {eligibleHeadings.map((heading) => <li
+      class:list={[heading.depth === 3 ? 'pl-3 text-[var(--color-muted)]' : '']}
+    >
+      <a
+        href={`#${heading.slug}`}
+        class="focus-ring rounded-[var(--radius-button)] text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors py-0.5 block leading-relaxed"
+      >
+        {heading.text}
+      </a>
+    </li>)}
+  </ol>
+</nav>}

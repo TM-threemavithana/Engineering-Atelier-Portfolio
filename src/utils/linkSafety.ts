@@ -16,8 +16,15 @@ export interface LinkValidationResult {
 export const APPROVED_STATIC_ASSETS = new Set<string>(['/favicon.svg', '/robots.txt']);
 
 /**
+ * Registry of individually cleared and published project detail routes.
+ * Strictly exact-matching: wildcards (e.g. /projects/*) are strictly prohibited (EA-023).
+ * In EA-023, all candidate projects remain unpublished, so this registry is empty.
+ */
+export const APPROVED_PROJECT_ROUTES = new Set<string>();
+
+/**
  * Check if an internal route is currently verified and published.
- * Extensible: Checks published navigation items plus any approved project routes.
+ * Extensible: Checks published navigation items plus exact approved project routes.
  */
 export function isRoutePublished(pathname: string): boolean {
   const normalize = (p: string) => (p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : p);
@@ -35,8 +42,13 @@ export function isRoutePublished(pathname: string): boolean {
     return true;
   }
 
-  // Extensibility hook: future verified project case studies will be registered here
-  // Currently, all 4 candidate projects remain strictly in DRAFT status
+  // Check individually approved project detail routes (exact match only, zero wildcards)
+  for (const approved of APPROVED_PROJECT_ROUTES) {
+    if (normalize(approved) === normalizedPath) {
+      return true;
+    }
+  }
+
   return false;
 }
 

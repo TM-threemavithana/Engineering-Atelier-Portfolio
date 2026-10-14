@@ -51,6 +51,7 @@ export interface GenericProjectEntry {
     summary: string;
     status: ProjectProgressStatus;
     role: string;
+    collaborators?: string[];
     individualContribution?: string;
     technologies: string[];
     categories: ProjectCategory[];
@@ -58,6 +59,8 @@ export interface GenericProjectEntry {
     featureOrder?: number;
     repoUrl?: string;
     demoUrl?: string;
+    coverImage?: { src: unknown; alt: string; caption?: string };
+    architectureImage?: { src: unknown; alt: string; caption?: string };
     draft: boolean;
     editorialApproval?: boolean;
     publishedAt?: Date;

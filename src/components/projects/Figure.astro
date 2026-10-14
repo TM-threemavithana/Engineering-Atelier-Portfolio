@@ -1,0 +1,61 @@
+---
+/**
+ * @file src/components/projects/Figure.astro
+ * @description Accessible figure component for technical diagrams, schematics, and screenshots.
+ *
+ * ARCHITECTURAL DESIGN (EA-023):
+ * - Semantic <figure> and <figcaption> structure.
+ * - Enforces mandatory descriptive alternative text (alt).
+ * - Only permits verified local assets or inline SVG slot diagrams (prevents unapproved external hotlinking).
+ * - Suppresses fullscreen links when target asset is unapproved.
+ * - Zero currency/banknote imagery permitted.
+ */
+
+import type { ImageMetadata } from 'astro';
+
+export interface Props {
+  src?: ImageMetadata | string;
+  alt: string;
+  caption: string;
+  figureNumber?: number | string;
+  class?: string;
+}
+
+const { src, alt, caption, figureNumber, class: className = '' } = Astro.props;
+
+// Determine image src string safely (local images only)
+const resolvedSrc = typeof src === 'string' ? src : src?.src;
+
+// Safety check: reject unapproved remote external URLs (Improvement 5)
+const isExternal =
+  resolvedSrc && (resolvedSrc.startsWith('http://') || resolvedSrc.startsWith('https://'));
+const safeSrc = isExternal ? undefined : resolvedSrc;
+---
+
+<figure class:list={['my-8 sm:my-10 space-y-3', className]}>
+  <div
+    class="relative w-full rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden flex items-center justify-center"
+  >
+    {safeSrc ? (
+      <img
+        src={safeSrc}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        class="w-full h-auto object-contain max-h-[560px] mx-auto"
+      />
+    ) : (
+      <div class="w-full flex items-center justify-center p-4">
+        <!-- Inline slot for accessible SVG diagrams or blueprint components -->
+        <slot />
+      </div>
+    )}
+  </div>
+
+  <figcaption class="font-mono text-xs sm:text-sm text-[var(--color-muted)] leading-relaxed px-1">
+    {figureNumber && <span class="text-[var(--color-accent)] font-semibold mr-1.5 select-none">
+      Fig. {figureNumber} &mdash;
+    </span>}
+    <span>{caption}</span>
+  </figcaption>
+</figure>

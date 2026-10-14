@@ -1,0 +1,132 @@
+---
+/**
+ * @file src/components/projects/CodeBlock.astro
+ * @description Accessible, horizontally scrollable code block with progressive clipboard copying.
+ *
+ * ARCHITECTURAL DESIGN (EA-023):
+ * - Confines wide code lines to an independently scrollable region (no document-level overflow).
+ * - Keyboard accessible: scrollable region has tabindex="0" and visible focus ring (#F0CF78)
+ *   enabling keyboard arrow navigation (WCAG 2.2 SC 2.1.1).
+ * - Progressive enhancement copying: Copy button is hidden by default and enabled only when
+ *   navigator.clipboard is detected, preventing inert buttons when JavaScript is disabled.
+ * - Accessible announcements via aria-live="polite" status region.
+ * - Strict confidentiality: no credentials, secret keys, or confidential tokens.
+ */
+
+import CheckIcon from '../icons/CheckIcon.astro';
+
+export interface Props {
+  code?: string;
+  language?: string;
+  filename?: string;
+  class?: string;
+}
+
+const { code, language = 'text', filename, class: className = '' } = Astro.props;
+
+const blockId = `code-block-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div
+  class:list={[
+    'code-block-container surface-card rounded-[var(--radius-card)] border border-[var(--color-border)] my-6 sm:my-8 overflow-hidden group',
+    className,
+  ]}
+  id={blockId}
+>
+  <!-- Header Bar: Filename / Language + Progressive Copy Button -->
+  <div
+    class="flex items-center justify-between px-4 py-2.5 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)]/60 text-xs font-mono"
+  >
+    <div class="flex items-center gap-2 truncate">
+      {filename ? (
+        <span class="text-[var(--color-fg)] font-medium truncate" title={filename}>
+          {filename}
+        </span>
+      ) : (
+        <span class="text-[var(--color-muted)] uppercase tracking-wider"> Source Code </span>
+      )}
+      <span class="text-[var(--color-border-strong)]" aria-hidden="true">|</span>
+      <span class="text-[var(--color-accent)] uppercase tracking-wider font-semibold">
+        {language.toUpperCase()}
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Copy button: progressively revealed by inline script when navigator.clipboard is available -->
+      <button
+        type="button"
+        class="copy-code-btn hidden items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-button)] text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-fg)] bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-all focus-ring cursor-pointer select-none"
+        data-copy-target={blockId}
+        aria-label={filename ? `Copy code from ${filename}` : 'Copy code snippet'}
+      >
+        <span class="copy-label">Copy</span>
+        <span class="check-icon hidden text-[var(--color-accent)]" aria-hidden="true">
+          <CheckIcon class="w-3.5 h-3.5" />
+        </span>
+      </button>
+
+      <!-- Accessible Live Region for Screen Readers -->
+      <div role="status" aria-live="polite" class="sr-only copy-status-region"></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Code Body (tabindex="0" with visible focus ring) -->
+  <div
+    class="code-scroll-region overflow-x-auto p-4 sm:p-5 font-mono text-xs sm:text-sm text-[var(--color-fg)] leading-relaxed bg-[var(--color-bg)]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-inset"
+    tabindex="0"
+    role="region"
+    aria-label={filename ? `Code snippet: ${filename}` : 'Code snippet'}
+  >
+    {code ? (
+      <pre
+        class="m-0 p-0 bg-transparent overflow-visible"
+      ><code class={`language-${language}`}>{code}</code></pre>
+    ) : (
+      <slot />
+    )}
+  </div>
+</div>
+
+<script is:inline>
+  // Progressive enhancement: reveal copy button only when navigator.clipboard is available
+  (function () {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      const container = document.currentScript && document.currentScript.previousElementSibling;
+      if (container) {
+        const btn = container.querySelector('.copy-code-btn');
+        if (btn) {
+          btn.classList.remove('hidden');
+          btn.classList.add('inline-flex');
+          btn.addEventListener('click', function () {
+            const region = container.querySelector('.code-scroll-region');
+            const status = container.querySelector('.copy-status-region');
+            const label = btn.querySelector('.copy-label');
+            const check = btn.querySelector('.check-icon');
+
+            if (!region) return;
+            const textToCopy = region.innerText || region.textContent || '';
+
+            navigator.clipboard.writeText(textToCopy.trim()).then(
+              function () {
+                if (label) label.textContent = 'Copied!';
+                if (check) check.classList.remove('hidden');
+                if (status) status.textContent = 'Code snippet copied to clipboard';
+
+                setTimeout(function () {
+                  if (label) label.textContent = 'Copy';
+                  if (check) check.classList.add('hidden');
+                  if (status) status.textContent = '';
+                }, 2000);
+              },
+              function () {
+                if (label) label.textContent = 'Failed';
+                if (status) status.textContent = 'Failed to copy code to clipboard';
+              }
+            );
+          });
+        }
+      }
+    }
+  })();
+</script>

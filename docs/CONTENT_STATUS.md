@@ -28,7 +28,8 @@
 - `EA-020` — **DONE** (Project Content Intake and Asset Clearance — Currency Authentication Research Git audit and manuscript reconciliation signed off by owner on all six conditions; score 16/18; candidate project strictly gated as draft pending CBSL statutory clearance and independent reproducibility)  
 - `EA-021` — **DONE** (Project Card and Feature Patterns — Reusable ProjectCard, FeaturedProjectCard, ProjectBlueprintFallback, ADR-002 accessible stretched link, safe navigation gating, isolated test harness, and 100% verified)  
 - `EA-022` — **DONE** (Projects Index and Empty Safeguards — Production /projects/ route, ProjectsEmptyState with exact recruiter-friendly copy, working links to /about/ and /contact/, navigation activation, fail-closed gating, isolated populated layout verified, 5 static production pages)  
-- `EA-023` — **IN PLANNING** (Case Study Template and Rich MDX — Authoring detailed implementation plan for owner review)  
+- `EA-023` — **DONE** (Case Study Template and Rich MDX — Dynamic route src/pages/projects/[slug].astro with Astro 5 Content Layer render(entry), Breadcrumbs, ProjectFactPanel, DecisionBlock, Figure, CodeBlock with progressive copy, TableOfContents, exact per-project approved route matching, claim-level metric omission default, isolated integration test harness, 0 detail routes in production, exactly 5 static pages)  
+- `EA-024` — **IN PLANNING** (Publish First Verified Case Study — Planning intake and clearance workflow for first publishable project)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

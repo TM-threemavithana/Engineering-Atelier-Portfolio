@@ -1,0 +1,176 @@
+---
+/**
+ * @file src/pages/projects/[slug].astro
+ * @description Dynamic case study detail route for published engineering projects.
+ *
+ * ARCHITECTURAL DESIGN (EA-023):
+ * - Strict 4-layer publication gating: only entries passing isProjectPublishable() are generated.
+ * - In production: because all 4 real candidates remain DRAFT, getStaticPaths() returns an empty array,
+ *   generating exactly ZERO detail routes in production dist/.
+ * - Astro 5 Content Layer: uses render(entry) to extract Content and headings.
+ * - Rich technical narrative structure adhering to Master Spec §4.3.
+ * - Readability enforced: prose constrained to <= 74ch (.reading-column).
+ * - Exactly one <main id="main-content"> landmark and single page H1.
+ */
+
+import {
+  fetchProjectsCollection,
+  isProjectPublishable,
+  type GenericProjectEntry,
+} from '../../data/projects';
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/projects/Breadcrumbs.astro';
+import ProjectFactPanel from '../../components/projects/ProjectFactPanel.astro';
+import DecisionBlock from '../../components/projects/DecisionBlock.astro';
+import Figure from '../../components/projects/Figure.astro';
+import CodeBlock from '../../components/projects/CodeBlock.astro';
+import TableOfContents from '../../components/projects/TableOfContents.astro';
+import ProjectBlueprintFallback from '../../components/projects/ProjectBlueprintFallback.astro';
+import StatusLabel from '../../components/ui/StatusLabel.astro';
+import Tag from '../../components/ui/Tag.astro';
+import Button from '../../components/ui/Button.astro';
+import TextLink from '../../components/ui/TextLink.astro';
+import ArrowRightIcon from '../../components/icons/ArrowRightIcon.astro';
+
+export async function getStaticPaths() {
+  const entries = await fetchProjectsCollection();
+  // Strictly filter: only cleared, published entries pass publication gating
+  const publishableEntries = entries.filter((entry) => isProjectPublishable(entry));
+
+  return publishableEntries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+export interface Props {
+  entry: GenericProjectEntry;
+}
+
+const { entry } = Astro.props;
+
+// Render MDX content and extract headings using Astro 5 Content Layer API
+const { Content, headings } = await render(entry as unknown as Parameters<typeof render>[0]);
+const data = entry.data;
+
+const primaryCategory =
+  data.categories && data.categories.length > 0 ? data.categories[0] : 'backend';
+---
+
+<BaseLayout title={`${data.title} | Projects`} description={data.seoDescription || data.summary}>
+  <main
+    id="main-content"
+    tabindex="-1"
+    class="focus:outline-none scroll-mt-16 sm:scroll-mt-20 py-10 sm:py-16"
+  >
+    <div class="container-atelier w-full space-y-10 sm:space-y-12">
+      <!-- 1. Breadcrumbs Navigation -->
+      <Breadcrumbs currentTitle={data.title} />
+
+      <!-- 2. Case Study Hero Header -->
+      <header class="space-y-4 max-w-4xl">
+        <div
+          class="inline-flex items-center gap-2 px-2.5 py-1 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-[var(--color-accent)] font-mono text-xs uppercase tracking-wider select-none"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true"></span>
+          <span>ENGINEERING CASE STUDY</span>
+        </div>
+
+        <!-- Single Page H1 -->
+        <h1
+          class="font-['Space_Grotesk'] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--color-fg)] leading-tight"
+        >
+          {data.title}
+        </h1>
+
+        <!-- Executive Summary -->
+        <p
+          class="reading-column text-base sm:text-lg text-[var(--color-muted)] leading-relaxed max-w-[74ch]"
+        >
+          {data.summary}
+        </p>
+      </header>
+
+      <!-- 3. Visual Banner / Technical Architecture Schematic -->
+      <div
+        class="relative w-full aspect-video rounded-[var(--radius-card)] border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)]"
+      >
+        {data.coverImage && typeof data.coverImage === 'object' && 'src' in data.coverImage ? (
+          <img
+            src={
+              typeof data.coverImage.src === 'string'
+                ? data.coverImage.src
+                : ((data.coverImage.src as Record<string, unknown>).src as string)
+            }
+            alt={data.coverImage.alt || data.title}
+            width="1200"
+            height="675"
+            loading="eager"
+            class="w-full h-full object-cover"
+          />
+        ) : (
+          <ProjectBlueprintFallback
+            title={data.title}
+            category={primaryCategory}
+            status={data.status}
+            aspectRatio="16/9"
+          />
+        )}
+      </div>
+
+      <!-- 4. Main Grid: Fact Panel + Narrative MDX Body -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <!-- Left / Sticky Sidebar (Fact Panel & Table of Contents) -->
+        <aside class="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
+          <ProjectFactPanel
+            role={data.role}
+            collaborators={data.collaborators}
+            status={data.status}
+            categories={data.categories}
+            technologies={data.technologies}
+            repoUrl={data.repoUrl}
+            demoUrl={data.demoUrl}
+            publishedAt={data.publishedAt}
+            approvedClaims={false}
+          />
+
+          <TableOfContents headings={headings} />
+        </aside>
+
+        <!-- Right / Narrative Prose Column (Constrained to <= 74ch) -->
+        <article
+          class="lg:col-span-8 reading-column max-w-[74ch] space-y-8 text-[var(--color-fg)] leading-relaxed"
+        >
+          <div class="prose-atelier space-y-6">
+            <Content
+              components={{
+                DecisionBlock,
+                Figure,
+                CodeBlock,
+                StatusLabel,
+                Tag,
+                Button,
+                TextLink,
+              }}
+            />
+          </div>
+
+          <!-- Bottom Case Study Actions -->
+          <div
+            class="border-t border-[var(--color-border)]/60 pt-8 mt-12 flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <Button href="/projects/" variant="secondary" size="md" class="w-full sm:w-auto">
+              <span>&larr; Back to Case Studies</span>
+            </Button>
+
+            <Button href="/contact/" variant="primary" size="md" class="w-full sm:w-auto">
+              <span>Discuss Architecture</span>
+              <ArrowRightIcon class="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

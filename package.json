@@ -15,8 +15,9 @@
     "test": "tsx --test \"tests/unit/**/*.test.ts\"",
     "verify:primitives": "tsx tests/artifacts/primitives-rendering.ts",
     "verify:project-cards": "tsx tests/artifacts/project-card-rendering.ts",
+    "verify:case-studies": "tsx tests/artifacts/case-study-rendering.ts",
     "verify:artifacts": "tsx tests/artifacts/artifact-verification.ts",
-    "verify": "npm run check && npm run lint && npm run format:check && npm run test && npm run verify:primitives && npm run verify:project-cards && npm run build && npm run verify:artifacts"
+    "verify": "npm run check && npm run lint && npm run format:check && npm run test && npm run verify:primitives && npm run verify:project-cards && npm run verify:case-studies && npm run build && npm run verify:artifacts"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",

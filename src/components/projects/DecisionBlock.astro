@@ -1,0 +1,168 @@
+---
+/**
+ * @file src/components/projects/DecisionBlock.astro
+ * @description Standardized Architectural Decision Record (ADR) component for technical case studies.
+ *
+ * ARCHITECTURAL DESIGN (EA-023):
+ * - Implements Master Spec §4.3 decision schema:
+ *   Context -> Options Considered -> Selection -> Consequences -> Verification.
+ * - Semantic subheadings (h3/h4) maintaining strict page heading hierarchy.
+ * - Restrained editorial styling with accent border indicator.
+ * - Content is directly readable without hidden accordion traps or JavaScript dependencies.
+ */
+
+export interface DecisionOption {
+  name: string;
+  pros?: string[];
+  cons?: string[];
+  summary?: string;
+}
+
+export interface Props {
+  id?: string;
+  title: string;
+  status?: string;
+  context: string;
+  options: string[] | DecisionOption[];
+  selection: string;
+  consequences: string;
+  verification?: string;
+  headingLevel?: 'h3' | 'h4';
+  class?: string;
+}
+
+const {
+  id: explicitId,
+  title,
+  status = 'Accepted',
+  context,
+  options,
+  selection,
+  consequences,
+  verification,
+  headingLevel = 'h3',
+  class: className = '',
+} = Astro.props;
+
+const HeadingTag = headingLevel;
+const headingId =
+  explicitId ||
+  `decision-${title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')}`;
+---
+
+<section
+  id={headingId}
+  class:list={[
+    'surface-card rounded-[var(--radius-card)] border border-[var(--color-border)] p-6 sm:p-8 my-8 relative overflow-hidden border-l-4 border-l-[var(--color-accent)] space-y-6',
+    className,
+  ]}
+  aria-labelledby={`${headingId}-title`}
+>
+  <!-- Decision Block Header -->
+  <div
+    class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--color-border)]/40 pb-4"
+  >
+    <div class="space-y-1">
+      <span
+        class="font-mono text-xs text-[var(--color-accent)] font-semibold uppercase tracking-wider block"
+      >
+        ARCHITECTURAL DECISION RECORD
+      </span>
+      <HeadingTag
+        id={`${headingId}-title`}
+        class="font-['Space_Grotesk'] text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-fg)]"
+      >
+        {title}
+      </HeadingTag>
+    </div>
+
+    <span
+      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-xs font-mono text-[var(--color-accent)] self-start sm:self-auto select-none"
+    >
+      <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true"></span>
+      <span>{status}</span>
+    </span>
+  </div>
+
+  <div class="space-y-5 text-sm sm:text-base leading-relaxed text-[var(--color-fg)]">
+    <!-- 1. Context & Constraints -->
+    <div>
+      <h4
+        class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2"
+      >
+        1. Context &amp; Constraints
+      </h4>
+      <p class="text-[var(--color-muted)]">
+        {context}
+      </p>
+    </div>
+
+    <!-- 2. Options Considered -->
+    <div>
+      <h4
+        class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2"
+      >
+        2. Options Evaluated
+      </h4>
+      <ul class="list-disc list-inside space-y-2 text-[var(--color-muted)] pl-1">
+        {options.map((opt) => <li>
+          {typeof opt === 'string' ? (
+            <span>{opt}</span>
+          ) : (
+            <span class="text-[var(--color-fg)] font-medium">
+              {opt.name}
+              {opt.summary && <span class="text-[var(--color-muted)] font-normal">
+                &mdash; {opt.summary}</span>}
+            </span>
+          )}
+        </li>)}
+      </ul>
+    </div>
+
+    <!-- 3. Selected Approach -->
+    <div>
+      <h4
+        class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2"
+      >
+        3. Selected Approach
+      </h4>
+      <div
+        class="p-4 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-fg)] font-medium"
+      >
+        {selection}
+      </div>
+    </div>
+
+    <!-- 4. Consequences & Trade-offs -->
+    <div>
+      <h4
+        class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2"
+      >
+        4. Consequences &amp; Operational Trade-offs
+      </h4>
+      <p class="text-[var(--color-muted)]">
+        {consequences}
+      </p>
+    </div>
+
+    <!-- 5. Verification & Testing -->
+    {verification && <div>
+      <h4
+        class="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-2"
+      >
+        5. Empirical Verification
+      </h4>
+      <p
+        class="text-[var(--color-muted)] font-mono text-xs sm:text-sm bg-[var(--color-surface-alt)]/60 p-3 rounded-[var(--radius-tag)] border border-[var(--color-border)]/40"
+      >
+        {verification}
+      </p>
+    </div>}
+
+    <!-- Custom Slot Content if needed -->
+    <slot />
+  </div>
+</section>

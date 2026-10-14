@@ -957,6 +957,84 @@
   - Zero draft titles, candidate names, or unverified metrics leaked into production markup.
 - Next Ticket: EA-023 — Case study template and rich MDX (Milestone 3).
 
+### EA-023 Execution record
+- Status: DONE
+- Approved implementation plan: ea_023_case_study_template_plan.md (2026-10-14)
+- Scope & Requirements:
+  1. Strict dynamic route publication gating:
+     - Implemented `src/pages/projects/[slug].astro` using Astro 5 Content Collections `getStaticPaths()` filtered by `isProjectPublishable()`.
+     - In production, because all 4 real candidates remain in draft (`draft: true`, `editorialApproval: false`), `getStaticPaths()` returns `[]`, generating strictly **zero** detail routes in `dist/projects/`.
+     - `APPROVED_PROJECT_ROUTES` in `src/utils/linkSafety.ts` enforces exact per-project approved route matching with normalized trailing slash handling; wildcards (e.g. `/projects/*`) are strictly prohibited.
+  2. Astro 5 and MDX Integration:
+     - Uses `render(entry)` to extract `{ Content, headings }`.
+     - Custom MDX components bound: `DecisionBlock`, `Figure`, `CodeBlock`, `StatusLabel`, `Tag`, `Button`, `TextLink`.
+     - Prose reading column constrained to <= 74ch (`.reading-column`).
+  3. Reusable Case Study Components:
+     - `src/components/projects/Breadcrumbs.astro`: Semantic `<nav aria-label="Breadcrumb">`, `<ol>`, and `aria-current="page"` terminal item.
+     - `src/components/projects/ProjectFactPanel.astro`: Displays engineering role, collaborative attribution, status, taxonomy, HTTPS repo/demo links; numerical performance claims omitted by default (`approvedClaims: false`).
+     - `src/components/projects/DecisionBlock.astro`: 5-section architecture conforming to Master Spec §4.3 (Context, Options, Selection, Consequences, Verification).
+     - `src/components/projects/Figure.astro`: Semantic `<figure>`, `<figcaption>`, figure numbering, descriptive alt text, local assets only.
+     - `src/components/projects/CodeBlock.astro`: Horizontal scroll region with `tabindex="0"`, `role="region"`, filename header, uppercase language badge, accessible live region, progressive enhancement copy button (hidden without JS).
+     - `src/components/projects/TableOfContents.astro`: Minimum 3-heading threshold, depth 2/3 filtering, responsive layout with mobile `<details>` disclosure.
+  4. Tests and Verification:
+     - Unit tests: Added `tests/unit/caseStudy.test.ts` with 6 test scenarios (all 46 tests pass across 13 unit test suites).
+     - Isolated integration harness: `tests/artifacts/case-study-rendering.ts` compiles temporary fixture `dev-case-study.astro` to `tests/.test-dist/` with guaranteed `try / finally` cleanup; added `npm run verify:case-studies` and chained into `npm run verify`.
+     - Production artifact verification: Section 17 added to `tests/artifacts/artifact-verification.ts` asserting exactly 5 production HTML pages, `dist/projects/` contains ONLY `index.html`, and zero fixture text leakage.
+     - Real browser testing: Inspected `dev-case-study.astro` across 1440px, 1024px, 768px, 390px, 320px, 200% zoom, keyboard navigation with visible gold focus outline (`#F0CF78`), mobile code scrolling, mobile TOC `<details>` expansion, and copy button interaction.
+- Files created:
+  - `src/pages/projects/[slug].astro`
+  - `src/components/projects/Breadcrumbs.astro`
+  - `src/components/projects/ProjectFactPanel.astro`
+  - `src/components/projects/DecisionBlock.astro`
+  - `src/components/projects/Figure.astro`
+  - `src/components/projects/CodeBlock.astro`
+  - `src/components/projects/TableOfContents.astro`
+  - `tests/unit/caseStudy.test.ts`
+  - `tests/artifacts/case-study-rendering.ts`
+- Files modified:
+  - `package.json` (added `verify:case-studies`, updated `verify`)
+  - `src/utils/linkSafety.ts` (added `APPROVED_PROJECT_ROUTES` exact matching)
+  - `src/data/projects.ts` (typed `GenericProjectEntry` metadata)
+  - `tests/artifacts/artifact-verification.ts` (added Section 17 for EA-023 case study production invariants)
+  - `docs/CONTENT_STATUS.md` (marked EA-023 DONE, EA-024 IN PLANNING)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (added EA-023 execution record)
+- Commands actually executed:
+  - `npm run check`: 83 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run lint`: 0 ESLint errors
+  - `npm run format:check`: 100% compliant with Prettier code style
+  - `npm run test`: 13 test suites pass (46 tests total, 100% pass)
+  - `npm run verify:primitives`: Passed in isolated `tests/.test-dist/`
+  - `npm run verify:project-cards`: Passed in isolated `tests/.test-dist/`
+  - `npm run verify:case-studies`: Passed in isolated `tests/.test-dist/`
+  - `npm run build`: Production build generated in `dist/` with exactly 5 pages
+  - `npm run verify:artifacts`: All 17 production artifact test suites pass
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser & a11y evidence:
+  - Desktop 1440x900: Full case study layout, breadcrumbs, single H1, schematic blueprint banner, sticky sidebar with fact panel and TOC, narrative column (<= 74ch), decision block, figure, code block with copy button.
+  - Code Block Copy State: Clicked copy button; label changed to "Copied!" with checkmark icon and aria-live status announcement.
+  - Tablet Landscape 1024x768: Sidebar sticky layout intact, zero clipping.
+  - Tablet Portrait 768x1024: Fact panel and TOC reflow above narrative column, balanced gutters.
+  - Mobile 390x844: Single-column stacked layout, mobile TOC `<details>` disclosure toggle, responsive code block with horizontal scrolling.
+  - Mobile TOC Expanded: Clicked disclosure; expanded navigation links matching heading IDs.
+  - Narrow Mobile 320x568: Zero document-level horizontal overflow (`scrollWidth <= clientWidth`), code block internally scrollable with `tabindex="0"`.
+  - Keyboard Focus: Visible gold focus outline (`#F0CF78`, 3px solid, 3px offset) on interactive elements.
+  - Screenshots recorded:
+    - Desktop 1440px: `desktop_case_study_1440x900_1792002596631.png`
+    - Code Copied State: `code_copied_verified_1792002648797.png`
+    - Tablet Landscape 1024px: `tablet_landscape_1024x768_1792002667396.png`
+    - Tablet Portrait 768px: `tablet_portrait_768x1024_1792002675255.png`
+    - Mobile 390px: `mobile_390x844_1792002683632.png`
+    - Mobile TOC Expanded: `mobile_toc_expanded_check_1792002732950.png`
+    - Narrow Mobile 320px: `narrow_mobile_320x568_1792002740238.png`
+    - Keyboard Focus Outline: `focus_ring_verification_1792002754770.png`
+    - WebP recording: `ea023_case_study_review_1792002587002.webp`
+- Content truth & publication safety:
+  - All four real candidate projects remain in strict draft status (`draft: true`, `editorialApproval: false`).
+  - Production build contains strictly 5 static HTML pages; zero detail routes generated in `dist/projects/`.
+  - Zero draft titles, unverified metrics, or test fixture text leaked into production dist/.
+- Next Ticket: EA-024 — Publish First Verified Case Study (Milestone 3).
+
+
 
 
 
