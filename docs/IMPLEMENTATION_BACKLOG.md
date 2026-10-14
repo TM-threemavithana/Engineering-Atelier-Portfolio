@@ -518,6 +518,60 @@
   - Do not introduce unverified technical claims or metrics.
 - Next Ticket: EA-014 — Homepage featured work and capability sections (Milestone 2).
 
+### EA-014 Execution record
+- Status: DONE
+- Approved implementation plan: `ea_014_featured_work_and_capabilities_plan.md` (2026-10-14, approved with all 8 corrections)
+- Scope:
+  - Centralized, typed project inventory in `src/data/projects.ts` with strict dual-gate publication filtering (`draft === false` AND `isRoutePublished(href) === true`).
+  - Graceful empty omission: all 4 candidate projects remain `draft: true`; `FeaturedWork.astro` automatically suppresses its output completely in production when 0 verified projects exist.
+  - Core Engineering Capabilities section (`src/components/sections/Capabilities.astro`) organized around 3 verified focus areas: Backend Engineering & APIs, Distributed Systems & Cloud Concepts, Full-Stack Development; with practical focus vs exploring separation and engineering disciplines. Zero skill bars, percentages, or unverified claims.
+  - Engineering Approach section (`src/components/sections/EngineeringApproach.astro`) implementing the 4-step sequential methodology: Understand, Model & Design, Build & Test, Verify & Maintain.
+  - `SectionHeading.astro` updated with explicit `id?: string` prop to guarantee every `aria-labelledby` references an existing heading ID.
+  - Integrated into `src/pages/index.astro` while preserving the approved EA-013 Hero.
+  - Unit tests in `tests/unit/capabilities.test.ts` and `tests/unit/projects.test.ts`.
+  - Artifact verification in `tests/artifacts/artifact-verification.ts` (Section 12).
+- Files created/changed:
+  - `src/components/ui/SectionHeading.astro` (modified: added explicit heading id)
+  - `src/data/projects.ts` (created: typed project registry and dual publication filter)
+  - `src/data/capabilities.ts` (created: 3 focus areas and 4 approach stages)
+  - `src/components/sections/ProjectCard.astro` (created: editorial project card)
+  - `src/components/sections/FeaturedWork.astro` (created: featured projects with graceful omission)
+  - `src/components/sections/Capabilities.astro` (created: 3-column capabilities grid)
+  - `src/components/sections/EngineeringApproach.astro` (created: 4-stage engineering approach)
+  - `src/pages/index.astro` (modified: integrated capabilities and approach)
+  - `tests/unit/capabilities.test.ts` (created: capabilities and approach unit tests)
+  - `tests/unit/projects.test.ts` (created: draft gating and dual verification tests)
+  - `tests/artifacts/artifact-verification.ts` (modified: Section 12 post-build assertions)
+  - `docs/CONTENT_STATUS.md` (modified: marked EA-014 DONE and EA-015 TODO)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: added EA-014 execution record)
+- Commands actually executed:
+  - `npm run check`: 35 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run lint`: 0 errors
+  - `npm run format`: Prettier formatted all code cleanly
+  - `npm run format:check`: All matched files use Prettier code style
+  - `npm run test`: 7 test suites pass (ea008, hero, linkSafety, navigation, primitives, capabilities, projects; 15 pass, 0 fail)
+  - `npm run verify:primitives`: Builds to isolated `tests/.test-dist/`, verifies rendered HTML semantics, cleans up fixtures
+  - `npm run build`: Production build generated in `dist/` with 1 page: `index.html` in 1.98s
+  - `npm run verify:artifacts`: Production artifact verification passes all 12 suites including Section 12
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser/a11y evidence:
+  - Desktop 1440px: Verified 3-column Capabilities cards, 4-stage Engineering Approach, and graceful omission of empty Featured Work.
+  - Tablet 768px: Verified natural responsive wrapping of capabilities and approach stages.
+  - Mobile 390px: Verified single-column vertical stacking, generous whitespace, legible tags, and zero horizontal scroll (`scrollWidth === clientWidth === 390px`).
+  - Mobile 320px: Verified zero horizontal scroll on minimum mobile viewport (`scrollWidth === clientWidth === 320px`).
+  - Zoom 200%: Fluid reflow with unclipped text and preserved margins.
+  - Keyboard navigation: Full sequential Tab traversal across all cards and links with visible gold focus outline (`#F0CF78`).
+  - Screenshots recorded:
+    - Desktop 1440px: `ea014_desktop_1440px_1791959004977.png`
+    - Tablet 768px: `ea014_tablet_768px_1791959014425.png`
+    - Mobile 390px: `ea014_mobile_390px_1791959023723.png`
+    - Mobile 320px: `ea014_mobile_320px_1791959032523.png`
+- Content truth:
+  - Zero draft project titles or draft cards leaked into production.
+  - Zero skill percentages, years of experience, or unverified achievements claimed.
+- Next Ticket: EA-015 — About page and verified timeline (Milestone 2).
+
+
 
 
 

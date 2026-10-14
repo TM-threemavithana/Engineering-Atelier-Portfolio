@@ -1,5 +1,6 @@
 ---
 export interface Props {
+  id?: string;
   eyebrow?: string;
   title: string;
   description?: string;
@@ -9,6 +10,7 @@ export interface Props {
 }
 
 const {
+  id,
   eyebrow,
   title,
   description,
@@ -30,6 +32,7 @@ const alignClasses = align === 'center' ? 'text-center items-center' : 'text-lef
   </div>}
 
   <HeadingTag
+    id={id}
     class="font-['Space_Grotesk'] text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[var(--color-fg)] mb-3"
   >
     {title}

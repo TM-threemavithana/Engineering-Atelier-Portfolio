@@ -1,0 +1,27 @@
+---
+import { getPublishedFeaturedProjects } from '../../data/projects';
+import SectionHeading from '../ui/SectionHeading.astro';
+import ProjectCard from './ProjectCard.astro';
+
+// Query published, verified featured projects
+const projects = getPublishedFeaturedProjects();
+---
+
+{projects.length > 0 && <section
+  id="featured-work"
+  class="container-atelier py-16 sm:py-24 border-t border-[var(--color-border)]"
+  aria-labelledby="featured-heading"
+>
+  <SectionHeading
+    id="featured-heading"
+    eyebrow="SELECTED WORK"
+    title="Featured Engineering Projects"
+    description="Verified architecture case studies and production prototypes demonstrating systems design, concurrency, and reliability."
+  />
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+    {projects.map((project) => (
+      <ProjectCard project={project} featured={project.featured} />
+    ))}
+  </div>
+</section>}

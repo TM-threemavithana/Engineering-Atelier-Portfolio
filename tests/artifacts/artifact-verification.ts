@@ -275,4 +275,85 @@ console.log(
   '✓ Homepage Hero production integrity confirmed: single H1, approved copy, valid in-page CTA, accessible vector diagram, zero fabricated metrics'
 );
 
+// 12. Verify EA-014 Capabilities, Approach, and Featured Work Graceful Omission
+// A. Capabilities Section Integrity
+assert.match(
+  indexHtml,
+  /<section[^>]*id="capabilities"[^>]*aria-labelledby="capabilities-heading"[^>]*>/,
+  'dist/index.html must contain <section id="capabilities" aria-labelledby="capabilities-heading">'
+);
+assert.match(
+  indexHtml,
+  /<h2[^>]*id="capabilities-heading"[^>]*>[\s\S]*?Core Engineering Capabilities[\s\S]*?<\/h2>/,
+  'dist/index.html must contain <h2> with id="capabilities-heading" and title "Core Engineering Capabilities"'
+);
+
+const expectedCapabilityTitles = [
+  'Backend Engineering &amp; APIs',
+  'Distributed Systems &amp; Cloud Concepts',
+  'Full-Stack Development',
+];
+for (const title of expectedCapabilityTitles) {
+  assert.ok(indexHtml.includes(title), `dist/index.html must contain capability title: "${title}"`);
+}
+
+// B. Engineering Approach Section Integrity
+assert.match(
+  indexHtml,
+  /<section[^>]*id="approach"[^>]*aria-labelledby="approach-heading"[^>]*>/,
+  'dist/index.html must contain <section id="approach" aria-labelledby="approach-heading">'
+);
+assert.match(
+  indexHtml,
+  /<h2[^>]*id="approach-heading"[^>]*>[\s\S]*?Engineering Approach[\s\S]*?<\/h2>/,
+  'dist/index.html must contain <h2> with id="approach-heading" and title "Engineering Approach"'
+);
+
+const expectedApproachStages = [
+  'Understand',
+  'Model &amp; Design',
+  'Build &amp; Test',
+  'Verify &amp; Maintain',
+];
+for (const stage of expectedApproachStages) {
+  assert.ok(indexHtml.includes(stage), `dist/index.html must contain approach stage: "${stage}"`);
+}
+
+// C. Strict Draft Gating & Graceful Empty Omission for Featured Work
+assert.ok(
+  !indexHtml.includes('id="featured-work"'),
+  'Featured Work section must be gracefully omitted when 0 verified projects exist'
+);
+assert.ok(
+  !indexHtml.includes('Featured Engineering Projects'),
+  'Featured Engineering Projects heading must be absent when 0 verified projects exist'
+);
+assert.ok(
+  !indexHtml.includes('StreamForge: Distributed Raft Log Engine'),
+  'Draft candidate StreamForge must strictly not appear in public index.html'
+);
+assert.ok(
+  !indexHtml.includes('DevForge: Scala Developer Orchestration CLI'),
+  'Draft candidate DevForge must strictly not appear in public index.html'
+);
+
+// D. Heading IDs and aria-labelledby consistency check
+const sectionsWithLabelledBy = [
+  ...indexHtml.matchAll(/<section[^>]*\baria-labelledby="([^"]+)"[^>]*>/gi),
+];
+assert.ok(
+  sectionsWithLabelledBy.length >= 3,
+  'At least 3 labelled sections must exist (hero, capabilities, approach)'
+);
+for (const match of sectionsWithLabelledBy) {
+  const headingId = match[1];
+  assert.ok(
+    indexHtml.includes(`id="${headingId}"`),
+    `Section aria-labelledby="${headingId}" must correspond to an element with id="${headingId}"`
+  );
+}
+console.log(
+  '✓ Capabilities and Engineering Approach confirmed; Featured Work gracefully omitted; aria-labelledby references validated'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

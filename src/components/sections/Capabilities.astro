@@ -1,0 +1,94 @@
+---
+import { capabilityAreas } from '../../data/capabilities';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Tag from '../ui/Tag.astro';
+import CheckIcon from '../icons/CheckIcon.astro';
+---
+
+<section
+  id="capabilities"
+  class="container-atelier py-16 sm:py-24 border-t border-[var(--color-border)]"
+  aria-labelledby="capabilities-heading"
+>
+  <SectionHeading
+    id="capabilities-heading"
+    eyebrow="TECHNICAL BREADTH"
+    title="Core Engineering Capabilities"
+    description="Disciplined technical focus areas across backend architecture, distributed systems, and modern web engineering."
+  />
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-10">
+    {capabilityAreas.map((area) => <article
+      class="surface-card p-6 sm:p-8 rounded-[var(--radius-card)] border border-[var(--color-border)] flex flex-col justify-between transition-colors duration-150"
+      aria-labelledby={`capability-title-${area.id}`}
+    >
+      <div class="space-y-6">
+        <!-- Card Eyebrow & Title -->
+        <div>
+          <div
+            class="inline-flex items-center gap-1.5 font-mono text-xs text-[var(--color-accent)] uppercase tracking-wider mb-2"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
+            <span>{area.eyebrow}</span>
+          </div>
+          <h3
+            id={`capability-title-${area.id}`}
+            class="font-['Space_Grotesk'] text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-fg)]"
+          >
+            {area.title}
+          </h3>
+        </div>
+
+        <!-- Description -->
+        <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed">
+          {area.description}
+        </p>
+
+        <!-- Practical Focus Skills -->
+        <div class="space-y-2 pt-2 border-t border-[var(--color-border)]">
+          <div
+            class="font-mono text-xs font-semibold text-[var(--color-fg)] uppercase tracking-wider"
+          >
+            Practical Focus
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {area.practicalFocus.map((skill) => (
+              <Tag label={skill} variant="default" size="sm" />
+            ))}
+          </div>
+        </div>
+
+        <!-- Exploring / Learning Interests -->
+        <div class="space-y-2 pt-2 border-t border-[var(--color-border)]">
+          <div
+            class="font-mono text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wider"
+          >
+            Currently Exploring
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {area.exploring.map((item) => <span
+              class="font-mono text-xs text-[var(--color-muted)] bg-[var(--color-surface-alt)] px-2.5 py-1 rounded-[var(--radius-tag)] border border-[var(--color-border)]"
+            >
+              {item}
+            </span>)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Engineering Disciplines -->
+      <div class="pt-6 mt-6 border-t border-[var(--color-border)] space-y-2">
+        <div
+          class="font-mono text-xs font-semibold text-[var(--color-accent)] uppercase tracking-wider"
+        >
+          Engineering Disciplines
+        </div>
+        <ul class="space-y-1.5 text-xs text-[var(--color-muted)]">
+          {area.disciplines.map((practice) => <li class="flex items-start gap-2">
+            <CheckIcon class="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0 mt-0.5" />
+            <span>{practice}</span>
+          </li>)}
+        </ul>
+      </div>
+    </article>)}
+  </div>
+</section>

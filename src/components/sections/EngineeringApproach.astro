@@ -1,0 +1,61 @@
+---
+import { approachStages } from '../../data/capabilities';
+import SectionHeading from '../ui/SectionHeading.astro';
+---
+
+<section
+  id="approach"
+  class="container-atelier py-16 sm:py-24 border-t border-[var(--color-border)]"
+  aria-labelledby="approach-heading"
+>
+  <SectionHeading
+    id="approach-heading"
+    eyebrow="METHODOLOGY"
+    title="Engineering Approach"
+    description="A structured engineering lifecycle centered on clarifying problem domains, modeling trade-offs, and deterministic verification."
+  />
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+    {approachStages.map((stage) => <article
+      class="surface-card p-6 sm:p-7 rounded-[var(--radius-card)] border border-[var(--color-border)] flex flex-col justify-between transition-colors duration-150"
+      aria-labelledby={`approach-title-${stage.number}`}
+    >
+      <div class="space-y-4">
+        <!-- Step Number -->
+        <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
+          <span class="font-mono text-2xl font-bold text-[var(--color-accent)]">
+            {stage.number}
+          </span>
+          <span class="font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider">
+            Stage {stage.number}
+          </span>
+        </div>
+
+        <!-- Title -->
+        <h3
+          id={`approach-title-${stage.number}`}
+          class="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--color-fg)]"
+        >
+          {stage.title}
+        </h3>
+
+        <!-- Description -->
+        <p class="text-[var(--color-muted)] text-sm leading-relaxed">
+          {stage.description}
+        </p>
+      </div>
+
+      <!-- Bottom Deliverables Pill -->
+      <div class="pt-5 mt-5 border-t border-[var(--color-border)]">
+        <div class="font-mono text-[11px] text-[var(--color-accent)] uppercase tracking-wider mb-1">
+          Primary Focus
+        </div>
+        <div
+          class="font-mono text-xs text-[var(--color-muted)] bg-[var(--color-surface-alt)] p-2 rounded-[var(--radius-tag)] border border-[var(--color-border)]"
+        >
+          {stage.deliverables}
+        </div>
+      </div>
+    </article>)}
+  </div>
+</section>

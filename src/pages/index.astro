@@ -1,6 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/sections/Hero.astro';
+import FeaturedWork from '../components/sections/FeaturedWork.astro';
+import Capabilities from '../components/sections/Capabilities.astro';
+import EngineeringApproach from '../components/sections/EngineeringApproach.astro';
 ---
 
 <BaseLayout
@@ -9,5 +12,8 @@ import Hero from '../components/sections/Hero.astro';
 >
   <main id="main-content" tabindex="-1" class="focus:outline-none">
     <Hero />
+    <FeaturedWork />
+    <Capabilities />
+    <EngineeringApproach />
   </main>
 </BaseLayout>
