@@ -1,0 +1,186 @@
+---
+import Button from '../ui/Button.astro';
+import TextLink from '../ui/TextLink.astro';
+import SectionHeading from '../ui/SectionHeading.astro';
+import Tag from '../ui/Tag.astro';
+import StatusLabel from '../ui/StatusLabel.astro';
+import ArrowRightIcon from '../icons/ArrowRightIcon.astro';
+import ExternalLinkIcon from '../icons/ExternalLinkIcon.astro';
+import CheckIcon from '../icons/CheckIcon.astro';
+import DocumentIcon from '../icons/DocumentIcon.astro';
+import SpinnerIcon from '../icons/SpinnerIcon.astro';
+---
+
+<div id="primitives-showcase" class="space-y-12">
+  <SectionHeading
+    eyebrow="EA-012 UI PRIMITIVES"
+    title="Shared Component Showcase"
+    description="Isolated component demonstration validating accessible button semantics, safe links, static status labels, typography tags, and SVG icons."
+  />
+
+  <!-- 1. Buttons & Polymorphic States -->
+  <section aria-labelledby="buttons-heading" class="surface-card p-6 sm:p-8 space-y-6">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
+      <h3
+        id="buttons-heading"
+        class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]"
+      >
+        Buttons &amp; Polymorphic States
+      </h3>
+      <span class="text-xs font-mono text-[var(--color-muted)]">Button.astro</span>
+    </div>
+
+    <div class="space-y-4">
+      <div class="text-xs font-mono text-[var(--color-muted)] uppercase tracking-wider">
+        Variants (Native &lt;button&gt;)
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <Button variant="primary">Primary Button</Button>
+        <Button variant="secondary">Secondary Button</Button>
+        <Button variant="ghost">Ghost Button</Button>
+      </div>
+
+      <div class="text-xs font-mono text-[var(--color-muted)] uppercase tracking-wider pt-2">
+        Sizes (sm / md / lg)
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <Button variant="secondary" size="sm">Small (sm)</Button>
+        <Button variant="secondary" size="md">Medium (md)</Button>
+        <Button variant="secondary" size="lg">Large (lg)</Button>
+      </div>
+
+      <div class="text-xs font-mono text-[var(--color-muted)] uppercase tracking-wider pt-2">
+        Accessibility &amp; Disabled States
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Native disabled button -->
+        <Button variant="primary" disabled>Native Disabled Button</Button>
+        <!-- Real Loading state -->
+        <Button variant="secondary" isLoading>Processing Order</Button>
+        <!-- Anchor mode to published route -->
+        <Button variant="primary" href="/">
+          <span>Anchor to Home</span>
+          <ArrowRightIcon class="w-4 h-4 ml-1" />
+        </Button>
+        <!-- Unavailable link rendered as non-interactive accessible span -->
+        <Button variant="secondary" href="/projects/" disabled> Unavailable Project Link </Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Text Links & Security -->
+  <section aria-labelledby="links-heading" class="surface-card p-6 sm:p-8 space-y-6">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
+      <h3
+        id="links-heading"
+        class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]"
+      >
+        Accessible Text Links &amp; Security
+      </h3>
+      <span class="text-xs font-mono text-[var(--color-muted)]">TextLink.astro</span>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center gap-6">
+        <!-- Internal published link -->
+        <TextLink href="/">Standard Internal Link (Home)</TextLink>
+        <!-- In-page anchor -->
+        <TextLink href="#buttons-heading">In-page Anchor (#buttons-heading)</TextLink>
+        <!-- External link with new tab notice -->
+        <TextLink href="https://github.com" openInNewTab={true}>
+          External Link with Target
+        </TextLink>
+        <!-- Disabled link -->
+        <TextLink href="/" disabled>Disabled TextLink</TextLink>
+        <!-- Unsafe protocol rejection demo -->
+        <TextLink href="javascript:alert(1)">Unsafe Protocol (Rejected)</TextLink>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Status Labels (Static & Restrained) -->
+  <section aria-labelledby="status-heading" class="surface-card p-6 sm:p-8 space-y-6">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
+      <h3
+        id="status-heading"
+        class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]"
+      >
+        Status Labels (Static Restrained Indicators)
+      </h3>
+      <span class="text-xs font-mono text-[var(--color-muted)]">StatusLabel.astro</span>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-4">
+      <StatusLabel label="Neutral Status" tone="neutral" />
+      <StatusLabel label="Verified Architecture" tone="accent" />
+      <StatusLabel label="Draft Candidate" tone="warning" />
+      <StatusLabel label="System Operational" tone="success" />
+    </div>
+  </section>
+
+  <!-- 4. Tags & Taxonomy -->
+  <section aria-labelledby="tags-heading" class="surface-card p-6 sm:p-8 space-y-6">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
+      <h3 id="tags-heading" class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]">
+        Technology Tags &amp; Taxonomy
+      </h3>
+      <span class="text-xs font-mono text-[var(--color-muted)]">Tag.astro</span>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <Tag label="Java 21" variant="default" />
+        <Tag label="Scala 3" variant="accent" />
+        <Tag label="Distributed Systems" variant="outline" />
+        <Tag label="Spring Boot" variant="default" size="sm" />
+        <Tag label="Interactive Tag (Home)" href="/" variant="accent" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. SVG Icon Primitives -->
+  <section aria-labelledby="icons-heading" class="surface-card p-6 sm:p-8 space-y-6">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
+      <h3
+        id="icons-heading"
+        class="font-['Space_Grotesk'] text-xl font-bold text-[var(--color-fg)]"
+      >
+        SVG Icon Primitives
+      </h3>
+      <span class="text-xs font-mono text-[var(--color-muted)]">src/components/icons/*</span>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div
+        class="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]"
+      >
+        <ArrowRightIcon class="w-6 h-6 text-[var(--color-accent)]" />
+        <span class="text-xs font-mono text-[var(--color-muted)]">ArrowRight</span>
+      </div>
+      <div
+        class="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]"
+      >
+        <ExternalLinkIcon class="w-6 h-6 text-[var(--color-accent)]" />
+        <span class="text-xs font-mono text-[var(--color-muted)]">ExternalLink</span>
+      </div>
+      <div
+        class="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]"
+      >
+        <CheckIcon class="w-6 h-6 text-[var(--color-success)]" />
+        <span class="text-xs font-mono text-[var(--color-muted)]">Check</span>
+      </div>
+      <div
+        class="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]"
+      >
+        <DocumentIcon class="w-6 h-6 text-[var(--color-fg)]" />
+        <span class="text-xs font-mono text-[var(--color-muted)]">Document</span>
+      </div>
+      <div
+        class="flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]"
+      >
+        <SpinnerIcon class="w-6 h-6 text-[var(--color-accent)]" />
+        <span class="text-xs font-mono text-[var(--color-muted)]">Spinner</span>
+      </div>
+    </div>
+  </section>
+</div>

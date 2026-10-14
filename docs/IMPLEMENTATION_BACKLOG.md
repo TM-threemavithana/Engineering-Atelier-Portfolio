@@ -403,6 +403,68 @@
 - Content truth: Temporary `EA` monogram retained; zero fabricated routes, personal names, employer names, or credentials; candidate projects remain in DRAFT status.
 - Next Ticket: EA-012 — Buttons, links and shared UI primitives (Milestone 2).
 
+### EA-012 Execution record
+- Status: DONE
+- Approved implementation plan: `ea_012_corrected_plan.md` (2026-10-14, approved with all 5 architectural corrections and 3 safeguards)
+- Scope:
+  - Polymorphic `Button.astro` supporting `primary`, `secondary`, and `ghost` variants, `sm`, `md`, `lg` sizes; renders native `<button type="button">` or `<a>`; inaccessible/disabled links render as `<span role="link" aria-disabled="true" tabindex="-1">` without an `href` attribute.
+  - Genuine loading state: `isLoading` sets `disabled`, `aria-busy="true"`, `aria-live="polite"`, `<span class="sr-only">Loading...</span>`, and SVG spinner.
+  - Accessible `TextLink.astro`: Underline text link with visible focus ring, configurable `openInNewTab` with `target="_blank" rel="noopener noreferrer"` and screen-reader notice `(opens in new tab)`.
+  - Editorial `SectionHeading.astro`: Configurable semantic headings (`h2`-`h4`), Space Grotesk font, uppercase monospace eyebrow, and `reading-column` constrained description.
+  - Technology `Tag.astro`: Informational (`<span>`) vs interactive (`<a>`) taxonomy pills, monospace font, &ge;44px touch targets on mobile viewports.
+  - Restrained `StatusLabel.astro`: Static indicator dots (zero animations/pulses), honest tone mapping (`neutral`, `accent`, `warning`, `success`), surface-alt pill container.
+  - Accessible SVG Icon primitives (`src/components/icons/*`): `ArrowRightIcon.astro`, `ExternalLinkIcon.astro`, `CheckIcon.astro`, `DocumentIcon.astro`, `SpinnerIcon.astro`. All enforce `aria-hidden="true"`, `focusable="false"`, and `currentColor` fill/stroke.
+  - Extensible link safety utility (`src/utils/linkSafety.ts`): centralized validation of safe protocols (`https:`, `mailto:`, in-page anchors `#...`, relative paths to verified published files/assets); rejects unsafe protocols (`javascript:`, `data:`), protocol-relative URLs (`//...`), and unbuilt routes (`/projects/`, `/about/`, etc.).
+  - Isolated rendered HTML integration test suite (`tests/artifacts/primitives-rendering.ts`): builds to isolated `tests/.test-dist/` without contaminating `dist/`, mounts and cleans up temporary fixture page `dev-primitives.astro`, validates rendered markup semantics.
+  - Production artifact isolation: `tests/artifacts/artifact-verification.ts` asserts `dist/dev-primitives` is absent from production output and zero test showcase content leaks into `dist/index.html`.
+- Files created/changed:
+  - `src/utils/linkSafety.ts` (created: extensible link safety checker and protocol validator)
+  - `src/components/icons/ArrowRightIcon.astro` (created)
+  - `src/components/icons/ExternalLinkIcon.astro` (created)
+  - `src/components/icons/CheckIcon.astro` (created)
+  - `src/components/icons/DocumentIcon.astro` (created)
+  - `src/components/icons/SpinnerIcon.astro` (created)
+  - `src/components/ui/Button.astro` (created: polymorphic accessible button/anchor/disabled span)
+  - `src/components/ui/TextLink.astro` (created: accessible text link with new-tab notice and fallback)
+  - `src/components/ui/SectionHeading.astro` (created: semantic heading with monospace eyebrow)
+  - `src/components/ui/Tag.astro` (created: static vs interactive monospace tags)
+  - `src/components/ui/StatusLabel.astro` (created: static color dots with zero animations)
+  - `src/components/dev/PrimitivesShowcase.astro` (created: development showcase component)
+  - `tests/unit/linkSafety.test.ts` (created: link validator unit tests)
+  - `tests/unit/primitives.test.ts` (created: primitives architecture unit tests)
+  - `tests/artifacts/primitives-rendering.ts` (created: isolated rendered HTML integration test suite)
+  - `tests/artifacts/artifact-verification.ts` (modified: added dev-primitives isolation assertions)
+  - `package.json` (modified: added `verify:primitives` and integrated into `verify`)
+  - `docs/CONTENT_STATUS.md` (modified: marked EA-012 DONE and EA-013 TODO)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: added EA-012 execution record)
+- Commands actually executed:
+  - `npm run check`: 32 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run lint`: 0 errors
+  - `npm run format`: Prettier formatted all code cleanly
+  - `npm run format:check`: All matched files use Prettier code style
+  - `npm run test`: 4 test suites pass (ea008, linkSafety, navigation, primitives; 4 pass, 0 fail)
+  - `npm run verify:primitives`: Builds to isolated `tests/.test-dist/`, verifies rendered HTML semantics, cleans up fixtures
+  - `npm run build`: Production build generated in `dist/` with 1 page: `index.html`
+  - `npm run verify:artifacts`: Production artifact verification passes all checks
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser/a11y evidence:
+  - Desktop 1440px: Verified visual hierarchy, Space Grotesk headings, button variants, status indicators, and SVG icons.
+  - Tablet 768px: Verified responsive layout, flex wrap without clipping, and touch targets.
+  - Mobile 390px: Verified mobile wrapping, &ge;44px touch targets on buttons, links, and tags, zero horizontal overflow.
+  - Mobile 320px: Verified extreme mobile viewport resilience with zero horizontal scroll (`scrollWidth === clientWidth`).
+  - Zoom 200%: Verified legible scaling, unclipped text, and accessible reflow.
+  - Keyboard navigation: Verified unclipped visible focus ring (`#F0CF78`, 3px solid, 3px offset) on interactive elements; verified disabled links render as `<span role="link" aria-disabled="true" tabindex="-1">` without `href` (inaccessible to Tab navigation).
+  - Screenshots recorded:
+    - Desktop 1440px: `primitives_desktop_1440px_1791948800900.png`
+    - Tablet 768px: `primitives_tablet_768px_1791948821229.png`
+    - Mobile 390px: `primitives_mobile_390px_1791948844422.png`
+    - Mobile 320px: `primitives_mobile_320px_1791948859444.png`
+- Content truth:
+  - Production `dist/index.html` remains pure baseline verification; zero showcase or draft content leaked.
+  - Zero fabricated projects, metrics, or personal credentials.
+- Next Ticket: EA-013 — Homepage Hero (Milestone 2).
+
+
 
 
 

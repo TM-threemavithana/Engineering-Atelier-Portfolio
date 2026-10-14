@@ -1,6 +1,6 @@
-# Content and Evidence Status (EA-011 Update)
+# Content and Evidence Status (EA-012 Update)
 
-**Last Updated:** 2026-10-13  
+**Last Updated:** 2026-10-14  
 **Current Milestone:** Milestone 2 — Premium Responsive Core  
 **Milestone 0 Status:** **COMPLETE** (EA-001 through EA-004 Signed Off)  
 **Milestone 1 Status:** **COMPLETE** (EA-005 through EA-010 Gate G1 Verified)  
@@ -16,7 +16,8 @@
 - `EA-009` — **DONE** (Lint, Type, Format, and Check Scripts)  
 - `EA-010` — **DONE** (CI Checks and Preview Deployment Plan — Milestone 1 Gate G1 Complete)  
 - `EA-011` — **DONE** (Header and Navigation — Sticky Navy Header, Zero Dead Links, Semantic Mobile Disclosure)  
-- `EA-012` — **TODO** (Buttons, Links, and Shared UI Primitives)  
+- `EA-012` — **DONE** (Buttons, Links, and Shared UI Primitives — Accessible Polymorphic Buttons, Extensible Link Safety, Static Status Labels, Monospace Tags, SVG Icons)  
+- `EA-013` — **TODO** (Homepage Hero — Asymmetric Layout, Technical Vector Illustration, Headline & CTA)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

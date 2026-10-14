@@ -1,0 +1,24 @@
+---
+export interface Props {
+  class?: string;
+  size?: number | string;
+}
+
+const { class: className = 'w-4 h-4', size } = Astro.props;
+const sizeProps = size ? { width: size, height: size } : {};
+---
+
+<svg
+  class={className}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  {...sizeProps}
+>
+  <path d="M5 12h14"></path>
+  <path d="m12 5 7 7-7 7"></path>
+</svg>

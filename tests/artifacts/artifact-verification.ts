@@ -65,7 +65,25 @@ assert.ok(
   !indexHtml.includes('TestMdxNote'),
   'TestMdxNote must not leak into production index.html'
 );
-console.log('✓ Development fixture isolation confirmed');
+
+const devPrimitivesDir = path.join(distDir, 'dev-primitives');
+assert.ok(
+  !fs.existsSync(devPrimitivesDir),
+  'dev-primitives route directory must not exist in production dist/'
+);
+assert.ok(
+  !indexHtml.includes('PrimitivesShowcase'),
+  'PrimitivesShowcase must not leak into production index.html'
+);
+assert.ok(
+  !indexHtml.includes('EA-012 UI PRIMITIVES'),
+  'Showcase eyebrow must not leak into production index.html'
+);
+assert.ok(
+  !indexHtml.includes('Processing Order'),
+  'Showcase test button text must not leak into production index.html'
+);
+console.log('✓ Development fixture isolation confirmed (dev-test & dev-primitives)');
 
 // 6. Verify exclusion of DRAFT candidate projects
 const projectsDir = path.join(distDir, 'projects');

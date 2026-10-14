@@ -1,0 +1,66 @@
+---
+import { validateLinkDestination } from '../../utils/linkSafety';
+
+export interface Props {
+  label: string;
+  href?: string;
+  variant?: 'default' | 'accent' | 'outline';
+  size?: 'sm' | 'md';
+  class?: string;
+}
+
+const { label, href, variant = 'default', size = 'md', class: className = '' } = Astro.props;
+
+const hasHref = typeof href === 'string' && href.length > 0;
+const validation = hasHref ? validateLinkDestination(href) : null;
+const isInteractive = hasHref && (validation?.isValid ?? false);
+
+const baseClasses =
+  'inline-flex items-center rounded-[var(--radius-tag)] font-mono font-medium select-none transition-colors duration-150 motion-reduce:transition-none';
+
+const sizeClasses = {
+  sm: 'px-2 py-0.5 text-[11px]',
+  md: 'px-2.5 py-1 text-xs',
+}[size];
+
+const variantClasses = {
+  default:
+    'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-muted)]',
+  accent:
+    'bg-[var(--color-surface-alt)] border border-[var(--color-accent)]/40 text-[var(--color-accent)]',
+  outline: 'bg-transparent border border-[var(--color-border-strong)] text-[var(--color-fg)]',
+}[variant];
+
+const interactiveClasses = isInteractive
+  ? 'cursor-pointer hover:border-[var(--color-accent)] hover:text-[var(--color-fg)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] min-h-[44px] min-w-[44px] justify-center'
+  : hasHref
+    ? 'opacity-50 cursor-not-allowed pointer-events-none'
+    : '';
+
+const combinedClasses = [baseClasses, sizeClasses, variantClasses, interactiveClasses, className]
+  .filter(Boolean)
+  .join(' ');
+---
+
+{isInteractive ? (
+  <a href={validation?.sanitizedHref} class={combinedClasses}>
+    {label}
+    <slot />
+  </a>
+) : hasHref ? (
+  <span
+    role="link"
+    aria-disabled="true"
+    tabindex="-1"
+    class={combinedClasses}
+    title={validation?.error}
+  >
+    {label}
+    <slot />
+  </span>
+) : (
+  <span class={combinedClasses}>
+    {label}
+    <slot />
+  </span>
+)}
