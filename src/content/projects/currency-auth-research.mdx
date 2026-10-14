@@ -1,29 +1,47 @@
 ---
-# DRAFT ONLY — Awaiting dataset rights and algorithm clearance (EA-020)
-title: 'Banknote Authentication Research Prototype'
-summary: 'Computer vision research prototype investigating banknote micro-structure authentication.'
+# DRAFT ONLY — Intake under review (EA-020 audit compiled). Excluded from production builds.
+title: 'Explainable Banknote Authentication via a Two-Stage Veto Gate and Multi-Modal Feature Verification'
+summary: 'Deterministic computer vision framework combining ORB homography alignment, multi-modal feature verification, and a two-stage Veto Gate decision layer for transparent banknote authentication.'
 status: 'research'
-role: 'Research & Algorithm Engineer'
-individualContribution: 'Explored computer vision feature extraction and classification prototypes.'
+role: 'Lead Algorithm & Research Engineer'
+individualContribution: 'Architected the two-stage Veto Gate decision mechanism, automatic background segmentation and ORB homography alignment, CBSL morphological verification metrology, and academic evaluation tooling.'
 categories:
   - 'research'
 technologies:
   - 'Python'
+  - 'OpenCV'
   - 'Computer Vision'
-  - 'ML Research'
+  - 'PyTorch'
+  - 'Digital Image Processing'
+  - 'Statistical Evaluation'
 featured: false
 draft: true
 editorialApproval: false
 ---
 
-{/* DRAFT ONLY: Concept under review. Excluded from production builds until owner evidence clearance (EA-020). */}
+{/* DRAFT ONLY: EA-020 Research Evidence and Git Commit Audit compiled. Awaiting owner signoff before any route generation. */}
 
-## Conceptual Overview
+## Research Overview
 
-An applied research exploration investigating automated optical verification of microscopic physical security elements on currency using computer vision feature descriptors.
+A deterministic, parameter-driven Computer Vision and Image Processing (CVIP) system for authenticating Sri Lankan Rupee (LKR) banknotes across LKR 500, 1,000, and 5,000 denominations. Developed in collaboration with Asitha0012 (repository owner) and udaraDev (contributor).
 
-## Research Boundaries
+## Core Architecture
 
-Evaluates algorithmic trade-offs between localized micro-texture extraction, illumination variance sensitivity, and computational performance constraints on edge devices.
+1. **Stage 1 (Automatic Geometric Alignment):** Canny edge detection (75/200), contour-based perspective rectification, Normalized Cross-Correlation (NCC) coarse orientation detection, and ORB fine homography (5,000 keypoints, RANSAC 5.0px tolerance) with Lanczos4 interpolation.
+2. **Stage 2 (Visual Feature Verification `F1`–`F7`):** Contrast-Limited Adaptive Histogram Equalization (CLAHE), structural similarity (SSIM), and 2D HSV color histogram correlation.
+3. **Stage 3 (Morphological Feature Verification `F8`–`F12`):** Tactile blind dot contour counting, asymmetric serial number stepwise height verification, vertical red serial HSV masking, windowed security thread segment-merging metrology (2.5mm / 3.0mm), and directional tactile edge line counting.
+4. **Stage 4 (Two-Stage Decision Layer):** 
+   - **Stage A (Conjunctive Veto Gate):** `V_StageA = F1 ∧ F7 ∧ F11` — instant counterfeit rejection if any critical unforgeable security feature fails.
+   - **Stage B (Flat Voting):** `P_total = (1/12) * ∑(i=1..12) Fi ≥ 0.75` — requires at least 75% pass rate across all features to absorb natural paper degradation.
 
-{/* Detailed research findings, dataset citations, and evaluation metrics will be integrated after EA-020 verification. */}
+## Reported Experimental Performance
+
+- **Held-Out Test Performance (Reported $N=750$):** 96.67% accuracy, 96.71% F1-score, 98.13% recall, 95.20% specificity (TP: 368, TN: 357, FP: 18, FN: 7).
+- **Latency:** 0.49 s cached CPU inference per banknote on a standard single-thread Intel Core i5 without GPU acceleration.
+- **Ablation Evidence:** Incorporating the Stage A Veto Gate increased classification accuracy from 92.10% (flat voting alone) to 96.67% (+4.57% absolute improvement).
+
+## Honest Research Limitations
+
+- **RGB-Only Capture:** Optical RGB imaging cannot authenticate physical substrate properties verified by transmitted light, UV fluorescence, or infrared absorption.
+- **Synthetic Counterfeit Evaluation:** Evaluated on procedurally generated adversarial counterfeits simulating localized feature corruptions; full physical counterfeit specimens require specialized hardware sensing.
+

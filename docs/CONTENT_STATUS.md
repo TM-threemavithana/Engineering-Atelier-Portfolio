@@ -25,7 +25,7 @@
 - `EA-017` — **DONE** (Footer and Branded 404 — Sticky SiteFooter, Published Nav Gating, Verified Socials, dist/404.html Error Recovery Route, Landmarks, Anchor Navigation)  
 - `EA-018` — **DONE** (Core Responsive Visual Polish Pass — Sticky header clearance, branching Raft consensus blueprint, mobile SVG text readability, deduplicated familiarity categories, neutral profile badges, modern clipboard handling, isolated production 404 tests)  
 - `EA-019` — **DONE** (Typed Project Content Schema — Astro 5 collections, Zod validation, strict HTTPS URLs, 4 candidate draft MDX files, 4-layer publication gate, independent schema unit tests)  
-- `EA-020` — **TODO** (Project Content Intake and Asset Clearance)  
+- `EA-020` — **IN REVIEW** (Project Content Intake and Asset Clearance — Currency Authentication Research Git audit and manuscript reconciliation compiled; awaiting owner signoff)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 
@@ -62,7 +62,7 @@ Per `docs/CONTENT_AND_EVIDENCE.md` and `docs/MASTER_SPEC.md`, all four candidate
 | **StreamForge** | Distributed Systems | **DRAFT** | Verified repository, gRPC/message design, author's exact role, tests | Gated (`draft: true`) |
 | **DevForge** | Developer Tooling (Scala) | **DRAFT** | Scala repo/release, CLI UX evidence, author's exact role | Gated (`draft: true`) |
 | **Java/Spring Boot Task API** | Java Backend | **DRAFT** | Actual API codebase, OpenAPI spec, test coverage | Gated (`draft: true`) |
-| **Currency Authentication Work** | Computer Vision / ML Research | **DRAFT** | Dataset rights, algorithm documentation, prototype codebase | Gated (`draft: true`) |
+| **Currency Authentication Research** | Computer Vision / ML Research | **DRAFT (Audited)** | Manuscript reconciled, Git commits audited, awaiting owner review | Gated (`draft: true`) |
 
 ---
 
