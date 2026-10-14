@@ -61,12 +61,18 @@
 
 ### EA-018 — Core responsive visual polish pass (M)
 **Depends:** 013,015,016,017. **Scope:** typography, section rhythm, editorial asymmetric layouts, cross-browser screenshots. **Accept:** no horizontal overflow at viewport matrix or 200% zoom, no clipped content. **Verify:** screenshot review and keyboard. **AC:** 03,09,14,15.
-- *Milestone 2 Polish Backlog items (from EA-015 approval):*
+- *Milestone 2 Polish Backlog items (from EA-015 & EA-016 approval):*
   - Improve mobile readability and reduce overly dense labels on About page.
   - Recheck tablet layout and visual balance across pages.
   - Replace temporary monogram-based identity with verified personal branding when available.
   - Add genuine education and professional experience milestones once owner approves the information.
   - Verify each technical familiarity classification before production release.
+  - Replace user-visible "Verified" social badges on Contact page with neutral profile labels unless independent verification is established.
+  - Preserve internal owner-approval flags for publication gating.
+  - Simplify the privacy message on Contact page without making unsupported privacy or security guarantees.
+  - Review the deprecated execCommand clipboard fallback in CopyEmail and replace it with a safer modern or manual fallback where practical.
+  - Preserve the approved contact email, GitHub URL, and LinkedIn URL exactly.
+  - Keep the existing responsive layout and visual design.
 
 ## Milestone 3 — Verified project system
 
@@ -666,7 +672,45 @@
   - Exact approved LinkedIn profile: `https://www.linkedin.com/in/tharuka-madhuwantha/` (handle: `tharuka-madhuwantha`).
   - Zero invented personal display name, degrees, employment history, or availability claims.
   - `enableContactForm: false` preserved per ADR-003.
-- Next Ticket: EA-017 — Footer and branded 404 (Milestone 2).
+- Next Ticket: EA-018 — Core responsive visual polish pass (Milestone 2).
+
+### EA-017 Execution Record (2026-10-14)
+- Files changed:
+  - `src/components/layout/SiteFooter.astro` (created: reusable global footer with EA wordmark, published nav gating via `getPublishedNavItems()`, verified contact channels via `src/data/contact.ts`, neutral social labels, dynamic build-year copyright, and `#page-top` back-to-top anchor)
+  - `src/pages/404.astro` (created: branded error-recovery page generating `dist/404.html`, single H1, plain-language copy, primary "Return to Homepage" action, published recovery links to `/about/` and `/contact/`, permanent `noindex, nofollow`, omitted canonical)
+  - `src/layouts/BaseLayout.astro` (modified: flex-column sticky layout, `#page-top` anchor, single landmark preservation, global SiteFooter integration)
+  - `src/utils/seo.ts` (modified: unconditional `noindex, nofollow` and `canonicalUrl = undefined` for `/404`)
+  - `astro.config.mjs` (modified: updated `APPROVED_PUBLISHED_ROUTES` whitelist to include `/`, `/about`, `/contact`, strictly excluding `/404`)
+  - `tests/unit/footer.test.ts` (created: unit tests for footer navigation gating, verified contact details, neutral social labels, dynamic copyright year, anchor uniqueness, and 404 SEO safety)
+  - `tests/unit/linkSafety.test.ts` (modified: added `#page-top` anchor destination validation)
+  - `tests/artifacts/artifact-verification.ts` (modified: Section 15 post-build assertions for `dist/404.html`, single H1, robots noindex, recovery links, landmarks, footer content across all pages, zero placeholders)
+  - `docs/CONTENT_STATUS.md` (modified: marked EA-017 DONE, updated status table)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: recorded EA-017 execution details and Milestone 2 polish items)
+- Commands actually executed:
+  - `npm run check`: 63 files checked, 0 errors, 0 warnings, 1 hint (deprecated execCommand in CopyEmail)
+  - `npm run lint`: 0 ESLint errors
+  - `npm run format:check`: 100% compliant with Prettier code style
+  - `npm run test`: 10 test suites pass (18 tests total: about, capabilities, contact, ea008, footer, hero, linkSafety, navigation, primitives, projects)
+  - `npm run verify:primitives`: Passed in isolated `tests/.test-dist/`
+  - `npm run build`: Production build generated in `dist/` with 4 pages (`index.html`, `about/index.html`, `contact/index.html`, `404.html`)
+  - `npm run verify:artifacts`: All 15 production artifact test suites pass including Section 15
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser/a11y evidence:
+  - Desktop 1440px: Verified single H1 on 404 ("Page Not Found"), recovery buttons, sticky footer at viewport bottom, published navigation (`01 Home`, `03 About`, `04 Contact`), approved email and social links, copyright "© 2026 Engineering Atelier", and Back to Top navigating to `#page-top`.
+  - Tablet 768px: Verified 3-column footer reflow and balanced margins.
+  - Mobile 390px: Verified single-column stacked footer, touch targets >= 44x44px, zero horizontal scroll (`document.documentElement.scrollWidth <= window.innerWidth`).
+  - Mobile 320px: Verified zero horizontal scroll on minimum mobile viewport (`document.documentElement.scrollWidth <= window.innerWidth`).
+  - Keyboard navigation: Full sequential Tab traversal across all interactive elements with visible focus rings (`#F0CF78`).
+  - JavaScript-disabled test: Semantic recovery links, mailto, social links, and back-to-top fully functional without client-side scripts.
+- Content truth:
+  - Exact approved email: `tharukamaduwantha62@gmail.com`.
+  - Exact approved GitHub profile: `https://github.com/TM-threemavithana` (handle: `TM-threemavithana`).
+  - Exact approved LinkedIn profile: `https://www.linkedin.com/in/tharuka-madhuwantha/` (handle: `tharuka-madhuwantha`).
+  - Zero invented personal display names, degrees, employment history, or availability claims.
+  - Zero links to unpublished routes (`/projects/`, `/writing/`, `/resume.pdf`).
+  - `siteConfig.isProductionApproved = false` preserved.
+  - `enableContactForm = false` preserved per ADR-003.
+- Next Ticket: EA-018 — Core responsive visual polish pass (Milestone 2).
 
 
 

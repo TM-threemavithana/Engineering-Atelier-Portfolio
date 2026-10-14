@@ -1,0 +1,153 @@
+---
+import { getPublishedNavItems, isNavItemActive } from '../../data/navigation';
+import { getVerifiedEmail, getVerifiedProfiles } from '../../data/contact';
+import { siteConfig } from '../../data/siteConfig';
+import MailIcon from '../icons/MailIcon.astro';
+import GitHubIcon from '../icons/GitHubIcon.astro';
+import LinkedInIcon from '../icons/LinkedInIcon.astro';
+import ExternalLinkIcon from '../icons/ExternalLinkIcon.astro';
+
+export interface Props {
+  currentPathname?: string;
+}
+
+const { currentPathname = '/' } = Astro.props;
+
+const publishedNavItems = getPublishedNavItems();
+const verifiedEmail = getVerifiedEmail();
+const verifiedProfiles = getVerifiedProfiles();
+
+/**
+ * Dynamic copyright year computed at static site build time.
+ * Automatically reflects the build year whenever the static site is generated.
+ */
+const currentYear = new Date().getFullYear();
+---
+
+<footer
+  role="contentinfo"
+  class="w-full bg-[var(--color-bg)] border-t border-[var(--color-border)] transition-colors mt-auto"
+>
+  <div class="container-atelier py-12 sm:py-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+      <!-- Col 1: Identity & Brand Positioning -->
+      <div class="flex flex-col gap-4">
+        <a
+          href="/"
+          class="inline-flex items-center gap-1.5 w-fit rounded-[var(--radius-button)] text-[var(--color-fg)] hover:text-[var(--color-accent)] transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] py-1"
+        >
+          <span
+            class="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--color-fg)]"
+          >
+            {siteConfig.wordmark}
+          </span>
+          <span
+            class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] transition-transform"
+            aria-hidden="true"
+          ></span>
+          <span class="font-['Space_Grotesk'] text-base font-semibold text-[var(--color-fg)] ml-1">
+            {siteConfig.brandName}
+          </span>
+          <span class="sr-only"> — Home</span>
+        </a>
+
+        <p class="text-sm text-[var(--color-muted)] leading-relaxed max-w-sm">
+          {siteConfig.positioning}
+        </p>
+
+        <p class="text-xs font-mono text-[var(--color-muted)]">Built with Astro &amp; TypeScript</p>
+      </div>
+
+      <!-- Col 2: Published Navigation -->
+      <div class="flex flex-col gap-4">
+        <p
+          class="text-xs font-mono font-semibold tracking-wider uppercase text-[var(--color-muted)]"
+        >
+          Navigation
+        </p>
+        <nav aria-label="Footer Navigation">
+          <ul class="flex flex-col gap-1">
+            {publishedNavItems.map((item) => {
+              const active = isNavItemActive(currentPathname, item.href);
+              return <li>
+                <a
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  class={`inline-flex items-center min-h-[44px] px-2 py-1.5 rounded-[var(--radius-button)] text-sm transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)] ${
+                    active
+                      ? 'text-[var(--color-accent)] font-semibold'
+                      : 'text-[var(--color-muted)] hover:text-[var(--color-fg)]'
+                  }`}
+                >
+                  <span
+                    class="font-mono text-xs text-[var(--color-muted)] mr-2 select-none"
+                    aria-hidden="true"
+                  >
+                    {item.number}
+                  </span>
+                  <span>{item.label}</span>
+                </a>
+              </li>;
+            })}
+          </ul>
+        </nav>
+      </div>
+
+      <!-- Col 3: Direct Connect & Neutral Profile Links -->
+      <div class="flex flex-col gap-4">
+        <p
+          class="text-xs font-mono font-semibold tracking-wider uppercase text-[var(--color-muted)]"
+        >
+          Connect
+        </p>
+        <ul class="flex flex-col gap-1">
+          {verifiedEmail && <li>
+            <a
+              href={`mailto:${verifiedEmail}`}
+              class="inline-flex items-center gap-2.5 min-h-[44px] px-2 py-1.5 rounded-[var(--radius-button)] text-sm text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+            >
+              <MailIcon class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+              <span class="break-all">{verifiedEmail}</span>
+            </a>
+          </li>}
+
+          {verifiedProfiles.map((profile) => <li>
+            <a
+              href={profile.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2.5 min-h-[44px] px-2 py-1.5 rounded-[var(--radius-button)] text-sm text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+            >
+              {profile.platform === 'GitHub' && (
+                <GitHubIcon class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+              )}
+              {profile.platform === 'LinkedIn' && (
+                <LinkedInIcon class="w-4 h-4 text-[var(--color-accent)] shrink-0" />
+              )}
+              <span>{profile.platform}</span>
+              <ExternalLinkIcon class="w-3.5 h-3.5 text-[var(--color-muted)] shrink-0" />
+              <span class="sr-only"> (opens in new tab)</span>
+            </a>
+          </li>)}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Utility Bar & Dynamic Copyright -->
+    <div
+      class="border-t border-[var(--color-border)] pt-8 mt-10 sm:mt-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+    >
+      <p class="text-xs text-[var(--color-muted)]">
+        &copy; {currentYear} {siteConfig.brandName}. All rights reserved.
+      </p>
+
+      <a
+        href="#page-top"
+        class="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--color-muted)] hover:text-[var(--color-accent)] rounded-[var(--radius-button)] px-2 py-2 min-h-[44px] transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+      >
+        <span>Back to top</span>
+        <span aria-hidden="true">&uarr;</span>
+      </a>
+    </div>
+  </div>
+</footer>

@@ -106,15 +106,17 @@ export function resolvePageMeta(
 
   const description = props.description ? props.description.trim() : siteConfig.defaultDescription;
 
-  const canonicalUrl = formatCanonicalUrl(
-    currentPathname,
-    validatedOrigin,
-    props.canonicalOverride
-  );
+  // 404 safety guard: 404 routes must NEVER emit a canonical URL or be indexed
+  const is404Route = normalizePathname(currentPathname) === '/404';
+
+  const canonicalUrl = is404Route
+    ? undefined
+    : formatCanonicalUrl(currentPathname, validatedOrigin, props.canonicalOverride);
 
   // Robots directive:
   // Default to 'noindex, nofollow' unless siteConfig.isProductionApproved is explicitly true.
-  const shouldNoindex = props.noindex ?? !siteConfig.isProductionApproved;
+  // 404 pages unconditionally emit 'noindex, nofollow'.
+  const shouldNoindex = props.noindex ?? (is404Route || !siteConfig.isProductionApproved);
   const robots = shouldNoindex ? 'noindex, nofollow' : 'index, follow';
 
   return {

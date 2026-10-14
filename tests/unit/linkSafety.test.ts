@@ -58,6 +58,11 @@ assert.equal(validAnchor.isValid, true);
 assert.equal(validAnchor.isAnchor, true);
 assert.equal(validAnchor.sanitizedHref, '#main-content');
 
+const pageTopAnchor = validateLinkDestination('#page-top');
+assert.equal(pageTopAnchor.isValid, true);
+assert.equal(pageTopAnchor.isAnchor, true);
+assert.equal(pageTopAnchor.sanitizedHref, '#page-top');
+
 const emptyAnchor = validateLinkDestination('#');
 assert.equal(emptyAnchor.isValid, false, 'Bare "#" must be rejected');
 console.log('✓ In-page anchor validation passed');

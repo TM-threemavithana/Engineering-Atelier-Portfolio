@@ -564,4 +564,137 @@ console.log(
   '✓ Contact page production integrity confirmed: single H1, exact verified email/social links, no-JS mailto, aria-live CopyEmail island, zero placeholders'
 );
 
+// 15. Verify EA-017 Footer and Branded 404 Production Artifact Integrity
+const p404HtmlPath = path.join(distDir, '404.html');
+assert.ok(fs.existsSync(p404HtmlPath), 'dist/404.html must exist in production build output');
+const p404Html = fs.readFileSync(p404HtmlPath, 'utf8');
+
+// A. Exactly Single H1 Element on 404 page
+const p404H1Matches = [...p404Html.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
+assert.equal(
+  p404H1Matches.length,
+  1,
+  `dist/404.html must contain exactly one <h1> element, found ${p404H1Matches.length}`
+);
+assert.ok(
+  p404Html.includes('Page Not Found') || p404Html.includes('Route Not Found'),
+  'dist/404.html must contain approved H1 error heading'
+);
+
+// B. 404 Robots & Canonical Security
+assert.ok(
+  p404Html.includes('<meta name="robots" content="noindex, nofollow"'),
+  'dist/404.html must contain robots directive "noindex, nofollow"'
+);
+assert.ok(
+  !p404Html.includes('<link rel="canonical"'),
+  'dist/404.html must NOT contain a canonical link tag'
+);
+
+// C. 404 Recovery Actions (Return Home & Published Pages Only)
+assert.ok(
+  p404Html.includes('href="/"'),
+  'dist/404.html must contain prominent recovery link to homepage "/"'
+);
+assert.ok(
+  p404Html.includes('href="/about/"'),
+  'dist/404.html must contain recovery link to published "/about/"'
+);
+assert.ok(
+  p404Html.includes('href="/contact/"'),
+  'dist/404.html must contain recovery link to published "/contact/"'
+);
+
+// D. 404 Gating: Zero Links to Unpublished Routes
+const prohibited404Links = ['href="/projects/"', 'href="/writing/"', 'href="/resume.pdf"'];
+for (const link of prohibited404Links) {
+  assert.ok(
+    !p404Html.includes(link),
+    `dist/404.html must NOT contain link to unpublished route: ${link}`
+  );
+}
+
+// E. Global Landmark Structure across ALL Pages (Home, About, Contact, 404)
+const allPageEntries = [
+  { name: 'Home', path: path.join(distDir, 'index.html') },
+  { name: 'About', path: path.join(distDir, 'about', 'index.html') },
+  { name: 'Contact', path: path.join(distDir, 'contact', 'index.html') },
+  { name: '404', path: path.join(distDir, '404.html') },
+];
+
+const currentYearStr = String(new Date().getFullYear());
+
+for (const page of allPageEntries) {
+  assert.ok(fs.existsSync(page.path), `${page.name} (${page.path}) must exist`);
+  const html = fs.readFileSync(page.path, 'utf8');
+
+  // Exactly one header role="banner"
+  const headerCount = (html.match(/<header[^>]*\brole="banner"[^>]*>/gi) || []).length;
+  assert.equal(headerCount, 1, `${page.name} must contain exactly one <header role="banner">`);
+
+  // Exactly one main id="main-content"
+  const mainCount = (html.match(/<main[^>]*\bid="main-content"[^>]*>/gi) || []).length;
+  assert.equal(mainCount, 1, `${page.name} must contain exactly one <main id="main-content">`);
+
+  // Exactly one footer role="contentinfo"
+  const footerCount = (html.match(/<footer[^>]*\brole="contentinfo"[^>]*>/gi) || []).length;
+  assert.equal(footerCount, 1, `${page.name} must contain exactly one <footer role="contentinfo">`);
+
+  // Distinct skip link (#main-content) and back-to-top (#page-top) anchors
+  assert.ok(
+    html.includes('href="#main-content"'),
+    `${page.name} must contain skip link targeting #main-content`
+  );
+  assert.ok(
+    html.includes('id="main-content"'),
+    `${page.name} must contain element with id="main-content"`
+  );
+  assert.ok(
+    html.includes('href="#page-top"'),
+    `${page.name} must contain back-to-top link targeting #page-top`
+  );
+  assert.ok(html.includes('id="page-top"'), `${page.name} must contain element with id="page-top"`);
+
+  // Footer Navigation Landmark & Items
+  assert.ok(
+    html.includes('aria-label="Footer Navigation"'),
+    `${page.name} must contain <nav aria-label="Footer Navigation">`
+  );
+  assert.ok(
+    html.includes('Built with Astro &amp; TypeScript') ||
+      html.includes('Built with Astro & TypeScript'),
+    `${page.name} must contain technology attribution`
+  );
+  assert.ok(
+    html.includes(currentYearStr),
+    `${page.name} footer must contain dynamic current copyright year "${currentYearStr}"`
+  );
+
+  // Footer social links
+  assert.ok(
+    html.includes('href="mailto:tharukamaduwantha62@gmail.com"'),
+    `${page.name} footer must contain approved mailto link`
+  );
+  assert.ok(
+    html.includes('href="https://github.com/TM-threemavithana"'),
+    `${page.name} footer must contain approved GitHub profile link`
+  );
+  assert.ok(
+    html.includes('href="https://www.linkedin.com/in/tharuka-madhuwantha/"'),
+    `${page.name} footer must contain approved LinkedIn profile link`
+  );
+
+  // Prohibited draft/unbuilt routes in footer
+  for (const link of prohibited404Links) {
+    assert.ok(
+      !html.includes(link),
+      `${page.name} must NOT contain link to unpublished route: ${link}`
+    );
+  }
+}
+
+console.log(
+  '✓ Footer and 404 production integrity confirmed: dist/404.html generated, single H1, robots noindex, recovery links verified, global landmarks intact, published navigation synchronized, zero placeholders'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

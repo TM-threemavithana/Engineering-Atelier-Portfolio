@@ -1,4 +1,4 @@
-# Content and Evidence Status (EA-014 Update)
+# Content and Evidence Status (EA-017 Update)
 
 **Last Updated:** 2026-10-14  
 **Current Milestone:** Milestone 2 — Premium Responsive Core  
@@ -21,7 +21,8 @@
 - `EA-014` — **DONE** (Homepage Featured Work & Capabilities — Dual-Gated Graceful Omission, 3 Technical Focus Groups, 4-Stage Engineering Approach, Heading ID Accessibility)  
 - `EA-015` — **DONE** (About Page & Verified Timeline — Single H1, 3 Approved Values, 3 Technical Familiarity Tiers, Graceful Timeline Omission, Safe Alternative Navigation)  
 - `EA-016` — **DONE** (Contact Page & CopyEmail Fallback — Direct Mailto, Verified GitHub/LinkedIn, Progressive React Island, Zero Form Backends)  
-- `EA-017` — **TODO** (Footer and Branded 404)  
+- `EA-017` — **DONE** (Footer and Branded 404 — Sticky SiteFooter, Published Nav Gating, Verified Socials, dist/404.html Error Recovery Route, Landmarks, Anchor Navigation)  
+- `EA-018` — **TODO** (Core Responsive Visual Polish Pass)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

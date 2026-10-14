@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import ArrowRightIcon from '../components/icons/ArrowRightIcon.astro';
+---
+
+<BaseLayout
+  title="Page Not Found"
+  description="The requested page could not be found. Return to the Engineering Atelier homepage."
+  noindex={true}
+>
+  <main
+    id="main-content"
+    tabindex="-1"
+    class="focus:outline-none flex-1 flex items-center justify-center py-16 sm:py-24"
+  >
+    <div class="container-atelier max-w-2xl text-center flex flex-col items-center">
+      <!-- Restrained status tag -->
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--radius-tag)] bg-[var(--color-surface-alt)] border border-[var(--color-border-strong)] text-xs font-mono text-[var(--color-accent)] mb-6 select-none"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true"></span>
+        <span>404 &mdash; ROUTE_NOT_FOUND</span>
+      </div>
+
+      <!-- Single H1 on page -->
+      <h1
+        class="font-['Space_Grotesk'] text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[var(--color-fg)] mb-4"
+      >
+        Page Not Found
+      </h1>
+
+      <!-- Clear, ordinary-language explanation -->
+      <p class="text-base sm:text-lg text-[var(--color-muted)] leading-relaxed max-w-lg mb-8">
+        The system or page you requested does not exist, has been relocated, or is not yet published
+        in this release.
+      </p>
+
+      <!-- Recovery Actions: Approved published routes only -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
+        <Button href="/" variant="primary" size="md" class="w-full sm:w-auto">
+          <span>Return to Homepage</span>
+          <ArrowRightIcon class="w-4 h-4 ml-1" />
+        </Button>
+
+        <Button href="/about/" variant="secondary" size="md" class="w-full sm:w-auto">
+          <span>About &amp; Values</span>
+        </Button>
+
+        <Button href="/contact/" variant="ghost" size="md" class="w-full sm:w-auto">
+          <span>Get in Touch</span>
+        </Button>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
