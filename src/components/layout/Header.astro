@@ -1,5 +1,9 @@
 ---
-import { getPublishedNavItems, isNavItemActive } from '../../data/navigation';
+import {
+  getPublishedNavItems,
+  hasPublishedDestinationsBeyondHome,
+  isNavItemActive,
+} from '../../data/navigation';
 import NavItem from './NavItem.astro';
 
 export interface Props {
@@ -8,6 +12,7 @@ export interface Props {
 
 const { currentPathname = '/' } = Astro.props;
 const publishedItems = getPublishedNavItems();
+const showMobileMenu = hasPublishedDestinationsBeyondHome(publishedItems);
 ---
 
 <header
@@ -41,8 +46,8 @@ const publishedItems = getPublishedNavItems();
       </ul>
     </nav>
 
-    <!-- Mobile Navigation Disclosure (< 768px, Semantic CSS-first details/summary) -->
-    <details class="mobile-nav-details relative md:hidden">
+    {/* Mobile Navigation Disclosure (< 768px, Semantic CSS-first details/summary) */}
+    {showMobileMenu && <details class="mobile-nav-details relative md:hidden">
       <summary
         class="mobile-nav-toggle flex items-center justify-center w-11 h-11 rounded-[var(--radius-button)] text-[var(--color-fg)] hover:text-[var(--color-accent)] hover:bg-[var(--color-surface)] cursor-pointer list-none select-none transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
         aria-label="Toggle navigation menu"
@@ -87,7 +92,7 @@ const publishedItems = getPublishedNavItems();
           ))}
         </ul>
       </nav>
-    </details>
+    </details>}
   </div>
 </header>
 
@@ -109,7 +114,7 @@ const publishedItems = getPublishedNavItems();
   }
 </style>
 
-<script>
+{showMobileMenu && <script>
   // Progressive enhancement: close mobile disclosure on Escape or outside click
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -128,4 +133,4 @@ const publishedItems = getPublishedNavItems();
       details.open = false;
     }
   });
-</script>
+</script>}

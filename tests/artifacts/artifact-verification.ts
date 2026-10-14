@@ -129,12 +129,14 @@ assert.ok(
   'Wordmark accessible text must be present'
 );
 assert.ok(
-  indexHtml.includes('<details class="mobile-nav-details'),
-  'Mobile navigation must use semantic <details> disclosure'
+  indexHtml.includes('<nav aria-label="Main Navigation"'),
+  'Desktop navigation landmark must be present'
 );
+
+// When only Home is published, mobile disclosure toggle is hidden to eliminate redundant menu and clutter
 assert.ok(
-  indexHtml.includes('<summary class="mobile-nav-toggle'),
-  'Mobile navigation must use semantic <summary> toggle'
+  !indexHtml.includes('<details class="mobile-nav-details'),
+  'Mobile disclosure trigger must be hidden when only Home is published'
 );
 assert.ok(
   !indexHtml.includes('aria-modal'),
@@ -143,7 +145,7 @@ assert.ok(
 
 // Extract all internal links inside <nav> tags
 const navMatches = indexHtml.match(/<nav[^>]*>([\s\S]*?)<\/nav>/g) || [];
-assert.ok(navMatches.length >= 2, 'Both desktop and mobile navigation landmarks must be present');
+assert.ok(navMatches.length >= 1, 'At least desktop navigation landmark must be present');
 
 for (const navBlock of navMatches) {
   const hrefMatches = [...navBlock.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);

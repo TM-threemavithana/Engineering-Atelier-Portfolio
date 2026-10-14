@@ -70,3 +70,14 @@ export function isNavItemActive(currentPathname: string, targetHref: string): bo
   const normalize = (p: string) => (p.endsWith('/') && p.length > 1 ? p.slice(0, -1) : p);
   return normalize(currentPathname) === normalize(targetHref);
 }
+
+/**
+ * Checks whether there are published navigation destinations beyond the root Home route.
+ * When false, the mobile disclosure menu is suppressed to avoid redundant single-item menus
+ * and top-right visual clutter while preserving the EA wordmark as the primary Home link.
+ */
+export function hasPublishedDestinationsBeyondHome(
+  items: NavItemConfig[] = getPublishedNavItems()
+): boolean {
+  return items.some((item) => item.href !== '/');
+}

@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getPublishedNavItems, navigationConfig, isNavItemActive } from '../../src/data/navigation';
+import {
+  getPublishedNavItems,
+  hasPublishedDestinationsBeyondHome,
+  navigationConfig,
+  isNavItemActive,
+} from '../../src/data/navigation';
 import { featureFlags } from '../../src/data/featureFlags';
 
 console.log('--- Starting Navigation Safety Suite ---');
@@ -95,5 +100,24 @@ assert.equal(
 assert.equal(isNavItemActive('/about/', '/about'), true, 'Trailing slash normalization reverse');
 assert.equal(isNavItemActive('/about', '/'), false, 'Subpage must not match root as exact page');
 console.log('✓ isNavItemActive logic correctly identifies active page');
+
+// 6. Test hasPublishedDestinationsBeyondHome logic
+assert.equal(
+  hasPublishedDestinationsBeyondHome(publishedItems),
+  false,
+  'Currently only Home is published, so hasPublishedDestinationsBeyondHome must return false'
+);
+
+// Simulate future milestone where Projects is published
+const simulatedMultiRouteConfig = [
+  { label: 'Home', href: '/', number: '01', isPublished: true },
+  { label: 'Projects', href: '/projects/', number: '02', isPublished: true },
+];
+assert.equal(
+  hasPublishedDestinationsBeyondHome(simulatedMultiRouteConfig),
+  true,
+  'When simulated with multiple published routes, hasPublishedDestinationsBeyondHome must return true'
+);
+console.log('✓ hasPublishedDestinationsBeyondHome correctly governs mobile menu disclosure');
 
 console.log('--- All Navigation Safety Tests Passed Cleanly ---');
