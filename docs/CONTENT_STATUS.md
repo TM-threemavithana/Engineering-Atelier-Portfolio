@@ -26,7 +26,8 @@
 - `EA-018` — **DONE** (Core Responsive Visual Polish Pass — Sticky header clearance, branching Raft consensus blueprint, mobile SVG text readability, deduplicated familiarity categories, neutral profile badges, modern clipboard handling, isolated production 404 tests)  
 - `EA-019` — **DONE** (Typed Project Content Schema — Astro 5 collections, Zod validation, strict HTTPS URLs, 4 candidate draft MDX files, 4-layer publication gate, independent schema unit tests)  
 - `EA-020` — **DONE** (Project Content Intake and Asset Clearance — Currency Authentication Research Git audit and manuscript reconciliation signed off by owner on all six conditions; score 16/18; candidate project strictly gated as draft pending CBSL statutory clearance and independent reproducibility)  
-- `EA-021` — **IN PLANNING** (Project Card and Feature Patterns — Preparing implementation plan for owner review)  
+- `EA-021` — **DONE** (Project Card and Feature Patterns — Reusable ProjectCard, FeaturedProjectCard, ProjectBlueprintFallback, ADR-002 accessible stretched link, safe navigation gating, isolated test harness, and 100% verified)  
+- `EA-022` — **IN PLANNING** (Projects Index and Empty Safeguards — Preparing implementation plan for owner review)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

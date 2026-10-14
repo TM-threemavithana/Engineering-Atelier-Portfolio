@@ -719,4 +719,30 @@ console.log(
   '✓ Footer and 404 production integrity confirmed: dist/404.html generated, single H1, robots noindex, recovery links verified, global landmarks intact, published navigation synchronized, zero placeholders'
 );
 
+// 16. Verify EA-021 Project Card Production Isolation
+const devProjectCardsDir = path.join(distDir, 'dev-project-cards');
+assert.ok(
+  !fs.existsSync(devProjectCardsDir),
+  'dev-project-cards route directory must not exist in production dist/'
+);
+assert.ok(
+  !indexHtml.includes('Fictional Published Architecture'),
+  'Test project title must not leak into production index.html'
+);
+assert.ok(
+  !indexHtml.includes('Fictional Clearance Prototype'),
+  'Test project title must not leak into production index.html'
+);
+assert.ok(
+  !indexHtml.includes('Fictional Raft Consensus Engine'),
+  'Test project title must not leak into production index.html'
+);
+assert.ok(
+  !indexHtml.includes('CONCEPTUAL SCHEMATIC // CVIP METROLOGY'),
+  'Blueprint schematic must not leak into production index.html while projects are in draft'
+);
+console.log(
+  '✓ Project card and blueprint production isolation confirmed: zero fixture or draft card leaks'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

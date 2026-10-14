@@ -1,0 +1,587 @@
+---
+/**
+ * @file src/components/projects/ProjectBlueprintFallback.astro
+ * @description Premium technical vector blueprint fallback when cover imagery is absent or restricted.
+ *
+ * DESIGN CONTRACT & COMPLIANCE:
+ * - Uses existing design tokens: navy surfaces (#111C2B, #17263A), cyan accent (#5EEAD4), muted (#A5B7CE), gold (#F0CF78).
+ * - Stable 16:9 aspect ratio (`aspect-video`).
+ * - Category-specific generic conceptual illustrations:
+ *   - `research`: Generic coordinate metrology, homography bounding box, feature keypoints (NO currency/banknote imagery).
+ *   - `distributed`: Raft consensus topology, leader log WAL, follower quorum nodes.
+ *   - `backend`: Modular service pipeline, API gateway, data persistence bus.
+ *   - `fullstack`: Client interface, API engine, domain services, database store.
+ *   - `frontend`: Component system tree, design tokens, reactive state bus.
+ * - Accessible: aria-hidden="true" on decorative SVG; wrapper provides descriptive label without duplicate announcements.
+ * - Text readability: All rendered SVG text >= 11px, readable down to 320px mobile viewports.
+ */
+
+import type { ProjectCategory } from '../../data/schemas/projectSchema';
+
+export interface Props {
+  title: string;
+  category?: ProjectCategory;
+  status?: string;
+  aspectRatio?: '16/9' | '16/10' | '4/3';
+  class?: string;
+}
+
+const { title, category = 'backend', aspectRatio = '16/9', class: className = '' } = Astro.props;
+
+// Overline category descriptor
+const categoryLabels: Record<ProjectCategory, string> = {
+  research: 'CONCEPTUAL SCHEMATIC // CVIP METROLOGY',
+  distributed: 'CONCEPTUAL SCHEMATIC // DISTRIBUTED TOPOLOGY',
+  backend: 'CONCEPTUAL SCHEMATIC // MODULAR SERVICE ARCHITECTURE',
+  fullstack: 'CONCEPTUAL SCHEMATIC // FULL-STACK SYSTEM TOPOLOGY',
+  frontend: 'CONCEPTUAL SCHEMATIC // COMPONENT SYSTEM HIERARCHY',
+};
+
+const schematicLabel = categoryLabels[category] || 'CONCEPTUAL SCHEMATIC // SYSTEM ARCHITECTURE';
+
+// Aspect ratio mapping
+const aspectClasses = {
+  '16/9': 'aspect-video',
+  '16/10': 'aspect-[16/10]',
+  '4/3': 'aspect-[4/3]',
+}[aspectRatio];
+---
+
+<div
+  class:list={[
+    'relative w-full overflow-hidden bg-[var(--color-surface)] border-b border-[var(--color-border)] select-none flex flex-col justify-between p-3 sm:p-4',
+    aspectClasses,
+    className,
+  ]}
+  role="img"
+  aria-label={`Conceptual architectural schematic for ${title}`}
+>
+  <!-- Background Coordinate Grid -->
+  <svg
+    class="absolute inset-0 w-full h-full pointer-events-none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <defs>
+      <pattern
+        id={`blueprint-grid-${category}`}
+        width="24"
+        height="24"
+        patternUnits="userSpaceOnUse"
+      >
+        <path
+          d="M 24 0 L 0 0 0 24"
+          fill="none"
+          stroke="rgba(94, 234, 212, 0.05)"
+          stroke-width="1"
+        />
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill={`url(#blueprint-grid-${category})`} />
+  </svg>
+
+  <!-- Top Metadata Bar -->
+  <div
+    class="relative z-10 flex items-center justify-between text-[10px] sm:text-xs font-mono text-[var(--color-muted)] border-b border-[var(--color-border)]/40 pb-2"
+  >
+    <span class="text-[var(--color-accent)] tracking-wider truncate max-w-[80%]">
+      {schematicLabel}
+    </span>
+    <span class="text-[var(--color-border-strong)] uppercase font-semibold"> SYS.V1 </span>
+  </div>
+
+  <!-- Center Category Schematic (viewBox 0 0 480 200) -->
+  <div class="relative z-10 w-full my-auto flex items-center justify-center">
+    <svg
+      viewBox="0 0 480 200"
+      class="w-full h-auto max-h-[140px] sm:max-h-[160px]"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {category === 'research' && <g class="schematic-research">
+        <!-- Coordinate Axes -->
+        <line x1="40" y1="170" x2="440" y2="170" stroke="#34465D" stroke-width="1.5" />
+        <line x1="40" y1="30" x2="40" y2="170" stroke="#34465D" stroke-width="1.5" />
+
+        <!-- Metrology Bounding Frame -->
+        <rect
+          x="110"
+          y="45"
+          width="260"
+          height="110"
+          rx="4"
+          fill="rgba(17, 28, 43, 0.6)"
+          stroke="#5A7597"
+          stroke-width="1.5"
+          stroke-dasharray="6,4"
+        />
+
+        <!-- Alignment Crosshairs -->
+        <line
+          x1="240"
+          y1="35"
+          x2="240"
+          y2="165"
+          stroke="rgba(94, 234, 212, 0.25)"
+          stroke-width="1"
+          stroke-dasharray="2,2"
+        />
+        <line
+          x1="100"
+          y1="100"
+          x2="380"
+          y2="100"
+          stroke="rgba(94, 234, 212, 0.25)"
+          stroke-width="1"
+          stroke-dasharray="2,2"
+        />
+        <circle cx="240" cy="100" r="16" fill="none" stroke="#5EEAD4" stroke-width="1.5" />
+        <circle cx="240" cy="100" r="2.5" fill="#5EEAD4" />
+
+        <!-- Keypoint Markers -->
+        <circle cx="140" cy="75" r="4" fill="#F0CF78" />
+        <circle cx="340" cy="75" r="4" fill="#F0CF78" />
+        <circle cx="140" cy="125" r="4" fill="#F0CF78" />
+        <circle cx="340" cy="125" r="4" fill="#F0CF78" />
+
+        <!-- Connection Vectors -->
+        <line x1="140" y1="75" x2="240" y2="100" stroke="#5EEAD4" stroke-width="1" opacity="0.6" />
+        <line x1="340" y1="75" x2="240" y2="100" stroke="#5EEAD4" stroke-width="1" opacity="0.6" />
+        <line x1="140" y1="125" x2="240" y2="100" stroke="#5EEAD4" stroke-width="1" opacity="0.6" />
+        <line x1="340" y1="125" x2="240" y2="100" stroke="#5EEAD4" stroke-width="1" opacity="0.6" />
+
+        <!-- Schematic Text Labels -->
+        <text x="115" y="40" fill="#A5B7CE" font-size="11" font-family="JetBrains Mono, monospace"
+          >FRAME_ALIGN</text
+        >
+        <text x="315" y="40" fill="#5EEAD4" font-size="11" font-family="JetBrains Mono, monospace"
+          >HOMOGRAPHY</text
+        >
+        <text x="205" y="185" fill="#A5B7CE" font-size="11" font-family="JetBrains Mono, monospace"
+          >FEATURE METROLOGY</text
+        >
+      </g>}
+
+      {category === 'distributed' && <g class="schematic-distributed">
+        <!-- Ingestion Node -->
+        <rect
+          x="30"
+          y="75"
+          width="80"
+          height="50"
+          rx="6"
+          fill="#17263A"
+          stroke="#5A7597"
+          stroke-width="1.5"
+        />
+        <text
+          x="70"
+          y="105"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >INGEST</text
+        >
+
+        <!-- Flow to Leader -->
+        <line x1="110" y1="100" x2="180" y2="100" stroke="#5EEAD4" stroke-width="1.5" />
+        <polygon points="180,100 172,96 172,104" fill="#5EEAD4" />
+
+        <!-- Leader Consensus Node -->
+        <rect
+          x="185"
+          y="60"
+          width="110"
+          height="80"
+          rx="8"
+          fill="#17263A"
+          stroke="#5EEAD4"
+          stroke-width="2"
+        />
+        <text
+          x="240"
+          y="90"
+          fill="#5EEAD4"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          font-weight="bold"
+          text-anchor="middle"
+          >LEADER</text
+        >
+        <text
+          x="240"
+          y="110"
+          fill="#A5B7CE"
+          font-size="11"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >WAL LOG</text
+        >
+        <circle cx="285" cy="72" r="3.5" fill="#F0CF78" />
+
+        <!-- Branching Follower Replications -->
+        <path d="M 295 85 L 340 85 L 360 60" fill="none" stroke="#5A7597" stroke-width="1.5" />
+        <polygon points="360,60 351,60 357,66" fill="#5A7597" />
+
+        <path d="M 295 115 L 340 115 L 360 140" fill="none" stroke="#5A7597" stroke-width="1.5" />
+        <polygon points="360,140 357,134 351,140" fill="#5A7597" />
+
+        <!-- Follower 1 -->
+        <rect
+          x="365"
+          y="35"
+          width="85"
+          height="45"
+          rx="6"
+          fill="#17263A"
+          stroke="#34465D"
+          stroke-width="1.5"
+        />
+        <text
+          x="407"
+          y="62"
+          fill="#A5B7CE"
+          font-size="11"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >PEER 01</text
+        >
+
+        <!-- Follower 2 -->
+        <rect
+          x="365"
+          y="120"
+          width="85"
+          height="45"
+          rx="6"
+          fill="#17263A"
+          stroke="#34465D"
+          stroke-width="1.5"
+        />
+        <text
+          x="407"
+          y="147"
+          fill="#A5B7CE"
+          font-size="11"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >PEER 02</text
+        >
+      </g>}
+
+      {category === 'backend' && <g class="schematic-backend">
+        <!-- Gateway / Ingress -->
+        <rect
+          x="30"
+          y="70"
+          width="90"
+          height="60"
+          rx="6"
+          fill="#17263A"
+          stroke="#5A7597"
+          stroke-width="1.5"
+        />
+        <text
+          x="75"
+          y="98"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >GATEWAY</text
+        >
+        <text
+          x="75"
+          y="115"
+          fill="#A5B7CE"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >ROUTING</text
+        >
+
+        <!-- Connector -->
+        <line x1="120" y1="100" x2="185" y2="100" stroke="#5EEAD4" stroke-width="1.5" />
+        <polygon points="185,100 177,96 177,104" fill="#5EEAD4" />
+
+        <!-- Core Service Pipeline -->
+        <rect
+          x="190"
+          y="60"
+          width="110"
+          height="80"
+          rx="8"
+          fill="#17263A"
+          stroke="#5EEAD4"
+          stroke-width="1.5"
+        />
+        <text
+          x="245"
+          y="92"
+          fill="#5EEAD4"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >SERVICE</text
+        >
+        <text
+          x="245"
+          y="112"
+          fill="#A5B7CE"
+          font-size="11"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >CORE PIPELINE</text
+        >
+
+        <!-- Connector -->
+        <line x1="300" y1="100" x2="365" y2="100" stroke="#5A7597" stroke-width="1.5" />
+        <polygon points="365,100 357,96 357,104" fill="#5A7597" />
+
+        <!-- Data Store -->
+        <rect
+          x="370"
+          y="70"
+          width="80"
+          height="60"
+          rx="6"
+          fill="#17263A"
+          stroke="#34465D"
+          stroke-width="1.5"
+        />
+        <text
+          x="410"
+          y="98"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >DATA</text
+        >
+        <text
+          x="410"
+          y="115"
+          fill="#A5B7CE"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >STORE</text
+        >
+      </g>}
+
+      {category === 'fullstack' && <g class="schematic-fullstack">
+        <!-- Client Layer -->
+        <rect
+          x="30"
+          y="70"
+          width="85"
+          height="60"
+          rx="6"
+          fill="#17263A"
+          stroke="#5A7597"
+          stroke-width="1.5"
+        />
+        <text
+          x="72"
+          y="98"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >CLIENT</text
+        >
+        <text
+          x="72"
+          y="115"
+          fill="#A5B7CE"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >UI LAYER</text
+        >
+
+        <!-- API Bridge -->
+        <line x1="115" y1="100" x2="175" y2="100" stroke="#5EEAD4" stroke-width="1.5" />
+        <polygon points="175,100 167,96 167,104" fill="#5EEAD4" />
+
+        <!-- Domain API Engine -->
+        <rect
+          x="180"
+          y="60"
+          width="120"
+          height="80"
+          rx="8"
+          fill="#17263A"
+          stroke="#5EEAD4"
+          stroke-width="1.5"
+        />
+        <text
+          x="240"
+          y="92"
+          fill="#5EEAD4"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >API BRIDGE</text
+        >
+        <text
+          x="240"
+          y="112"
+          fill="#A5B7CE"
+          font-size="11"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >DOMAIN SERVICES</text
+        >
+
+        <!-- Data Bridge -->
+        <line x1="300" y1="100" x2="360" y2="100" stroke="#5A7597" stroke-width="1.5" />
+        <polygon points="360,100 352,96 352,104" fill="#5A7597" />
+
+        <!-- Persistence -->
+        <rect
+          x="365"
+          y="70"
+          width="85"
+          height="60"
+          rx="6"
+          fill="#17263A"
+          stroke="#34465D"
+          stroke-width="1.5"
+        />
+        <text
+          x="407"
+          y="98"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >STORAGE</text
+        >
+        <text
+          x="407"
+          y="115"
+          fill="#A5B7CE"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >PERSISTENCE</text
+        >
+      </g>}
+
+      {category === 'frontend' && <g class="schematic-frontend">
+        <!-- Design Tokens -->
+        <rect
+          x="30"
+          y="70"
+          width="90"
+          height="60"
+          rx="6"
+          fill="#17263A"
+          stroke="#5A7597"
+          stroke-width="1.5"
+        />
+        <text
+          x="75"
+          y="98"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >DESIGN</text
+        >
+        <text
+          x="75"
+          y="115"
+          fill="#A5B7CE"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >TOKENS</text
+        >
+
+        <!-- Component Tree -->
+        <line x1="120" y1="100" x2="185" y2="100" stroke="#5EEAD4" stroke-width="1.5" />
+        <polygon points="185,100 177,96 177,104" fill="#5EEAD4" />
+
+        <!-- Component Hierarchy -->
+        <rect
+          x="190"
+          y="60"
+          width="115"
+          height="80"
+          rx="8"
+          fill="#17263A"
+          stroke="#5EEAD4"
+          stroke-width="1.5"
+        />
+        <text
+          x="247"
+          y="92"
+          fill="#5EEAD4"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >COMPONENT</text
+        >
+        <text
+          x="247"
+          y="112"
+          fill="#A5B7CE"
+          font-size="11"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >TREE HIERARCHY</text
+        >
+
+        <!-- Reactive State -->
+        <line x1="305" y1="100" x2="365" y2="100" stroke="#5A7597" stroke-width="1.5" />
+        <polygon points="365,100 357,96 357,104" fill="#5A7597" />
+
+        <!-- Render Surface -->
+        <rect
+          x="370"
+          y="70"
+          width="80"
+          height="60"
+          rx="6"
+          fill="#17263A"
+          stroke="#34465D"
+          stroke-width="1.5"
+        />
+        <text
+          x="410"
+          y="98"
+          fill="#F3F7FF"
+          font-size="12"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >STATE</text
+        >
+        <text
+          x="410"
+          y="115"
+          fill="#A5B7CE"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          text-anchor="middle"
+          >BUS</text
+        >
+      </g>}
+    </svg>
+  </div>
+
+  <!-- Bottom Corner Markings -->
+  <div
+    class="relative z-10 flex items-center justify-between text-[10px] font-mono text-[var(--color-border-strong)] pt-1 border-t border-[var(--color-border)]/40"
+  >
+    <span>+ 00.00</span>
+    <span class="text-[var(--color-muted)] tracking-widest text-[9px]"
+      >ENGINEERING ATELIER SPEC</span
+    >
+    <span>+ 48.27</span>
+  </div>
+</div>

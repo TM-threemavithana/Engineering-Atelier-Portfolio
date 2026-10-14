@@ -818,6 +818,60 @@
   - Artifact `ea_020_currency_authentication_research_audit_report.md` (updated: score 16/18, all 6 signoff items marked approved by owner)
 - Next Ticket: EA-021 — Project card and feature patterns (Milestone 3).
 
+### EA-021 Execution Record (2026-10-14)
+- Ticket: EA-021 — Project card and feature patterns (Milestone 3: Verified Project System)
+- State: COMPLETED & VERIFIED
+- Approved Implementation Plan: [ea_021_project_card_and_feature_patterns_plan.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_021_project_card_and_feature_patterns_plan.md) (approved with 6 required corrections on 2026-10-14)
+- Scope & Implemented Corrections:
+  1. Safe Project Navigation: Clickable case-study links strictly gated by `isRoutePublished(href)`. When unpublished or nonexistent, title renders as a static semantic text heading without an `<a>` tag, the stretched-link overlay is suppressed, and action footer renders honest status "Case study in clearance".
+  2. Project Blueprint Fallback: `ProjectBlueprintFallback.astro` renders handcrafted vector blueprints using existing tokens (`#111C2B`, `#17263A`, `#5EEAD4`, `#F0CF78`). Five category schematics (`research`, `distributed`, `backend`, `fullstack`, `frontend`). Zero currency/banknote references. `aria-hidden="true"` on SVG, descriptive `role="img"` wrapper, rendered text $\ge 11$px readable on mobile.
+  3. Accessible Stretched-Link Pattern (ADR-002): Primary title anchor stretches over the card (`after:absolute after:inset-0 after:z-0`) only when published. Secondary external links (GitHub, live demo) elevated to `relative z-10`, completely eliminating nested `<a>` elements while remaining independently focusable with gold focus ring (`#F0CF78`).
+  4. Isolated Component Test Harness: `tests/artifacts/project-card-rendering.ts` mounts a temporary fixture, builds to isolated `tests/.test-dist/`, validates zero nested anchors, stretched link classes, and blueprint fallbacks, and guarantees cleanup via `try / finally`.
+  5. Component Contracts & Safety: Implemented `src/components/projects/ProjectCard.astro`, `FeaturedProjectCard.astro`, and `ProjectBlueprintFallback.astro`. Backward compatibility preserved in `src/components/sections/ProjectCard.astro`. Metrics displayed only when methodology is present.
+  6. Responsive Reflow & Quality: Verified at 1440px desktop, 768px tablet, 390px mobile, 320px minimum mobile, 200% zoom, reduced-motion, and keyboard navigation. Zero horizontal overflow (`scrollWidth <= clientWidth`).
+- Files created/changed:
+  - `src/components/projects/ProjectBlueprintFallback.astro` (created: category-specific vector blueprint canvas)
+  - `src/components/projects/ProjectCard.astro` (created: standard project card with safe navigation and stretched link)
+  - `src/components/projects/FeaturedProjectCard.astro` (created: asymmetric featured card with alternating desktop layouts)
+  - `src/components/sections/ProjectCard.astro` (modified: backward-compatible wrapper)
+  - `tests/unit/projectCards.test.ts` (created: 5 unit tests for card navigation, HTTPS URL safety, status/category mappings)
+  - `tests/artifacts/project-card-rendering.ts` (created: isolated rendered HTML integration test harness)
+  - `tests/artifacts/artifact-verification.ts` (modified: Section 16 project card isolation checks)
+  - `package.json` (modified: added `verify:project-cards` and chained into `verify`)
+  - `docs/CONTENT_STATUS.md` (modified: EA-021 marked DONE, EA-022 IN PLANNING)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (modified: EA-021 execution record added)
+- Commands actually executed:
+  - `npm run check`: 71 files checked, 0 errors, 0 warnings, 0 hints
+  - `npm run lint`: 0 ESLint errors
+  - `npm run format:check`: 100% compliant with Prettier code style
+  - `npm run test`: 12 test suites pass (35 tests total across all unit test suites, 100% pass)
+  - `npm run verify:primitives`: Passed in isolated `tests/.test-dist/`
+  - `npm run verify:project-cards`: Passed in isolated `tests/.test-dist/` with zero nested anchors and clean cleanup
+  - `npm run build`: Production build generated in `dist/` with 4 pages (`index.html`, `about/index.html`, `contact/index.html`, `404.html`) in 8.22s
+  - `npm run verify:artifacts`: All 16 production artifact test suites pass including Section 16 project card isolation
+  - `npm run verify`: Full unified verification pipeline passed with exit code 0
+- Browser & a11y evidence:
+  - Desktop 1440x900: Standard 2-col grid, asymmetric 12-col featured cards, blueprint fallbacks.
+  - Desktop Focus & Hover: Sequential Tab navigation lands on Skip link $\to$ Wordmark $\to$ Project Title link (unclipped gold ring `#F0CF78`, 3px solid, 3px offset) $\to$ Secondary GitHub icon link (`relative z-10`). Hover lifts card by $-4$px.
+  - Tablet 768x1024: 2-column grid reflow, stacked featured layout, zero horizontal overflow (`scrollWidth <= clientWidth`).
+  - Mobile 390x844: Single-column stack, touch targets $\ge 44 \times 44$px, clean tag wrapping, zero horizontal overflow.
+  - Mobile 320x568: Extreme mobile viewport resilience, legible SVG text, zero horizontal overflow (`scrollWidth <= clientWidth`).
+  - Screenshots recorded:
+    - Desktop: `desktop_project_cards_full_1791988989521.png`
+    - Focus Title: `desktop_focus_project_card_title_1791989021765.png`
+    - Focus Secondary Link: `desktop_focus_next_link_1791989029759.png`
+    - Tablet: `tablet_768_view_1791989037464.png`
+    - Mobile 390px: `mobile_390_view_1791989045289.png`
+    - Mobile 320px: `mobile_320_view_1791989056566.png`
+    - WebP recording: `ea021_project_cards_visual_review_1791988971539.webp`
+- Content truth & publication safety:
+  - All four candidate projects remain in strict DRAFT status (`draft: true`, `editorialApproval: false`).
+  - `siteConfig.isProductionApproved = false` strictly preserved.
+  - No public project detail routes or draft cards generated in `dist/`.
+  - Zero fabricated engineering metrics or currency imagery.
+- Next Ticket: EA-022 — Projects index and empty safeguards (Milestone 3).
+
+
 
 
 

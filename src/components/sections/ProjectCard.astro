@@ -1,84 +1,12 @@
 ---
-import type { ProjectItem } from '../../data/projects';
-import Tag from '../ui/Tag.astro';
-import StatusLabel from '../ui/StatusLabel.astro';
-import Button from '../ui/Button.astro';
-import ArrowRightIcon from '../icons/ArrowRightIcon.astro';
+/**
+ * @file src/components/sections/ProjectCard.astro
+ * @description Backward-compatible wrapper delegating to src/components/projects/ProjectCard.astro.
+ */
+import ProjectCardImpl from '../projects/ProjectCard.astro';
+import type { ComponentProps } from 'astro/types';
 
-export interface Props {
-  project: ProjectItem;
-  featured?: boolean;
-}
-
-const { project, featured = false } = Astro.props;
-
-// Status mapping to tone
-const toneMapping = {
-  completed: 'success',
-  prototype: 'warning',
-  'in-progress': 'accent',
-  research: 'neutral',
-} as const;
-
-const statusLabelText = {
-  completed: 'Completed System',
-  prototype: 'Prototype Architecture',
-  'in-progress': 'In Development',
-  research: 'Research Study',
-}[project.status];
+export type Props = ComponentProps<typeof ProjectCardImpl>;
 ---
 
-<article
-  class:list={[
-    'surface-card p-6 sm:p-8 rounded-[var(--radius-card)] border border-[var(--color-border)] flex flex-col justify-between transition-colors duration-150',
-    featured ? 'lg:col-span-2' : '',
-  ]}
-  aria-labelledby={`project-title-${project.id}`}
->
-  <div class="space-y-4">
-    <!-- Top Metadata: Status & Domain -->
-    <div class="flex items-center justify-between border-b border-[var(--color-border)] pb-3">
-      <StatusLabel label={statusLabelText} tone={toneMapping[project.status]} />
-      <span class="font-mono text-xs text-[var(--color-muted)]"> Role: {project.role} </span>
-    </div>
-
-    <!-- Title -->
-    <h3
-      id={`project-title-${project.id}`}
-      class="font-['Space_Grotesk'] text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-fg)]"
-    >
-      {project.title}
-    </h3>
-
-    <!-- Problem Statement -->
-    <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed">
-      <span class="text-[var(--color-fg)] font-medium">Problem:</span> {project.problem}
-    </p>
-
-    <!-- Contribution -->
-    <p class="text-[var(--color-muted)] text-sm leading-relaxed">
-      <span class="text-[var(--color-fg)] font-medium">Contribution:</span> {project.contribution}
-    </p>
-
-    <!-- Technology Stack Tags (Max 4 visible) -->
-    <div class="flex flex-wrap gap-2 pt-2">
-      {project.stack.slice(0, 4).map((tech) => (
-        <Tag label={tech} variant="default" size="sm" />
-      ))}
-    </div>
-  </div>
-
-  <!-- Card Action -->
-  <div class="pt-6 mt-6 border-t border-[var(--color-border)] flex items-center justify-between">
-    {project.href ? (
-      <Button variant="secondary" size="sm" href={project.href}>
-        <span>Read Case Study</span>
-        <ArrowRightIcon class="w-3.5 h-3.5 ml-1" />
-      </Button>
-    ) : (
-      <span class="font-mono text-xs text-[var(--color-muted)] italic">
-        Case study undergoing clearance
-      </span>
-    )}
-  </div>
-</article>
+<ProjectCardImpl {...Astro.props} />

@@ -1,0 +1,207 @@
+---
+/**
+ * @file src/components/projects/ProjectCard.astro
+ * @description Standard project card component adhering to EA-021 contracts and accessible stretched-link pattern.
+ *
+ * ARCHITECTURAL DESIGN & CORRECTIONS:
+ * - Safe Project Navigation (Correction 1): Suppresses clickable links when route is unpublished/nonexistent;
+ *   renders non-interactive card state without dead links.
+ * - Stretched-Link Pattern (Correction 3): Primary title is anchor with after:absolute after:inset-0 after:z-0 only
+ *   when published; secondary links are elevated to relative z-10; ZERO nested anchors in rendered markup.
+ * - Blueprint Fallback (Correction 2): Renders ProjectBlueprintFallback when coverImage is absent or restricted.
+ * - Accessible Focus & Touch Targets: Visible unclipped gold focus ring (#F0CF78); >= 44x44px touch targets.
+ * - Safe External Links: Strict HTTPS validation; target="_blank" rel="noopener noreferrer" with sr-only announcements.
+ */
+
+import type { ProjectItem } from '../../data/projects';
+import type { ImageMetadata } from 'astro';
+import type { ProjectCategory } from '../../data/schemas/projectSchema';
+import { isRoutePublished } from '../../utils/linkSafety';
+import { isValidProjectHttpsUrl } from '../../data/schemas/projectSchema';
+import Tag from '../ui/Tag.astro';
+import StatusLabel from '../ui/StatusLabel.astro';
+import ArrowRightIcon from '../icons/ArrowRightIcon.astro';
+import GitHubIcon from '../icons/GitHubIcon.astro';
+import ExternalLinkIcon from '../icons/ExternalLinkIcon.astro';
+import ProjectBlueprintFallback from './ProjectBlueprintFallback.astro';
+
+export interface ProjectCardImage {
+  src: ImageMetadata | string;
+  alt: string;
+  caption?: string;
+}
+
+export interface Props {
+  project: ProjectItem;
+  coverImage?: ProjectCardImage;
+  category?: ProjectCategory;
+  headingLevel?: 'h2' | 'h3' | 'h4';
+  featured?: boolean;
+  class?: string;
+}
+
+const {
+  project,
+  coverImage,
+  category = 'backend',
+  headingLevel = 'h3',
+  featured = false,
+  class: className = '',
+} = Astro.props;
+
+// Determine if the internal project route is verified and published
+const isPublished = Boolean(project.href && isRoutePublished(project.href));
+
+// Determine if external links pass strict HTTPS validation
+const hasValidRepo = Boolean(project.repoUrl && isValidProjectHttpsUrl(project.repoUrl));
+const hasValidDemo = Boolean(project.demoUrl && isValidProjectHttpsUrl(project.demoUrl));
+
+// Status mapping to tone
+const toneMapping = {
+  completed: 'success',
+  prototype: 'warning',
+  'in-progress': 'accent',
+  research: 'neutral',
+} as const;
+
+const statusLabelText = {
+  completed: 'Completed System',
+  prototype: 'Prototype Architecture',
+  'in-progress': 'In Development',
+  research: 'Research Study',
+}[project.status];
+
+const HeadingTag = headingLevel;
+const titleId = `project-title-${project.id}`;
+---
+
+<article
+  class:list={[
+    'relative group rounded-[var(--radius-card)] border border-[var(--color-border)] flex flex-col justify-between overflow-hidden transition-colors duration-200',
+    isPublished ? 'surface-card-interactive' : 'surface-card bg-[var(--color-surface)]',
+    featured ? 'lg:col-span-2' : '',
+    className,
+  ]}
+  aria-labelledby={titleId}
+>
+  <!-- 1. Visual Thumbnail / Fallback Blueprint -->
+  <div
+    class="relative w-full aspect-video overflow-hidden border-b border-[var(--color-border)]/60 bg-[var(--color-surface)]"
+  >
+    {coverImage && coverImage.src ? (
+      <img
+        src={typeof coverImage.src === 'string' ? coverImage.src : coverImage.src.src}
+        alt={coverImage.alt}
+        width="480"
+        height="270"
+        loading="lazy"
+        decoding="async"
+        class="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025] motion-reduce:group-hover:scale-100"
+      />
+    ) : (
+      <ProjectBlueprintFallback
+        title={project.title}
+        category={category}
+        status={project.status}
+        aspectRatio="16/9"
+      />
+    )}
+  </div>
+
+  <!-- 2. Content Body -->
+  <div class="p-6 sm:p-7 flex flex-col flex-grow justify-between space-y-4">
+    <div class="space-y-3">
+      <!-- Top Metadata Row: Status & Role -->
+      <div class="flex items-center justify-between border-b border-[var(--color-border)]/40 pb-3">
+        <StatusLabel label={statusLabelText} tone={toneMapping[project.status]} />
+        <span class="font-mono text-xs text-[var(--color-muted)] truncate max-w-[50%] text-right">
+          Role: {project.role}
+        </span>
+      </div>
+
+      <!-- Project Title Heading -->
+      <HeadingTag
+        id={titleId}
+        class="font-['Space_Grotesk'] text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-fg)] leading-snug"
+      >
+        {isPublished ? (
+          <a
+            href={project.href}
+            class="focus-ring rounded-[var(--radius-button)] text-[var(--color-fg)] group-hover:text-[var(--color-accent)] transition-colors inline-block after:absolute after:inset-0 after:z-0"
+          >
+            {project.title}
+          </a>
+        ) : (
+          <span class="text-[var(--color-fg)]">
+            {project.title}
+          </span>
+        )}
+      </HeadingTag>
+
+      <!-- Problem / Summary Statement -->
+      <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed line-clamp-3">
+        {project.summary || project.problem}
+      </p>
+
+      <!-- Technology Stack Tags -->
+      <div class="flex flex-wrap gap-2 pt-1" aria-label="Technologies used">
+        {project.stack.slice(0, 4).map((tech) => (
+          <Tag label={tech} variant="default" size="sm" />
+        ))}
+      </div>
+    </div>
+
+    <!-- 3. Action Footer & Secondary Links -->
+    <div
+      class="pt-5 mt-4 border-t border-[var(--color-border)]/40 flex items-center justify-between"
+    >
+      <!-- Primary Action / Status Notice -->
+      <div>
+        {isPublished ? (
+          <div
+            class="inline-flex items-center gap-1.5 font-medium text-sm text-[var(--color-accent)] group-hover:text-[var(--color-accent-hover)] transition-colors select-none"
+            aria-hidden="true"
+          >
+            <span>Read Case Study</span>
+            <ArrowRightIcon
+              class="w-4 h-4 transition-transform group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0"
+            />
+          </div>
+        ) : (
+          <div class="font-mono text-xs text-[var(--color-muted)] flex items-center gap-2">
+            <span
+              class="inline-block w-1.5 h-1.5 rounded-full bg-[var(--color-border-strong)]"
+              aria-hidden="true"
+            ></span>
+            <span>Case study in clearance</span>
+          </div>
+        )}
+      </div>
+
+      <!-- Secondary External Links (Elevated to z-10) -->
+      {(hasValidRepo || hasValidDemo) && <div class="relative z-10 flex items-center gap-1">
+        {hasValidRepo && <a
+          href={project.repoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring relative z-10 p-2 text-[var(--color-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-surface-alt)] transition-colors rounded-[var(--radius-button)] min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
+          aria-label={`View ${project.title} repository on GitHub (opens in new tab)`}
+        >
+          <GitHubIcon class="w-4 h-4" />
+          <span class="sr-only">(opens in new tab)</span>
+        </a>}
+
+        {hasValidDemo && <a
+          href={project.demoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring relative z-10 p-2 text-[var(--color-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-surface-alt)] transition-colors rounded-[var(--radius-button)] min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
+          aria-label={`View live demo for ${project.title} (opens in new tab)`}
+        >
+          <ExternalLinkIcon class="w-4 h-4" />
+          <span class="sr-only">(opens in new tab)</span>
+        </a>}
+      </div>}
+    </div>
+  </div>
+</article>

@@ -1,0 +1,258 @@
+---
+/**
+ * @file src/components/projects/FeaturedProjectCard.astro
+ * @description High-impact editorial featured project card with asymmetric layout and alternating desktop orientation.
+ *
+ * ARCHITECTURAL DESIGN & CORRECTIONS:
+ * - Safe Project Navigation (Correction 1): Suppresses clickable links when route is unpublished/nonexistent.
+ * - Stretched-Link Pattern (Correction 3): Accessible stretched link on title when published; secondary links z-10;
+ *   no nested anchors in rendered markup.
+ * - Blueprint Fallback (Correction 2): ProjectBlueprintFallback when coverImage is absent or restricted.
+ * - Alternating Layout: Configurable imagePosition ('left' | 'right') via CSS order while maintaining invariant DOM reading order.
+ * - Content Safety (Correction 5): No unverified metrics displayed unless explicitly cleared; meaningful alt text on images.
+ */
+
+import type { ProjectItem } from '../../data/projects';
+import type { ImageMetadata } from 'astro';
+import type { ProjectCategory } from '../../data/schemas/projectSchema';
+import { isRoutePublished } from '../../utils/linkSafety';
+import { isValidProjectHttpsUrl } from '../../data/schemas/projectSchema';
+import Tag from '../ui/Tag.astro';
+import StatusLabel from '../ui/StatusLabel.astro';
+import ArrowRightIcon from '../icons/ArrowRightIcon.astro';
+import GitHubIcon from '../icons/GitHubIcon.astro';
+import ExternalLinkIcon from '../icons/ExternalLinkIcon.astro';
+import ProjectBlueprintFallback from './ProjectBlueprintFallback.astro';
+
+export interface FeaturedMetric {
+  name: string;
+  value: string;
+  methodology?: string;
+}
+
+export interface Props {
+  project: ProjectItem;
+  coverImage?: {
+    src: ImageMetadata | string;
+    alt: string;
+    caption?: string;
+  };
+  category?: ProjectCategory;
+  headingLevel?: 'h2' | 'h3' | 'h4';
+  imagePosition?: 'left' | 'right';
+  eyebrow?: string;
+  metrics?: FeaturedMetric[];
+  class?: string;
+}
+
+const {
+  project,
+  coverImage,
+  category = 'backend',
+  headingLevel = 'h3',
+  imagePosition = 'left',
+  eyebrow = 'FEATURED ARCHITECTURE',
+  metrics = [],
+  class: className = '',
+} = Astro.props;
+
+// Determine if the internal project route is verified and published
+const isPublished = Boolean(project.href && isRoutePublished(project.href));
+
+// Determine if external links pass strict HTTPS validation
+const hasValidRepo = Boolean(project.repoUrl && isValidProjectHttpsUrl(project.repoUrl));
+const hasValidDemo = Boolean(project.demoUrl && isValidProjectHttpsUrl(project.demoUrl));
+
+// Status mapping to tone
+const toneMapping = {
+  completed: 'success',
+  prototype: 'warning',
+  'in-progress': 'accent',
+  research: 'neutral',
+} as const;
+
+const statusLabelText = {
+  completed: 'Completed System',
+  prototype: 'Prototype Architecture',
+  'in-progress': 'In Development',
+  research: 'Research Study',
+}[project.status];
+
+const HeadingTag = headingLevel;
+const titleId = `featured-title-${project.id}`;
+
+// Filter metrics to ensure methodology is qualified
+const qualifiedMetrics = metrics.filter(
+  (m) => m.name && m.value && m.methodology && m.methodology.trim().length >= 10
+);
+---
+
+<article
+  class:list={[
+    'relative group rounded-[var(--radius-card)] border border-[var(--color-border)] overflow-hidden transition-colors duration-200',
+    isPublished ? 'surface-card-interactive' : 'surface-card bg-[var(--color-surface)]',
+    className,
+  ]}
+  aria-labelledby={titleId}
+>
+  <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+    <!-- 1. Visual Thumbnail / Blueprint Column -->
+    <div
+      class:list={[
+        'lg:col-span-7 relative w-full overflow-hidden bg-[var(--color-surface)] flex items-center justify-center border-b lg:border-b-0 border-[var(--color-border)]/60',
+        imagePosition === 'right' ? 'lg:order-last lg:border-l' : 'lg:order-first lg:border-r',
+      ]}
+    >
+      <div
+        class="w-full h-full aspect-video lg:aspect-auto min-h-[220px] sm:min-h-[280px] lg:min-h-[380px] flex items-center justify-center"
+      >
+        {coverImage && coverImage.src ? (
+          <img
+            src={typeof coverImage.src === 'string' ? coverImage.src : coverImage.src.src}
+            alt={coverImage.alt}
+            width="800"
+            height="450"
+            loading="lazy"
+            decoding="async"
+            class="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025] motion-reduce:group-hover:scale-100"
+          />
+        ) : (
+          <ProjectBlueprintFallback
+            title={project.title}
+            category={category}
+            status={project.status}
+            aspectRatio="16/9"
+            class="h-full border-none"
+          />
+        )}
+      </div>
+    </div>
+
+    <!-- 2. Editorial Content Column -->
+    <div
+      class:list={[
+        'lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6',
+        imagePosition === 'right' ? 'lg:order-first' : 'lg:order-last',
+      ]}
+    >
+      <div class="space-y-4">
+        <!-- Eyebrow & Status -->
+        <div
+          class="flex items-center justify-between border-b border-[var(--color-border)]/40 pb-3"
+        >
+          <span
+            class="font-mono text-xs tracking-wider uppercase text-[var(--color-accent)] font-semibold"
+          >
+            {eyebrow}
+          </span>
+          <StatusLabel label={statusLabelText} tone={toneMapping[project.status]} />
+        </div>
+
+        <!-- Project Title -->
+        <HeadingTag
+          id={titleId}
+          class="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)] leading-tight"
+        >
+          {isPublished ? (
+            <a
+              href={project.href}
+              class="focus-ring rounded-[var(--radius-button)] text-[var(--color-fg)] group-hover:text-[var(--color-accent)] transition-colors inline-block after:absolute after:inset-0 after:z-0"
+            >
+              {project.title}
+            </a>
+          ) : (
+            <span class="text-[var(--color-fg)]">
+              {project.title}
+            </span>
+          )}
+        </HeadingTag>
+
+        <!-- Role -->
+        <p class="font-mono text-xs text-[var(--color-muted)]">
+          <span class="text-[var(--color-fg)] font-medium">Role:</span> {project.role}
+        </p>
+
+        <!-- Summary -->
+        <p class="text-[var(--color-muted)] text-sm sm:text-base leading-relaxed">
+          {project.summary || project.problem}
+        </p>
+
+        <!-- Qualified Metrics Panel (Rendered only when verified) -->
+        {qualifiedMetrics.length > 0 && <div
+          class="grid grid-cols-2 gap-3 pt-2 pb-1 border-y border-[var(--color-border)]/40"
+        >
+          {qualifiedMetrics.map((metric) => <div>
+            <span class="block text-xl font-bold font-['Space_Grotesk'] text-[var(--color-fg)]">
+              {metric.value}
+            </span>
+            <span
+              class="block text-xs font-mono text-[var(--color-muted)] truncate"
+              title={metric.methodology}
+            >
+              {metric.name}
+            </span>
+          </div>)}
+        </div>}
+
+        <!-- Tech Stack Tags -->
+        <div class="flex flex-wrap gap-2 pt-1" aria-label="Key technologies">
+          {project.stack.slice(0, 5).map((tech) => (
+            <Tag label={tech} variant="default" size="sm" />
+          ))}
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div
+        class="pt-6 mt-6 border-t border-[var(--color-border)]/40 flex items-center justify-between"
+      >
+        <div>
+          {isPublished ? (
+            <div
+              class="inline-flex items-center gap-2 font-medium text-sm sm:text-base text-[var(--color-accent)] group-hover:text-[var(--color-accent-hover)] transition-colors select-none"
+              aria-hidden="true"
+            >
+              <span>Explore Case Study</span>
+              <ArrowRightIcon
+                class="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1.5 motion-reduce:group-hover:translate-x-0"
+              />
+            </div>
+          ) : (
+            <div class="font-mono text-xs text-[var(--color-muted)] flex items-center gap-2">
+              <span
+                class="inline-block w-1.5 h-1.5 rounded-full bg-[var(--color-border-strong)]"
+                aria-hidden="true"
+              ></span>
+              <span>Case study undergoing clearance</span>
+            </div>
+          )}
+        </div>
+
+        <!-- Secondary External Links (Elevated to z-10) -->
+        {(hasValidRepo || hasValidDemo) && <div class="relative z-10 flex items-center gap-2">
+          {hasValidRepo && <a
+            href={project.repoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="focus-ring relative z-10 p-2.5 text-[var(--color-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-surface-alt)] transition-colors rounded-[var(--radius-button)] min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
+            aria-label={`View ${project.title} repository on GitHub (opens in new tab)`}
+          >
+            <GitHubIcon class="w-5 h-5" />
+            <span class="sr-only">(opens in new tab)</span>
+          </a>}
+
+          {hasValidDemo && <a
+            href={project.demoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="focus-ring relative z-10 p-2.5 text-[var(--color-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-surface-alt)] transition-colors rounded-[var(--radius-button)] min-w-[44px] min-h-[44px] inline-flex items-center justify-center"
+            aria-label={`View live demo for ${project.title} (opens in new tab)`}
+          >
+            <ExternalLinkIcon class="w-5 h-5" />
+            <span class="sr-only">(opens in new tab)</span>
+          </a>}
+        </div>}
+      </div>
+    </div>
+  </div>
+</article>
