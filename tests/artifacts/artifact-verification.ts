@@ -85,7 +85,7 @@ assert.ok(
 );
 console.log('✓ Development fixture isolation confirmed (dev-test & dev-primitives)');
 
-// 6. Verify exclusion of DRAFT candidate projects
+// 6. Verify exclusion of DRAFT candidate projects (EA-019)
 const projectsDir = path.join(distDir, 'projects');
 assert.ok(
   !fs.existsSync(projectsDir),
@@ -96,6 +96,18 @@ assert.ok(
   'Draft StreamForge page must not exist'
 );
 assert.ok(!fs.existsSync(path.join(distDir, 'devforge')), 'Draft DevForge page must not exist');
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'java-task-api')),
+  'Draft Java Task API page must not exist'
+);
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'currency-auth-research')),
+  'Draft Currency Auth page must not exist'
+);
+assert.ok(
+  !fs.existsSync(path.join(distDir, 'currency-auth')),
+  'Draft Currency Auth page must not exist'
+);
 console.log('✓ Candidate project draft protection confirmed: zero draft project routes');
 
 // 7. Verify exclusion of unapproved writing and résumé routes

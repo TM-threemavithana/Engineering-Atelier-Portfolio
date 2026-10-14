@@ -1,7 +1,7 @@
-# Content and Evidence Status (EA-017 Update)
+# Content and Evidence Status (EA-019 Update)
 
 **Last Updated:** 2026-10-14  
-**Current Milestone:** Milestone 2 — Premium Responsive Core (COMPLETE)  
+**Current Milestone:** Milestone 3 — Verified Project System  
 **Milestone 0 Status:** **COMPLETE** (EA-001 through EA-004 Signed Off)  
 **Milestone 1 Status:** **COMPLETE** (EA-005 through EA-010 Gate G1 Verified)  
 **Milestone 2 Status:** **COMPLETE** (EA-011 through EA-018 Gate G2 Verified)  
@@ -24,7 +24,8 @@
 - `EA-016` — **DONE** (Contact Page & CopyEmail Fallback — Direct Mailto, Verified GitHub/LinkedIn, Progressive React Island, Zero Form Backends)  
 - `EA-017` — **DONE** (Footer and Branded 404 — Sticky SiteFooter, Published Nav Gating, Verified Socials, dist/404.html Error Recovery Route, Landmarks, Anchor Navigation)  
 - `EA-018` — **DONE** (Core Responsive Visual Polish Pass — Sticky header clearance, branching Raft consensus blueprint, mobile SVG text readability, deduplicated familiarity categories, neutral profile badges, modern clipboard handling, isolated production 404 tests)  
-- `EA-019` — **TODO** (Milestone 3 — Content Collections and Project Detail Infrastructure)  
+- `EA-019` — **DONE** (Typed Project Content Schema — Astro 5 collections, Zod validation, strict HTTPS URLs, 4 candidate draft MDX files, 4-layer publication gate, independent schema unit tests)  
+- `EA-020` — **TODO** (Project Content Intake and Asset Clearance)  
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 

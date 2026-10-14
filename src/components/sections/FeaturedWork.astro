@@ -3,8 +3,8 @@ import { getPublishedFeaturedProjects } from '../../data/projects';
 import SectionHeading from '../ui/SectionHeading.astro';
 import ProjectCard from './ProjectCard.astro';
 
-// Query published, verified featured projects
-const projects = getPublishedFeaturedProjects();
+// Asynchronously query published, verified featured projects from content collections
+const projects = await getPublishedFeaturedProjects();
 ---
 
 {projects.length > 0 && <section

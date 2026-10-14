@@ -1,0 +1,32 @@
+---
+# DRAFT ONLY — Awaiting owner repository clearance and verification (EA-020)
+title: 'StreamForge: Distributed Raft Log Engine'
+summary: 'High-throughput distributed write-ahead log with gRPC streaming and virtual thread persistence.'
+status: 'prototype'
+role: 'Backend Systems Engineer'
+individualContribution: 'Designed Raft consensus replication and bounded in-memory queue pipelines.'
+categories:
+  - 'backend'
+  - 'distributed'
+technologies:
+  - 'Java 21'
+  - 'gRPC'
+  - 'Protocol Buffers'
+  - 'RocksDB'
+featured: true
+featureOrder: 1
+draft: true
+editorialApproval: false
+---
+
+{/* DRAFT ONLY: Concept under review. Excluded from production builds until owner evidence clearance (EA-020). */}
+
+## Conceptual Overview
+
+StreamForge is an illustrative distributed log architecture exploring consensus replication, bounded event buffering, and durable sequential persistence using Java 21 virtual threads.
+
+## Architecture & Design Boundaries
+
+The architecture separates network ingestion via gRPC services from the consensus replication loop, maintaining explicit bounded memory queues to prevent unconstrained heap expansion during network partitions.
+
+{/* Detailed case study content, benchmarks, and repository evidence will be integrated after EA-020 verification. */}
