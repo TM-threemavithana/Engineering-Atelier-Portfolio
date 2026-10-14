@@ -1,10 +1,10 @@
 ---
-# DRAFT ONLY — Intake under review (EA-020 audit compiled). Excluded from production builds.
+# DRAFT ONLY — Intake under review (EA-020 audit signed off; clearance & reproducibility pending). Excluded from production builds.
 title: 'Explainable Banknote Authentication via a Two-Stage Veto Gate and Multi-Modal Feature Verification'
 summary: 'Deterministic computer vision framework combining ORB homography alignment, multi-modal feature verification, and a two-stage Veto Gate decision layer for transparent banknote authentication.'
 status: 'research'
 role: 'Computer Vision & Research Software Development — Core Contributor'
-individualContribution: 'Core contributor to the two-stage Veto Gate decision mechanism, automatic background segmentation and ORB homography alignment, CBSL morphological verification metrology, and academic evaluation tooling.'
+individualContribution: 'Core contributor to the two-stage Veto Gate decision mechanism, automatic background segmentation and ORB homography alignment, CBSL morphological verification metrology, automated procedural synthetic-counterfeit generation framework, and academic evaluation tooling.'
 categories:
   - 'research'
 technologies:
@@ -19,33 +19,34 @@ draft: true
 editorialApproval: false
 ---
 
-{/* DRAFT ONLY: EA-020 Research Evidence and Git Commit Audit compiled. Provisional content awaiting final owner review and clearance. No public routes or metrics are exposed. */}
+{/* DRAFT ONLY: EA-020 Research Evidence and Git Commit Audit signed off by owner. Gated draft awaiting CBSL statutory clearance and independent reproducibility. No public routes or metrics are exposed. */}
 
 ## Research Overview
 
-A deterministic, parameter-driven Computer Vision and Image Processing (CVIP) research prototype investigating the authentication of Sri Lankan Rupee (LKR) banknotes across LKR 500, 1,000, and 5,000 denominations. Developed in collaboration with Asitha0012 (repository owner) and udaraDev (contributor).
+A deterministic, parameter-driven Computer Vision and Image Processing (CVIP) research prototype investigating the authentication of Sri Lankan Rupee (LKR) banknotes across LKR 500, 1,000, and 5,000 denominations. Developed in collaborative partnership with Asitha0012 (repository owner) and udaraDev (contributor). Individual role confirmed as Computer Vision & Research Software Development — Core Contributor, without formal project leadership or sole authorship claims.
 
 ## Core Architecture
 
 1. **Stage 1 (Automatic Geometric Alignment):** Canny edge detection (75/200), contour-based perspective rectification, Normalized Cross-Correlation (NCC) coarse orientation detection, and ORB fine homography (5,000 keypoints, RANSAC 5.0px tolerance) with Lanczos4 interpolation.
 2. **Stage 2 (Visual Feature Verification `F1`–`F7`):** Contrast-Limited Adaptive Histogram Equalization (CLAHE), structural similarity (SSIM), and 2D HSV color histogram correlation.
 3. **Stage 3 (Morphological Feature Verification `F8`–`F12`):** Tactile blind dot contour counting, asymmetric serial number stepwise height verification, vertical red serial HSV masking, windowed security thread segment-merging metrology (2.5mm / 3.0mm), and directional tactile edge line counting.
-4. **Stage 4 (Two-Stage Decision Layer):** 
+4. **Stage 4 (Two-Stage Decision Layer):**
    - **Stage A (Conjunctive Veto Gate):** `V_StageA = F1 ∧ F7 ∧ F11` — instant counterfeit rejection if any critical unforgeable security feature fails.
    - **Stage B (Flat Voting):** `P_total = (1/12) * ∑(i=1..12) Fi ≥ 0.75` — requires at least 75% pass rate across all features to absorb natural paper degradation.
 
 ## Reported Experimental Performance (Pending Independent Reproducibility Checks)
 
-*All figures below represent findings reported in the research manuscript. They are not yet marked as independently reproduced because the full 3,000-image dataset and exact 750-image evaluation split manifest are not yet independently accessible.*
+_All figures below represent findings reported in the research manuscript. They are classified as manuscript-reported findings, not independently reproduced results, and must not be presented as independent real-world counterfeit validation._
 
-- **Manuscript-Reported Held-Out Test Performance (Reported N=750):** 96.67% accuracy, 96.71% F1-score, 98.13% recall, 95.20% specificity (TP: 368, TN: 357, FP: 18, FN: 7).
-- **Manuscript-Reported Latency:** 0.49 s cached CPU inference per banknote on a standard single-thread Intel Core i5 without GPU acceleration.
-- **Manuscript-Reported Ablation:** Removing the Veto Gate and relying on flat voting yielded reported accuracies of 88.40% (66.7% threshold), 92.10% (75% threshold), and 89.70% (83.3% threshold), with the Two-Stage framework achieving 96.67%.
+- **Manuscript-Reported Classification Evaluation (Nominally Held-Out N=750):** 96.67% accuracy, 96.71% F1-score, 98.13% recall, 95.20% specificity (TP: 368, TN: 357, FP: 18, FN: 7) evaluated on 750 augmented images.
+- **Manuscript-Reported Latency Benchmark:** 0.49 s cached CPU inference per banknote (averaged over 100 runs) on a standard single-thread Intel Core i5 without GPU acceleration, profiled as a separate latency benchmark from the classification test.
+- **Manuscript-Reported Ablation Findings:** Removing the Veto Gate and relying on flat voting yielded reported accuracies of 88.40% (66.7% threshold), 92.10% (75% threshold), and 89.70% (83.3% threshold), compared to the Two-Stage framework's reported 96.67%.
 
 ## Honest Research Boundaries & Scientific Limitations
 
+- **Synthetic Counterfeit Evaluation:** Evaluated using procedurally generated synthetic counterfeit images simulating localized feature corruptions; does not constitute independent real-world counterfeit validation.
+- **Procedural Generation Framework:** Contribution centered on developing the automated procedural synthetic-counterfeit generation framework; the complete 3,000-image dataset and exact 750-image evaluation manifest are not claimed as publicly downloadable without a verified distribution link.
 - **RGB-Only Capture:** Optical RGB imaging cannot authenticate physical substrate properties verified by transmitted light, UV fluorescence, or infrared absorption.
-- **Synthetic Counterfeit Evaluation:** Evaluated on procedurally generated adversarial counterfeits simulating localized feature corruptions; full physical counterfeit specimens require specialized hardware sensing.
-- **Dataset Partitioning & Data Leakage Risk:** The manuscript reports a random 75/25 split of augmented images. Full scientific verification of zero data leakage requires confirming that augmentations of the same physical banknote did not cross the calibration/test boundary.
-- **Legal & Regulatory Clearance:** Reproduction of currency images is governed by the Central Bank of Sri Lanka Act No. 16 of 2023, Section 55. All currency images and feature crops remain strictly excluded from public portfolio assets pending regulatory permission.
-
+- **Dataset Partitioning & Data Leakage Risk:** Possible data leakage between augmented images originating from the same physical banknote due to missing note-identity grouping evidence in the 75/25 split.
+- **Independent Reproduction Required:** Results require independent reproduction in an isolated test harness and additional real-world validation against physical counterfeits.
+- **Statutory Currency Asset Restrictions:** Governed by Section 55 of the Central Bank of Sri Lanka Act No. 16 of 2023. Raw banknote photographs, localized feature crops, synthetic counterfeit images, and GUI screenshots containing currency images are strictly excluded from public portfolio assets. Research charts and figures remain pending licensing and co-author review. Neither watermarks nor reduced resolution confer publication permission.

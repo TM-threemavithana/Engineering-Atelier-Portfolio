@@ -794,6 +794,31 @@
   - `isProductionApproved: false` strictly preserved in repository baseline.
 - Next Ticket: EA-020 — Project Content Intake and Asset Clearance (Milestone 3).
 
+### EA-020 Execution Record (2026-10-14)
+- Ticket: EA-020 — Project content intake and asset clearance (Milestone 3: Verified Project System)
+- State: COMPLETED & VERIFIED (Owner Final Signoff on 2026-10-14)
+- Approved Evidence Audit Report: [ea_020_currency_authentication_research_audit_report.md](file:///C:/Users/User/.gemini/antigravity-ide/brain/400f3212-7768-4ea8-a763-ce96ff4f44ed/ea_020_currency_authentication_research_audit_report.md)
+- Reconciled Evidence & Owner-Approved Signoff Conditions:
+  1. Collaborative Attribution: Individual role confirmed as `Computer Vision & Research Software Development — Core Contributor`. Collaborative project; no formal leadership or sole authorship claims; accurate attribution preserved for `Asitha0012` (repository owner) and `udaraDev` (contributor) based on 60 audited Git commits.
+  2. Synthetic Dataset Framing: Contribution defined as developing an automated procedural synthetic-counterfeit generation framework simulating localized feature corruptions. Complete 3,000-image dataset and 750-image test manifest are not claimed as publicly downloadable without a verified distribution link.
+  3. Research Metrics: Manuscript-reported metrics (96.67% accuracy, 96.71% F1-score, 98.13% recall on 750 nominally held-out augmented images; 0.49s CPU latency averaged over 100 runs) are explicitly classified as manuscript-reported findings, not independently reproduced results. Classification evaluation is distinguished from separate CPU latency profiling. Not presented as independent real-world counterfeit validation.
+  4. Scientific Limitations: Prominently documented evaluation using synthetic counterfeit images, limitations of RGB-only imaging, possible data leakage between augmented images originating from the same physical banknote, missing note-identity grouping evidence, and need for independent reproduction and real-world validation.
+  5. Statutory Currency Asset Restrictions: Governed by Section 55 of the Central Bank of Sri Lanka Act No. 16 of 2023. Raw banknote photographs, localized feature crops, synthetic counterfeit images, and GUI screenshots containing currency images are strictly excluded from public portfolio assets. Research charts and figures kept pending licensing and co-author review. Neither watermarks nor reduced resolution confer publication permission.
+  6. Outstanding Evidence: Preserved unresolved evidence records (OUT-01 through OUT-05: 30 missing banknote captures, 750-image split manifest, note-identity grouping metadata, CBSL statutory clearance, research chart licensing); zero fabricated evidence.
+  7. Editorial Rubric Assessment: Assessed against the 9-criterion rubric in `docs/CONTENT_AND_EVIDENCE.md` (§4), scoring 16/18 (2+2+2+2+2+2+1+2+1 = 16), meeting the $\ge 14/18$ threshold for conceptual case-study readiness, while recognizing that owner approval, statutory CBSL clearance, and independent reproducibility remain independent mandatory publication gates.
+- Gating and Publication Safety:
+  - `draft: true` strictly preserved on `currency-auth-research.mdx` (and all candidate projects).
+  - `editorialApproval: false` and `siteConfig.isProductionApproved: false` strictly preserved.
+  - Zero public project routes or pages generated in `dist/`.
+  - Zero remote Git push or deployment.
+- Files changed:
+  - `src/content/projects/currency-auth-research.mdx` (updated: confirmed role, qualified metrics, synthetic dataset framing, prominent limitations, and statutory restrictions)
+  - `docs/CONTENT_STATUS.md` (updated: EA-020 marked DONE, EA-021 marked IN PLANNING, candidate table updated)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (updated: EA-020 execution record added)
+  - Artifact `ea_020_currency_authentication_research_audit_report.md` (updated: score 16/18, all 6 signoff items marked approved by owner)
+- Next Ticket: EA-021 — Project card and feature patterns (Milestone 3).
+
+
 
 
 
