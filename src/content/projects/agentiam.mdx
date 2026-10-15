@@ -79,11 +79,11 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
 ### 2. C/Wasm AST Parsing vs. Regex Guardrails
 
 - **Decision:** Compile full syntax trees via WebAssembly (`wasilibs/go-pgquery`) instead of using regular expressions or secondary LLM evaluators.
-- **Trade-off:** AST parsing incurs ~0.5ms of CPU overhead per query, but completely eliminates syntactic bypasses such as comment obfuscation, nested subqueries, and multi-statement injection.
+- **Trade-off:** AST parsing incurs computational overhead per query compared to simple regex pattern matching, but reliably parses grammar structure and prevents syntactic bypasses such as comment obfuscation, nested subqueries, and stacked multi-statement injection.
 
 ### 3. M:N Connection Multiplexing with State Sanitization
 
-- **Decision:** Multiplex hundreds of client agent connections over a compact pool of physical database connections, releasing the upstream connection when idle.
+- **Decision:** Multiplex client agent connections over a compact pool of physical database connections, releasing the upstream connection when the transaction state returns to idle.
 - **Hygiene Requirement:** Because PostgreSQL connections retain session variables, temporary tables, and prepared statements, AgentIAM automatically issues `DISCARD ALL` upon connection release, preventing cross-tenant session leakage.
 
 ## Implementation Details & Security Hardening
