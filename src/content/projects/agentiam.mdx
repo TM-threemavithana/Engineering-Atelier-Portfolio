@@ -96,13 +96,15 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
 
 ### Automated Test Coverage
 
-The AgentIAM repository includes:
+The AgentIAM repository test suites include:
 
-- **Unit Tests:** 48 AST firewall tests, 32 tenant isolation tests, and 26 MySQL parser test cases.
-- **Integration Tests:** Testcontainers-based test suites validating real PostgreSQL 16 and MySQL 8.0 wire-protocol interactions.
-- **Concurrency Tests:** High-concurrency connection pool stress tests validating zero connection leakage under load.
+- **Unit Tests:** 48 AST firewall tests, 32 tenant isolation rewrite tests, and 26 MySQL parser test cases verified in source.
+- **CI Execution:** GitHub Actions (`ci.yml`) runs unit and benchmark suites against an ephemeral `postgres:16` container.
+- **Concurrency & State Tests:** High-concurrency connection pool tests validating `DISCARD ALL` execution and connection recycling under load.
 
 ### Transparent Engineering Limitations
 
-- **View Masking:** AgentIAM operates strictly as an inline wire proxy without maintaining persistent schema catalog replication. It cannot inspect underlying base tables for pre-existing database Views.
-- **Warehouse Dialects:** Snowflake and BigQuery parsers rely on regex preprocessing before ANSI parsing, which can encounter edge cases on complex vendor-specific SQL extensions.
+- **View Masking Bypass:** Data masking operates strictly on static AST table mappings (`rules.MaskedColumns`). Because the proxy does not replicate database schema catalogs (`pg_class`), it cannot trace an unrestricted view back to a masked base table. If a view wraps a masked table, queries against the view bypass data masking unless database administrators enforce strict database-level `GRANT / REVOKE` restrictions.
+- **Open Upstream Advisory (GO-2026-4518):** In `github.com/jackc/pgproto3/v2@v2.3.3`, a negative column length in an upstream `DataRow` packet triggers a panic during decoding. In the absence of an upstream v2 patch, background receive loops require defensive panic containment, and deployments should enforce strict upstream TLS validation.
+- **Warehouse Dialects:** Snowflake and BigQuery parsers use regex preprocessing before ANSI parsing, which can encounter edge cases on complex vendor-specific SQL extensions. These adapters remain experimental.
+- **Performance Framing:** Unsupported high-concurrency numbers and connection-overhead claims are omitted from this case study in favor of verifiable qualitative architectural guarantees.
