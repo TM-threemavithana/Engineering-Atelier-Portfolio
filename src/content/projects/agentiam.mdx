@@ -3,7 +3,7 @@
 title: 'AgentIAM: Semantic SQL Security Proxy'
 summary: 'Wire-protocol security proxy and tenant-isolation engine for autonomous AI agents using C/Wasm AST parsing.'
 status: 'prototype'
-role: 'Creator & Systems Engineer'
+role: 'Creator & Systems Engineer (Pending Owner Confirmation)'
 individualContribution: 'Designed and implemented the core Go wire-protocol proxy, WebAssembly AST validation engine, tenant query rewriter, and M:N connection multiplexer.'
 categories:
   - 'backend'
@@ -26,40 +26,170 @@ draft: true
 editorialApproval: false
 ---
 
-{/* DRAFT CANDIDATE: Inspected in EA-024 Phase A across 85 Git commits. Excluded from production builds until owner Phase B signoff. */}
+{/* DRAFT CANDIDATE: Inspected in EA-024 Phase A across 85 Git commits. Excluded from production builds until owner Phase B signoff. Role and Status remain pending formal owner confirmation. */}
 
 ## Engineering Challenge & Context
 
-Autonomous AI agents integrating LLM tool calling with relational databases introduce unprecedented security failure modes. When agents generate raw or parameterized SQL dynamically, conventional perimeter firewalls and application-layer ORMs are insufficient:
+Autonomous AI agents integrating LLM tool calling with relational databases present distinct operational and security challenges. When agents generate raw or parameterized SQL dynamically, conventional perimeter firewalls and application-layer ORMs leave critical gaps:
 
-1. **Prompt Injection & Obfuscation:** Attackers can trick LLMs into embedding SQL injection payloads, stacked statements, or destructive DDL commands that bypass regex-based keyword filters.
-2. **Side-Channel & Denial of Service:** Malicious or hallucinated agent queries can invoke `EXPLAIN ANALYZE` (executing arbitrary queries under the guise of inspection) or manipulate `statement_timeout` to cause resource exhaustion.
-3. **Cross-Tenant Data Exposure:** Shared agent tool instances often access multi-tenant databases without reliable, compile-time row-level isolation guarantees.
+1. **Prompt Injection & Obfuscation:** Attackers can manipulate LLM prompts into generating SQL injection payloads, stacked statements, or unapproved DDL commands designed to evade basic keyword filters.
+2. **Resource Exhaustion & Side-Channels:** Malicious or hallucinated agent queries can invoke `EXPLAIN ANALYZE` (executing arbitrary queries under the guise of inspection) or manipulate `statement_timeout` to disable query deadlines.
+3. **Cross-Tenant Data Exposure:** Shared agent tool instances often access multi-tenant databases without runtime row-level isolation controls.
 4. **Connection Exhaustion:** Agents holding open database connections during multi-second LLM inference loops rapidly saturate physical database connection limits.
 
-AgentIAM was engineered as an inline, wire-protocol database proxy in Go that treats all AI-generated SQL queries as untrusted, inspecting and enforcing security policies before execution.
+AgentIAM was engineered as an inline, wire-protocol database proxy in Go that treats AI-generated SQL queries as untrusted input, parsing and enforcing structural security policies prior to upstream dispatch.
 
 ## System Architecture & Interception Pipeline
 
 AgentIAM sits directly on the TCP network path between AI agents and target databases, implementing both the PostgreSQL wire protocol (`pgproto3`) and the MySQL client/server protocol (`go-mysql-org/go-mysql`).
 
-```
-[ AI Agent / LLM Tool ]
-        │ (PostgreSQL / MySQL Wire Protocol)
-        ▼
-┌────────────────────────────────────────────────────────┐
-│ AgentIAM Security Proxy (Go)                           │
-│                                                        │
-│  1. Wire Interception (TLS / mTLS / SCRAM-SHA-256)     │
-│  2. SQL AST Parser (wasilibs/go-pgquery & PingCAP)     │
-│  3. Policy Engine (Statement Whitelist, Max Complexity)│
-│  4. Tenant Isolation Rewriter (Subquery Injection)     │
-│  5. M:N Transaction Multiplexer (pool.go)              │
-└────────────────────────────────────────────────────────┘
-        │ (Physical Pooled Connection + DISCARD ALL)
-        ▼
-[ Upstream Database (PostgreSQL 16 / MySQL 8.0) ]
-```
+<Figure
+  alt="AgentIAM Wire-Protocol Interception Architecture"
+  caption="Topology of AgentIAM wire-protocol interception, showing client ingress, the internal security analysis pipeline, and pooled upstream database execution."
+  figureNumber="1"
+>
+  <svg
+    viewBox="0 0 760 380"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    class="w-full h-auto overflow-visible select-none py-2"
+    role="img"
+    aria-label="AgentIAM Architecture: Ingress wire interception, AST parsing, policy validation, tenant rewriter, and connection pool"
+  >
+    <defs>
+      <marker
+        id="agentiam-arrow"
+        viewBox="0 0 10 10"
+        refX="5"
+        refY="8"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="var(--color-accent, #5EEAD4)" />
+      </marker>
+      <marker
+        id="agentiam-arrow-right"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-border-strong, #5A7597)" />
+      </marker>
+    </defs>
+
+    {/* Client Layer */}
+    <g>
+      <rect
+        x="180"
+        y="12"
+        width="400"
+        height="52"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="380" y="34" text-anchor="middle" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        AI Agent / LLM Tool (Client Connection)
+      </text>
+      <text x="380" y="52" text-anchor="middle" class="font-mono text-[11px] fill-[var(--color-muted)]">
+        PostgreSQL Wire (5432) | MySQL Client Protocol (3306)
+      </text>
+    </g>
+
+    {/* Downward Connector to Proxy */}
+    <line x1="380" y1="64" x2="380" y2="104" stroke="var(--color-accent, #5EEAD4)" stroke-width="2" marker-end="url(#agentiam-arrow)" />
+    <text x="395" y="88" class="font-mono text-[10px] fill-[var(--color-accent, #5EEAD4)]">Untrusted Raw SQL</text>
+
+    {/* AgentIAM Security Boundary */}
+    <g>
+      <rect
+        x="16"
+        y="110"
+        width="728"
+        height="150"
+        rx="10"
+        class="fill-[var(--color-surface)] stroke-[var(--color-border)]"
+        stroke-width="1.5"
+      />
+      <rect
+        x="32"
+        y="98"
+        width="270"
+        height="24"
+        rx="4"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]"
+      />
+      <text x="44" y="114" class="font-mono text-[11px] font-semibold fill-[var(--color-accent, #5EEAD4)]">
+        AgentIAM Security Proxy (Go Core)
+      </text>
+
+      {/* Stage 1: Wire Intercept */}
+      <rect x="32" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
+      <text x="110" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">1. Wire Intercept</text>
+      <text x="110" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">TLS / SCRAM-SHA-256</text>
+      <text x="110" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">pgproto3 / go-mysql</text>
+      <text x="110" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Frame Decoding</text>
+
+      {/* Stage 1 -> 2 Arrow */}
+      <line x1="188" y1="187" x2="208" y2="187" stroke="var(--color-border-strong, #5A7597)" stroke-width="1.5" marker-end="url(#agentiam-arrow-right)" />
+
+      {/* Stage 2: SQL AST Parser */}
+      <rect x="212" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
+      <text x="290" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">2. SQL AST Parser</text>
+      <text x="290" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">wasilibs/go-pgquery</text>
+      <text x="290" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">PostgreSQL 16 C/Wasm</text>
+      <text x="290" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Grammar Inspection</text>
+
+      {/* Stage 2 -> 3 Arrow */}
+      <line x1="368" y1="187" x2="388" y2="187" stroke="var(--color-border-strong, #5A7597)" stroke-width="1.5" marker-end="url(#agentiam-arrow-right)" />
+
+      {/* Stage 3: Policy Engine */}
+      <rect x="392" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
+      <text x="470" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">3. Policy Engine</text>
+      <text x="470" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">Statement Allowlist</text>
+      <text x="470" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">Blocks EXPLAIN/DDL</text>
+      <text x="470" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Relation Allowlist</text>
+
+      {/* Stage 3 -> 4 Arrow */}
+      <line x1="548" y1="187" x2="568" y2="187" stroke="var(--color-border-strong, #5A7597)" stroke-width="1.5" marker-end="url(#agentiam-arrow-right)" />
+
+      {/* Stage 4: Tenant & Pool */}
+      <rect x="572" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
+      <text x="650" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">4. Tenant &amp; Pool</text>
+      <text x="650" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">Subquery Rewriting</text>
+      <text x="650" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">M:N Multiplexer</text>
+      <text x="650" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">DISCARD ALL Hygiene</text>
+    </g>
+
+    {/* Downward Connector to Upstream DB */}
+    <line x1="380" y1="260" x2="380" y2="300" stroke="var(--color-accent, #5EEAD4)" stroke-width="2" marker-end="url(#agentiam-arrow)" />
+    <text x="395" y="284" class="font-mono text-[10px] fill-[var(--color-accent, #5EEAD4)]">Sanitized Query Stream</text>
+
+    {/* Upstream Database Layer */}
+    <g>
+      <rect
+        x="180"
+        y="306"
+        width="400"
+        height="52"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="380" y="328" text-anchor="middle" class="font-mono text-[13px] font-semibold fill-[var(--color-fg)]">
+        Upstream Relational Database
+      </text>
+      <text x="380" y="346" text-anchor="middle" class="font-mono text-[11px] fill-[var(--color-muted)]">
+        PostgreSQL 16 Engine / MySQL 8.0 Server
+      </text>
+    </g>
+
+  </svg>
+</Figure>
 
 ### Request Lifecycle
 
@@ -74,17 +204,17 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
 ### 1. Wire-Protocol Proxy vs. Client SDK Library
 
 - **Decision:** Intercept database wire protocols at the binary stream level rather than relying solely on a client-side SDK.
-- **Trade-off:** Implementing wire state machines (`pgproto3`) requires deep protocol fidelity, but guarantees language-agnostic enforcement that cannot be bypassed by misconfigured agent tool code.
+- **Trade-off:** Implementing wire state machines (`pgproto3`) requires deep protocol fidelity, but provides language-agnostic enforcement independent of client driver configurations or application-layer bypasses.
 
 ### 2. C/Wasm AST Parsing vs. Regex Guardrails
 
 - **Decision:** Compile full syntax trees via WebAssembly (`wasilibs/go-pgquery`) instead of using regular expressions or secondary LLM evaluators.
-- **Trade-off:** AST parsing incurs computational overhead per query compared to simple regex pattern matching, but reliably parses grammar structure and prevents syntactic bypasses such as comment obfuscation, nested subqueries, and stacked multi-statement injection.
+- **Trade-off:** AST parsing incurs computational overhead per query compared to simple regex pattern matching, but validates grammar structure to detect and block known injection patterns, nested subqueries, and multi-statement injection.
 
 ### 3. M:N Connection Multiplexing with State Sanitization
 
 - **Decision:** Multiplex client agent connections over a compact pool of physical database connections, releasing the upstream connection when the transaction state returns to idle.
-- **Hygiene Requirement:** Because PostgreSQL connections retain session variables, temporary tables, and prepared statements, AgentIAM automatically issues `DISCARD ALL` upon connection release, preventing cross-tenant session leakage.
+- **Hygiene Requirement:** Because PostgreSQL connections retain session variables, temporary tables, and prepared statements, AgentIAM automatically issues `DISCARD ALL` upon connection release, mitigating cross-tenant session leakage.
 
 ## Implementation Details & Security Hardening
 
@@ -104,7 +234,14 @@ The AgentIAM repository test suites include:
 
 ### Transparent Engineering Limitations
 
-- **View Masking Bypass:** Data masking operates strictly on static AST table mappings (`rules.MaskedColumns`). Because the proxy does not replicate database schema catalogs (`pg_class`), it cannot trace an unrestricted view back to a masked base table. If a view wraps a masked table, queries against the view bypass data masking unless database administrators enforce strict database-level `GRANT / REVOKE` restrictions.
+- **View Masking Bypass:** Data masking operates strictly on static AST table mappings (`rules.MaskedColumns`). Because the proxy does not replicate database schema catalogs (`pg_class`), it cannot trace an unrestricted view back to a masked base table. If a view wraps a masked table, queries against the view bypass data masking unless database administrators enforce strict database-level `GRANT / REVOKE` restrictions or declare explicit view mappings in policy configuration.
 - **Open Upstream Advisory (GO-2026-4518):** In `github.com/jackc/pgproto3/v2@v2.3.3`, a negative column length in an upstream `DataRow` packet triggers a panic during decoding. In the absence of an upstream v2 patch, background receive loops require defensive panic containment, and deployments should enforce strict upstream TLS validation.
+- **Integration Test Scope:** Existing automated CI test runs are executed against a single ephemeral container; distributed network failure injection, TLS certificate rotation under load, and cross-AZ latency tests have not yet been automated.
 - **Warehouse Dialects:** Snowflake and BigQuery parsers use regex preprocessing before ANSI parsing, which can encounter edge cases on complex vendor-specific SQL extensions. These adapters remain experimental.
 - **Performance Framing:** Unsupported high-concurrency numbers and connection-overhead claims are omitted from this case study in favor of verifiable qualitative architectural guarantees.
+
+### Lessons Learned
+
+1. **Binary Wire Decoders Require Strict Bounds Verification:** Upstream decoders cannot be assumed panic-free; wire protocol libraries must enforce signed integer bounds checking on message lengths (as evidenced by GO-2026-4518).
+2. **Connection Pool State Hygiene Must Pair with Robust Lifecycle Accounting:** Issuing `DISCARD ALL` sanitizes database session state, but pool implementations must use counting semaphores rather than naive channel buffering to prevent deadlocks when connections drop abruptly.
+3. **AST Rewriting Cannot Substitute for Database Permissions:** Without live catalog introspection, an AST proxy cannot infer that a view wraps sensitive columns. A defense-in-depth model combining proxy allowlists with database `REVOKE` privileges is essential.
