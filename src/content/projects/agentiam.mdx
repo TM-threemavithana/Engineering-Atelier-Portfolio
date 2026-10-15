@@ -1,0 +1,108 @@
+---
+# DRAFT ONLY — EA-024 Phase A Candidate (Awaiting Owner Review & Signoff)
+title: 'AgentIAM: Semantic SQL Security Proxy'
+summary: 'Wire-protocol security proxy and tenant-isolation engine for autonomous AI agents using C/Wasm AST parsing.'
+status: 'prototype'
+role: 'Creator & Lead Systems Engineer'
+individualContribution: 'Designed and implemented the core Go wire-protocol proxy, WebAssembly AST validation engine, tenant query rewriter, and M:N connection multiplexer.'
+categories:
+  - 'backend'
+  - 'distributed'
+technologies:
+  - 'Go'
+  - 'PostgreSQL'
+  - 'MySQL'
+  - 'WebAssembly'
+  - 'Docker'
+  - 'Python'
+featured: true
+featureOrder: 1
+repoUrl: 'https://github.com/TM-threemavithana/agentiam'
+evidence:
+  - label: 'GitHub Repository'
+    url: 'https://github.com/TM-threemavithana/agentiam'
+    kind: 'repo'
+draft: true
+editorialApproval: false
+---
+
+{/* DRAFT CANDIDATE: Inspected in EA-024 Phase A across 85 Git commits. Excluded from production builds until owner Phase B signoff. */}
+
+## Engineering Challenge & Context
+
+Autonomous AI agents integrating LLM tool calling with relational databases introduce unprecedented security failure modes. When agents generate raw or parameterized SQL dynamically, conventional perimeter firewalls and application-layer ORMs are insufficient:
+
+1. **Prompt Injection & Obfuscation:** Attackers can trick LLMs into embedding SQL injection payloads, stacked statements, or destructive DDL commands that bypass regex-based keyword filters.
+2. **Side-Channel & Denial of Service:** Malicious or hallucinated agent queries can invoke `EXPLAIN ANALYZE` (executing arbitrary queries under the guise of inspection) or manipulate `statement_timeout` to cause resource exhaustion.
+3. **Cross-Tenant Data Exposure:** Shared agent tool instances often access multi-tenant databases without reliable, compile-time row-level isolation guarantees.
+4. **Connection Exhaustion:** Agents holding open database connections during multi-second LLM inference loops rapidly saturate physical database connection limits.
+
+AgentIAM was engineered as an inline, wire-protocol database proxy in Go that treats all AI-generated SQL queries as untrusted, inspecting and enforcing security policies before execution.
+
+## System Architecture & Interception Pipeline
+
+AgentIAM sits directly on the TCP network path between AI agents and target databases, implementing both the PostgreSQL wire protocol (`pgproto3`) and the MySQL client/server protocol (`go-mysql-org/go-mysql`).
+
+```
+[ AI Agent / LLM Tool ]
+        │ (PostgreSQL / MySQL Wire Protocol)
+        ▼
+┌────────────────────────────────────────────────────────┐
+│ AgentIAM Security Proxy (Go)                           │
+│                                                        │
+│  1. Wire Interception (TLS / mTLS / SCRAM-SHA-256)     │
+│  2. SQL AST Parser (wasilibs/go-pgquery & PingCAP)     │
+│  3. Policy Engine (Statement Whitelist, Max Complexity)│
+│  4. Tenant Isolation Rewriter (Subquery Injection)     │
+│  5. M:N Transaction Multiplexer (pool.go)              │
+└────────────────────────────────────────────────────────┘
+        │ (Physical Pooled Connection + DISCARD ALL)
+        ▼
+[ Upstream Database (PostgreSQL 16 / MySQL 8.0) ]
+```
+
+### Request Lifecycle
+
+1. **Wire Interception & Handshake:** The agent connects using standard database drivers (`pgx`, `psycopg`, `mysqlclient`). AgentIAM negotiates TLS/mTLS and verifies credentials via SCRAM-SHA-256.
+2. **AST Parsing:** Queries are compiled into an Abstract Syntax Tree using WebAssembly-compiled PostgreSQL 16 engine code (`wasilibs/go-pgquery`) or PingCAP's TiDB MySQL parser.
+3. **Recursive Policy Validation:** The AST is traversed to enforce strict statement allowlists (`SELECT`, `INSERT`, `UPDATE`, `DELETE`), rejecting unapproved DDL or administrative commands.
+4. **Tenant Isolation Rewriting:** If tenant isolation is enabled, table references are transformed into isolated subqueries before dispatch.
+5. **Upstream Execution & Pool Release:** The rewritten query executes on a pooled upstream connection. Upon receiving `ReadyForQuery`, the upstream connection is scrubbed via `DISCARD ALL` and returned to the pool.
+
+## Key Engineering Decisions & Trade-offs
+
+### 1. Wire-Protocol Proxy vs. Client SDK Library
+
+- **Decision:** Intercept database wire protocols at the binary stream level rather than relying solely on a client-side SDK.
+- **Trade-off:** Implementing wire state machines (`pgproto3`) requires deep protocol fidelity, but guarantees language-agnostic enforcement that cannot be bypassed by misconfigured agent tool code.
+
+### 2. C/Wasm AST Parsing vs. Regex Guardrails
+
+- **Decision:** Compile full syntax trees via WebAssembly (`wasilibs/go-pgquery`) instead of using regular expressions or secondary LLM evaluators.
+- **Trade-off:** AST parsing incurs ~0.5ms of CPU overhead per query, but completely eliminates syntactic bypasses such as comment obfuscation, nested subqueries, and multi-statement injection.
+
+### 3. M:N Connection Multiplexing with State Sanitization
+
+- **Decision:** Multiplex hundreds of client agent connections over a compact pool of physical database connections, releasing the upstream connection when idle.
+- **Hygiene Requirement:** Because PostgreSQL connections retain session variables, temporary tables, and prepared statements, AgentIAM automatically issues `DISCARD ALL` upon connection release, preventing cross-tenant session leakage.
+
+## Implementation Details & Security Hardening
+
+- **`EXPLAIN ANALYZE` Prevention:** In PostgreSQL, `EXPLAIN ANALYZE` actually executes the query to collect timing statistics. AgentIAM inspects `ExplainStmt.Analyze` in the AST and immediately rejects it, preventing side-channel execution attacks.
+- **Timeout Bypass Protection:** Fixed in commit `5b7e7fcd`, AgentIAM blocks both `SET statement_timeout` and function calls like `SELECT set_config('statement_timeout', ...)` to prevent rogue agents from disabling query deadlines.
+- **Smart Parameter Caching:** Parsed AST templates are cached using an LRU cache (`hashicorp/golang-lru/v2`). Statements containing raw string literals bypass the cache to prevent cache exhaustion.
+
+## Verification & Limitations
+
+### Automated Test Coverage
+
+The AgentIAM repository includes:
+
+- **Unit Tests:** 48 AST firewall tests, 32 tenant isolation tests, and 26 MySQL parser test cases.
+- **Integration Tests:** Testcontainers-based test suites validating real PostgreSQL 16 and MySQL 8.0 wire-protocol interactions.
+- **Concurrency Tests:** High-concurrency connection pool stress tests validating zero connection leakage under load.
+
+### Transparent Engineering Limitations
+
+- **View Masking:** AgentIAM operates strictly as an inline wire proxy without maintaining persistent schema catalog replication. It cannot inspect underlying base tables for pre-existing database Views.
+- **Warehouse Dialects:** Snowflake and BigQuery parsers rely on regex preprocessing before ANSI parsing, which can encounter edge cases on complex vendor-specific SQL extensions.

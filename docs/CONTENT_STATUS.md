@@ -29,7 +29,7 @@
 - `EA-021` — **DONE** (Project Card and Feature Patterns — Reusable ProjectCard, FeaturedProjectCard, ProjectBlueprintFallback, ADR-002 accessible stretched link, safe navigation gating, isolated test harness, and 100% verified)  
 - `EA-022` — **DONE** (Projects Index and Empty Safeguards — Production /projects/ route, ProjectsEmptyState with exact recruiter-friendly copy, working links to /about/ and /contact/, navigation activation, fail-closed gating, isolated populated layout verified, 5 static production pages)  
 - `EA-023` — **DONE** (Case Study Template and Rich MDX — Dynamic route src/pages/projects/[slug].astro with Astro 5 Content Layer render(entry), Breadcrumbs, ProjectFactPanel, DecisionBlock, Figure, CodeBlock with progressive copy, TableOfContents, exact per-project approved route matching, claim-level metric omission default, isolated integration test harness, 0 detail routes in production, exactly 5 static pages)  
-- `EA-024` — **IN PLANNING** (Publish First Verified Case Study — Planning intake and clearance workflow for first publishable project)  
+- `EA-024` — **PHASE A COMPLETE (Audited — Awaiting Owner Signoff)** (Evidence, Security and Publication-Readiness Audit — AgentIAM evaluated across 85 Git commits at HEAD `5b7e7fcd`; 100% individual authorship by `TM-threemavithana`; editorial score 17/18; draft candidate MDX created with `draft: true` and `editorialApproval: false`; zero production routes generated; awaiting owner confirmation and Phase B authorization)
 
 **Governing Documents:** [AGENTS.md](file:///c:/Project/Engineering-Atelier-Portfolio/AGENTS.md), [docs/MASTER_SPEC.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/MASTER_SPEC.md), [docs/IDENTITY_AND_SITEMAP.md](file:///c:/Project/Engineering-Atelier-Portfolio/docs/IDENTITY_AND_SITEMAP.md)
 
@@ -59,11 +59,12 @@
 
 ## 2. Candidate Projects Status
 
-Per `docs/CONTENT_AND_EVIDENCE.md` and `docs/MASTER_SPEC.md`, all four candidate projects remain in strict **DRAFT** status:
+Per `docs/CONTENT_AND_EVIDENCE.md` and `docs/MASTER_SPEC.md`, all candidate projects remain in strict **DRAFT** status:
 
 | Candidate Project | Domain | Status | Required Evidence | Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **StreamForge** | Distributed Systems | **DRAFT** | Verified repository, gRPC/message design, author's exact role, tests | Gated (`draft: true`) |
+| **AgentIAM** | Database Security / AI Infrastructure / Go | **DRAFT (Phase A Audited — Score 17/18)** | 85 Git commits audited at HEAD `5b7e7fcd`; 100% individual authorship; Apache-2.0; C/Wasm AST validation; pgproto3/MySQL wire proxies; M:N multiplexing with `DISCARD ALL`; score 17/18; awaiting owner confirmation of role and metric qualification for Phase B | Gated (`draft: true`, `editorialApproval: false`) |
+| **StreamForge** | Distributed Systems | **DRAFT** | Verified repository, gRPC/message design, author's exact role, tests (retained as draft candidate per owner instruction) | Gated (`draft: true`) |
 | **DevForge** | Developer Tooling (Scala) | **DRAFT** | Scala repo/release, CLI UX evidence, author's exact role | Gated (`draft: true`) |
 | **Java/Spring Boot Task API** | Java Backend | **DRAFT** | Actual API codebase, OpenAPI spec, test coverage | Gated (`draft: true`) |
 | **Currency Authentication Research** | Computer Vision / ML Research | **DRAFT (Audited - Signed Off)** | Confirmed role: Computer Vision & Research Software Development — Core Contributor; collaborative attribution (Asitha0012, udaraDev); automated procedural synthetic-counterfeit generation framework; manuscript metrics qualified (96.67% acc, 0.49s CPU latency averaged over 100 runs); CBSL Act No. 16 of 2023 Sec. 55 currency assets excluded; score 16/18; owner signed off | Gated (`draft: true`) |

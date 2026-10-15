@@ -92,7 +92,7 @@
 **Depends:** 019,021. **Scope:** breadcrumbs, fact panel, body MDX, Decisions, Figures, code, TOC optional, related work. **Accept:** readable <=74ch column, diagrams described, no broken external links. **Verify:** responsive and axe. **AC:** 06,09,14.
 
 ### EA-024 — Publish first verified case study (M)
-**Depends:** 020,023. **Scope:** owner-approved real project body, diagram(s), evidence links and lessons. **Accept:** content rubric passes; no imagined numbers, completed status only when true. **Verify:** editorial signoff and URL test. **AC:** 05,06,17.
+**Depends:** 020,023. **Status:** Phase A Complete (Audited — Awaiting Owner Signoff). **Scope:** owner-approved real project body, diagram(s), evidence links and lessons. **Accept:** content rubric passes; no imagined numbers, completed status only when true. **Verify:** editorial signoff and URL test. **AC:** 05,06,17.
 
 ### EA-025 — Publish second/third verified case study (M)
 **Depends:** 024. **Scope:** expand only with real evidence; if absent document omission. **Accept:** all published pages match case-study rubric. **Verify:** editorial signoff + links. **AC:** 05,06.

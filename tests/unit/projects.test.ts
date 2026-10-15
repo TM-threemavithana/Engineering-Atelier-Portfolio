@@ -12,13 +12,14 @@ test('Candidate project MDX files exist in src/content/projects and are strictly
   assert.ok(fs.existsSync(contentProjectsDir), 'src/content/projects directory must exist');
 
   const files = fs.readdirSync(contentProjectsDir).filter((f) => f.endsWith('.mdx'));
-  assert.equal(files.length, 4, 'Must contain exactly 4 candidate project MDX files');
+  assert.equal(files.length, 5, 'Must contain exactly 5 candidate project MDX files');
 
   const expectedSlugs = [
     'streamforge.mdx',
     'devforge.mdx',
     'java-task-api.mdx',
     'currency-auth-research.mdx',
+    'agentiam.mdx',
   ];
   for (const slug of expectedSlugs) {
     assert.ok(
@@ -54,7 +55,7 @@ test('Candidate project MDX files exist in src/content/projects and are strictly
   }
 
   console.log(
-    '✓ All 4 candidate MDX files confirmed strictly gated with draft: true and valid MDX syntax'
+    '✓ All 5 candidate MDX files confirmed strictly gated with draft: true and valid MDX syntax'
   );
 });
 
