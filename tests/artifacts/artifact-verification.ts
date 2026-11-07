@@ -105,24 +105,60 @@ assert.ok(
   'dist/projects/index.html must contain approved H1 "Engineering Case Studies"'
 );
 
-// Empty state copy verification (while 0 projects are published)
-const normalizedProjectsHtml = projectsHtml.replace(/\s+/g, ' ');
+// Populated state verification (EA-024: AgentIAM case study is listed)
 assert.ok(
-  normalizedProjectsHtml.includes(
-    'Detailed project case studies are being prepared. In the meantime, explore my engineering approach, technical capabilities, and the systems I focus on building.'
-  ),
-  'dist/projects/index.html must contain exact approved empty state message'
+  projectsHtml.includes('Featured Architectures'),
+  'dist/projects/index.html must contain "Featured Architectures" section'
+);
+assert.ok(
+  projectsHtml.includes('AgentIAM: Semantic SQL Security Proxy'),
+  'dist/projects/index.html must display AgentIAM project title'
+);
+assert.ok(
+  projectsHtml.includes('href="/projects/agentiam/"'),
+  'dist/projects/index.html must link to /projects/agentiam/'
+);
+assert.ok(
+  projectsHtml.includes('Prototype Architecture'),
+  'dist/projects/index.html must visibly display Prototype Architecture status'
+);
+assert.ok(
+  projectsHtml.includes('Creator &amp; Systems Engineer') ||
+    projectsHtml.includes('Creator & Systems Engineer'),
+  'dist/projects/index.html must display Creator & Systems Engineer role'
 );
 
-// Recovery links verification
+// Verify AgentIAM case study detail page exists and contains required elements
+const agentiamHtmlPath = path.join(distDir, 'projects', 'agentiam', 'index.html');
 assert.ok(
-  projectsHtml.includes('href="/about/"') &&
-    projectsHtml.includes('Explore Technical Capabilities'),
-  'dist/projects/index.html must link to /about/ with "Explore Technical Capabilities"'
+  fs.existsSync(agentiamHtmlPath),
+  'dist/projects/agentiam/index.html must exist in production build output'
+);
+const agentiamHtml = fs.readFileSync(agentiamHtmlPath, 'utf8');
+assert.ok(
+  agentiamHtml.includes('AgentIAM: Semantic SQL Security Proxy'),
+  'AgentIAM case study must contain title H1'
 );
 assert.ok(
-  projectsHtml.includes('href="/contact/"') && projectsHtml.includes('Get in Touch'),
-  'dist/projects/index.html must link to /contact/ with "Get in Touch"'
+  agentiamHtml.includes('Prototype Architecture'),
+  'AgentIAM case study must visibly classify status as Prototype Architecture'
+);
+assert.ok(
+  agentiamHtml.includes('Creator &amp; Systems Engineer') ||
+    agentiamHtml.includes('Creator & Systems Engineer'),
+  'AgentIAM case study must contain verified role'
+);
+assert.ok(
+  agentiamHtml.includes('https://github.com/TM-threemavithana/agentiam'),
+  'AgentIAM case study must link to GitHub repo'
+);
+assert.ok(
+  agentiamHtml.includes('https://github.com/TM-threemavithana/agentiam/pull/21'),
+  'AgentIAM case study must link to PR #21'
+);
+assert.ok(
+  agentiamHtml.includes('42340130837'),
+  'AgentIAM case study must link to verified CI run 42340130837'
 );
 
 // Draft candidate detail routes must NOT exist
@@ -421,15 +457,28 @@ for (const stage of expectedApproachStages) {
   assert.ok(indexHtml.includes(stage), `dist/index.html must contain approach stage: "${stage}"`);
 }
 
-// C. Strict Draft Gating & Graceful Empty Omission for Featured Work
+// C. EA-024 Featured Work Section: AgentIAM Featured Presentation & Draft Protection
 assert.ok(
-  !indexHtml.includes('id="featured-work"'),
-  'Featured Work section must be gracefully omitted when 0 verified projects exist'
+  indexHtml.includes('id="featured-work"'),
+  'Featured Work section must be rendered on dist/index.html in EA-024'
 );
 assert.ok(
-  !indexHtml.includes('Featured Engineering Projects'),
-  'Featured Engineering Projects heading must be absent when 0 verified projects exist'
+  indexHtml.includes('Featured Engineering Projects'),
+  'Featured Engineering Projects heading must be present in dist/index.html'
 );
+assert.ok(
+  indexHtml.includes('AgentIAM: Semantic SQL Security Proxy'),
+  'AgentIAM project card must be present in featured work on dist/index.html'
+);
+assert.ok(
+  indexHtml.includes('href="/projects/agentiam/"'),
+  'Featured work card must link to /projects/agentiam/'
+);
+assert.ok(
+  indexHtml.includes('Prototype Architecture'),
+  'Featured work card must visibly display Prototype Architecture status'
+);
+// Confirm all draft candidates remain strictly excluded from homepage
 assert.ok(
   !indexHtml.includes('StreamForge: Distributed Raft Log Engine'),
   'Draft candidate StreamForge must strictly not appear in public index.html'
@@ -437,6 +486,14 @@ assert.ok(
 assert.ok(
   !indexHtml.includes('DevForge: Scala Developer Orchestration CLI'),
   'Draft candidate DevForge must strictly not appear in public index.html'
+);
+assert.ok(
+  !indexHtml.includes('Currency Authentication Research'),
+  'Draft candidate Currency Authentication must strictly not appear in public index.html'
+);
+assert.ok(
+  !indexHtml.includes('Java Task API'),
+  'Draft candidate Java Task API must strictly not appear in public index.html'
 );
 
 // D. Heading IDs and aria-labelledby consistency check
@@ -718,10 +775,11 @@ for (const link of prohibited404Links) {
   );
 }
 
-// E. Global Landmark Structure across ALL 5 Production Pages (Home, Projects, About, Contact, 404)
+// E. Global Landmark Structure across ALL 6 Production Pages (Home, Projects, AgentIAM Detail, About, Contact, 404)
 const allPageEntries = [
   { name: 'Home', path: path.join(distDir, 'index.html') },
   { name: 'Projects', path: path.join(distDir, 'projects', 'index.html') },
+  { name: 'AgentIAM Detail', path: path.join(distDir, 'projects', 'agentiam', 'index.html') },
   { name: 'About', path: path.join(distDir, 'about', 'index.html') },
   { name: 'Contact', path: path.join(distDir, 'contact', 'index.html') },
   { name: '404', path: path.join(distDir, '404.html') },
@@ -828,13 +886,13 @@ console.log(
   '✓ Project card and blueprint production isolation confirmed: zero fixture or draft card leaks'
 );
 
-// 17. Verify EA-023 Case Study Template & Dynamic Route Production Invariants
+// 17. Verify EA-024 Case Study Template & Dynamic Route Production Invariants
 const projectsDir = path.join(distDir, 'projects');
-const projectDirEntries = fs.readdirSync(projectsDir);
+const projectDirEntries = fs.readdirSync(projectsDir).sort();
 assert.deepEqual(
   projectDirEntries,
-  ['index.html'],
-  `dist/projects/ must contain ONLY index.html, found: ${JSON.stringify(projectDirEntries)}`
+  ['agentiam', 'index.html'].sort(),
+  `dist/projects/ must contain ONLY index.html and agentiam/, found: ${JSON.stringify(projectDirEntries)}`
 );
 
 // Verify dev-case-study fixture isolation
@@ -863,7 +921,7 @@ for (const page of allPageEntries) {
   }
 }
 
-// Strictly verify total HTML pages across entire dist/ output equals exactly 5
+// Strictly verify total HTML pages across entire dist/ output equals exactly 6 (EA-024)
 function findHtmlFiles(dir: string, baseDir: string = dir): string[] {
   let results: string[] = [];
   const list = fs.readdirSync(dir);
@@ -887,16 +945,17 @@ const expectedHtmlFiles = [
   'about/index.html',
   'contact/index.html',
   'index.html',
+  'projects/agentiam/index.html',
   'projects/index.html',
 ].sort();
 
 assert.deepEqual(
   allGeneratedHtmlFiles,
   expectedHtmlFiles,
-  `Production dist/ must contain EXACTLY 5 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
+  `Production dist/ must contain EXACTLY 6 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
 );
 console.log(
-  '✓ EA-023 Case Study production invariants confirmed: exactly 5 HTML pages, zero dynamic detail routes, zero fixture leaks'
+  '✓ EA-024 Case Study production invariants confirmed: exactly 6 HTML pages, single cleared AgentIAM detail route, zero fixture leaks'
 );
 
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

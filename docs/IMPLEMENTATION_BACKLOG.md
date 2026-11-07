@@ -92,7 +92,7 @@
 **Depends:** 019,021. **Scope:** breadcrumbs, fact panel, body MDX, Decisions, Figures, code, TOC optional, related work. **Accept:** readable <=74ch column, diagrams described, no broken external links. **Verify:** responsive and axe. **AC:** 06,09,14.
 
 ### EA-024 — Publish first verified case study (M)
-**Depends:** 020,023. **Status:** Phase A Corrected (Audited — Awaiting Owner Review & Correction Signoff). **Scope:** owner-approved real project body, diagram(s), evidence links and lessons. **Accept:** content rubric passes; no imagined numbers, completed status only when true. **Verify:** editorial signoff and URL test. **AC:** 05,06,17.
+**Depends:** 020,023. **Status:** Phase B Locally Configured & Validated (Awaiting Final Owner Release Decision; Public Deployment Unapproved). **Scope:** owner-approved real project body, diagram(s), evidence links and lessons. **Accept:** content rubric passes; no imagined numbers, completed status only when true. **Verify:** editorial signoff and URL test. **AC:** 05,06,17.
 
 ### EA-025 — Publish second/third verified case study (M)
 **Depends:** 024. **Scope:** expand only with real evidence; if absent document omission. **Accept:** all published pages match case-study rubric. **Verify:** editorial signoff + links. **AC:** 05,06.
@@ -1033,6 +1033,44 @@
   - Production build contains strictly 5 static HTML pages; zero detail routes generated in `dist/projects/`.
   - Zero draft titles, unverified metrics, or test fixture text leaked into production dist/.
 - Next Ticket: EA-024 — Publish First Verified Case Study (Milestone 3).
+
+### EA-024 Execution Record — Phase B Local Publication Preparation
+- Status: REVIEW (Phase B Locally Configured & Validated — Public Deployment Separately Unapproved)
+- Authorization: Owner explicit authorization for EA-024 Phase B local publication preparation (2026-11-07).
+- Scope implemented:
+  - Preserved reviewed AgentIAM technical narrative (Go wire-protocol proxy, PostgreSQL Simple/Extended query decoders via pgx/v5.11.0, MySQL COM_QUERY text-protocol parser, Tidb AST, Wasm pgquery AST, CatalogVerifier with 50ms TTL window re-query semantics, multi-connection catalog verification / SQL execution TOCTOU boundary [RISK-VIEW-01], direct database listener bypass open production blocker [RISK-VIEW-02], PostgreSQL CAS vs MySQL InUse/reset lifecycles, and 91 fresh CI database integration subtests at commit b195a2f).
+  - Frontmatter updated: `draft: false`, `editorialApproval: true`, `publishedAt: 2026-11-07` (portfolio publication date), preserving `status: 'prototype'` and `featured: true`.
+  - Route registry updated: `/projects/agentiam/` registered in `APPROVED_PROJECT_ROUTES` (`src/utils/linkSafety.ts`).
+  - Gating preserved: All other 4 candidate projects (`streamforge`, `devforge`, `java-task-api`, `currency-auth-research`) strictly remain in `draft: true` and `editorialApproval: false`.
+  - Build output verified: Exactly 6 pages generated in `dist/`, including `dist/projects/agentiam/index.html`. Zero other detail routes generated.
+  - Page integration verified: `/projects/` renders populated layout with Prototype status; homepage renders `#featured-work` with AgentIAM card.
+- Files modified:
+  - `src/content/projects/agentiam.mdx` (Phase B publication frontmatter: draft: false, editorialApproval: true, publishedAt: 2026-11-07)
+  - `src/utils/linkSafety.ts` (registered `/projects/agentiam/` in APPROVED_PROJECT_ROUTES)
+  - `tests/unit/projects.test.ts` (reconciled EA-024 project state: AgentIAM cleared, 4 candidates draft)
+  - `tests/unit/caseStudy.test.ts` (reconciled EA-024 route registry exact matching and single-route publication)
+  - `tests/artifacts/artifact-verification.ts` (reconciled EA-024 6-page production artifact invariants and populated states)
+  - `docs/CONTENT_STATUS.md` (updated EA-024 status, RISK-VIEW-01/02 accurate definitions, and AgentIAM entry)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (updated EA-024 status and execution record)
+- Full verification executed (`npm run verify`):
+  - `npm run check`: PASS (83 files checked, 0 errors, 0 warnings, 0 hints)
+  - `npm run lint`: PASS (0 ESLint errors)
+  - `npm run format:check`: PASS (100% compliant with Prettier)
+  - `npm run test`: PASS (13 unit test suites, 46/46 tests passed)
+  - `verify:primitives`: PASS (isolated HTML primitive semantics verified)
+  - `verify:project-cards`: PASS (isolated project card rendering verified)
+  - `verify:case-studies`: PASS (isolated case-study rendering verified)
+  - `npm run build`: PASS (6 static pages built in dist/)
+  - `npm run verify:artifacts`: PASS (17 production artifact verification test suites passed)
+- Browser evidence captured (Microsoft Edge headless):
+  - Desktop (1440x1800): `agentiam_detail_desktop_1440.png` (158,559 bytes)
+  - Tablet (768x1400): `agentiam_detail_tablet_768.png` (66,320 bytes)
+  - Mobile (390x1200): `agentiam_detail_mobile_390.png` (51,965 bytes)
+  - Narrow Mobile (320x1000): `agentiam_detail_mobile_320.png` (42,725 bytes)
+  - Projects Index Desktop (1440x1200): `projects_index_desktop_1440.png` (87,455 bytes)
+  - Homepage Featured Desktop (1440x1400): `homepage_featured_desktop_1440.png` (119,742 bytes)
+- Deployment Status:
+  - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 
 
 

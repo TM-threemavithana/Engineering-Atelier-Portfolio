@@ -18,45 +18,109 @@ import {
 
 console.log('--- Starting Case Study Template & Rich MDX Unit Suite ---');
 
-test('EA-023: Real production state returns zero publishable case studies for dynamic [slug] routing', async () => {
+test('EA-024: Controlled fixtures and runtime state verify single-case-study publication gating', async () => {
   const collectionEntries = await fetchProjectsCollection();
 
-  // In standalone Node.js runner, fetchProjectsCollection returns [] or draft entries
-  // Any entry present must be rejected by isProjectPublishable
+  // In standalone Node.js runner, fetchProjectsCollection falls back to empty array gracefully
+  // If run in Astro runtime with loaded entries, only AgentIAM passes publication gating
   for (const entry of collectionEntries) {
-    assert.equal(
-      isProjectPublishable(entry),
-      false,
-      `Candidate project "${entry.id}" must NOT be publishable while in DRAFT`
-    );
+    if (entry.id === 'agentiam') {
+      assert.equal(
+        isProjectPublishable(entry),
+        true,
+        'AgentIAM entry must pass publication gating in EA-024'
+      );
+    } else {
+      assert.equal(
+        isProjectPublishable(entry),
+        false,
+        `Candidate project "${entry.id}" must NOT be publishable while in DRAFT`
+      );
+    }
   }
 
-  // Filter publishable entries
-  const publishable = collectionEntries.filter((entry) => isProjectPublishable(entry));
+  // Predicate-level verification with controlled fixtures
+  const agentiamFixture: GenericProjectEntry = {
+    id: 'agentiam',
+    data: {
+      title: 'AgentIAM: Semantic SQL Security Proxy',
+      summary: 'Wire-protocol database security proxy',
+      status: 'prototype',
+      role: 'Creator & Systems Engineer',
+      individualContribution: 'Designed and implemented the core Go wire-protocol proxy',
+      technologies: ['Go', 'PostgreSQL', 'MySQL'],
+      categories: ['backend', 'distributed'],
+      draft: false,
+      editorialApproval: true,
+      publishedAt: new Date('2026-11-07'),
+    },
+  };
   assert.equal(
-    publishable.length,
-    0,
-    'Dynamic route getStaticPaths() must yield exactly 0 routes in production'
+    isProjectPublishable(agentiamFixture),
+    true,
+    'AgentIAM controlled fixture must pass all 4 publication gates'
   );
 
-  console.log('✓ Dynamic route publication gating verified: 0 detail routes permitted');
+  const draftFixture: GenericProjectEntry = {
+    id: 'streamforge',
+    data: {
+      title: 'StreamForge: Distributed Raft Log Engine',
+      summary: 'High-throughput consensus log engine',
+      status: 'prototype',
+      role: 'Engineer',
+      individualContribution: 'Consensus engine development',
+      technologies: ['Java'],
+      categories: ['distributed'],
+      draft: true,
+      editorialApproval: false,
+    },
+  };
+  assert.equal(
+    isProjectPublishable(draftFixture),
+    false,
+    'Draft candidate fixture must be rejected by publication gate'
+  );
+
+  const unapprovedRouteFixture: GenericProjectEntry = {
+    ...agentiamFixture,
+    id: 'unapproved-project',
+  };
+  assert.equal(
+    isProjectPublishable(unapprovedRouteFixture),
+    false,
+    'Project with unapproved route must be rejected even if draft: false'
+  );
+
+  console.log('✓ Dynamic route publication gating verified: only cleared AgentIAM route permitted');
 });
 
-test('EA-023: APPROVED_PROJECT_ROUTES enforces exact matching without wildcards', () => {
-  // 1. Initial state: registry is empty
+test('EA-024: APPROVED_PROJECT_ROUTES enforces exact matching and contains only cleared AgentIAM route', () => {
+  // 1. Initial state: registry contains exactly the approved AgentIAM detail route
   assert.equal(
     APPROVED_PROJECT_ROUTES.size,
-    0,
-    'APPROVED_PROJECT_ROUTES must start empty in EA-023'
+    1,
+    'APPROVED_PROJECT_ROUTES must contain exactly 1 route in EA-024'
+  );
+  assert.ok(
+    APPROVED_PROJECT_ROUTES.has('/projects/agentiam/'),
+    'APPROVED_PROJECT_ROUTES must contain "/projects/agentiam/"'
   );
 
-  // 2. Unregistered routes are strictly rejected
+  // 2. Verified route is published (both trailing slash and normalized)
+  assert.equal(isRoutePublished('/projects/agentiam/'), true);
+  assert.equal(isRoutePublished('/projects/agentiam'), true);
+
+  // 3. Unregistered routes are strictly rejected
   assert.equal(isRoutePublished('/projects/currency-auth-research/'), false);
   assert.equal(isRoutePublished('/projects/streamforge/'), false);
   assert.equal(isRoutePublished('/projects/devforge/'), false);
   assert.equal(isRoutePublished('/projects/java-task-api/'), false);
 
-  // 3. Simulated exact registration
+  // 4. Wildcard / sub-path routes are strictly rejected
+  assert.equal(isRoutePublished('/projects/agentiam/deep/'), false);
+  assert.equal(isRoutePublished('/projects/*'), false);
+
+  // 5. Simulated exact registration with guaranteed restoration
   APPROVED_PROJECT_ROUTES.add('/projects/simulated-approved/');
   try {
     assert.equal(
@@ -70,22 +134,23 @@ test('EA-023: APPROVED_PROJECT_ROUTES enforces exact matching without wildcards'
       'Normalized route must be published'
     );
 
-    // Wildcard / sibling routes must NOT be published
+    // Sub-paths must NOT inherit approval
     assert.equal(
       isRoutePublished('/projects/simulated-approved/deep/'),
       false,
       'Sub-paths must not inherit approval'
     );
-    assert.equal(
-      isRoutePublished('/projects/other-unapproved/'),
-      false,
-      'Unregistered routes must remain unpublished'
-    );
   } finally {
     APPROVED_PROJECT_ROUTES.delete('/projects/simulated-approved/');
   }
 
-  console.log('✓ Exact per-project route approval verified (wildcards prohibited)');
+  // Confirm registry state is fully restored
+  assert.equal(APPROVED_PROJECT_ROUTES.size, 1);
+  assert.ok(APPROVED_PROJECT_ROUTES.has('/projects/agentiam/'));
+
+  console.log(
+    '✓ Exact per-project route approval verified (wildcards prohibited, restoration guaranteed)'
+  );
 });
 
 test('EA-023: Breadcrumb item validation and terminal page state', () => {

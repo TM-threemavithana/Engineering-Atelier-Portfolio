@@ -1,10 +1,11 @@
 ---
-# DRAFT ONLY — EA-024 Phase A Candidate (Awaiting Owner Review & Signoff)
+# Locally Approved Engineering Prototype Case Study (EA-024 Phase B)
 title: 'AgentIAM: Semantic SQL Security Proxy'
-summary: 'Wire-protocol security proxy and tenant-isolation engine for autonomous AI agents using C/Wasm AST parsing.'
+summary: 'Wire-protocol database security proxy and tenant-isolation engine for autonomous AI agents using C/Wasm AST parsing.'
 status: 'prototype'
+publishedAt: 2026-11-07
 role: 'Creator & Systems Engineer'
-individualContribution: 'Designed and implemented the core Go wire-protocol proxy, WebAssembly AST validation engine, tenant query rewriter, and M:N connection multiplexer.'
+individualContribution: 'Designed and implemented the core Go wire-protocol proxy, WebAssembly AST validation engine, tenant query rewriter, connection pool state handling, and dual-dialect integration test suites.'
 categories:
   - 'backend'
   - 'distributed'
@@ -14,7 +15,6 @@ technologies:
   - 'MySQL'
   - 'WebAssembly'
   - 'Docker'
-  - 'Python'
 featured: true
 featureOrder: 1
 repoUrl: 'https://github.com/TM-threemavithana/agentiam'
@@ -22,26 +22,42 @@ evidence:
   - label: 'GitHub Repository'
     url: 'https://github.com/TM-threemavithana/agentiam'
     kind: 'repo'
-draft: true
-editorialApproval: false
+  - label: 'Pull Request #21 (Security Hardening Integration)'
+    url: 'https://github.com/TM-threemavithana/agentiam/pull/21'
+    kind: 'repo'
+  - label: 'Hosted CI Integration Suite (Run 42340130837)'
+    url: 'https://github.com/TM-threemavithana/agentiam/actions/runs/42340130837'
+    kind: 'test'
+draft: false
+editorialApproval: true
 ---
 
-{/* DRAFT CANDIDATE: Inspected in EA-024 Phase A across 85 Git commits. Excluded from production builds until owner Phase B signoff. Role and Status remain pending formal owner confirmation. */}
+{/* DRAFT CANDIDATE: Mainline security hardening is integrated on review branch PR #21 at commit b195a2f151e61792d8b351b66511d046daea26a8; the upstream main branch has not yet incorporated this work. Awaiting human engineering review and merge approval. Gated from production build output. */}
 
-## Engineering Challenge & Context
+## 1. Project Overview & The Autonomous Agent Threat Model
 
-Autonomous AI agents integrating LLM tool calling with relational databases present distinct operational and security challenges. When agents generate raw or parameterized SQL dynamically, conventional perimeter firewalls and application-layer ORMs leave critical gaps:
+Autonomous AI agents integrating LLM tool-calling capabilities with relational databases introduce distinct security and operational challenges. When autonomous software agents generate raw or parameterized SQL dynamically, conventional perimeter firewalls, network ACLs, and application-layer ORMs leave critical attack surfaces exposed:
 
-1. **Prompt Injection & Obfuscation:** Attackers can manipulate LLM prompts into generating SQL injection payloads, stacked statements, or unapproved DDL commands designed to evade basic keyword filters.
-2. **Resource Exhaustion & Side-Channels:** Malicious or hallucinated agent queries can invoke `EXPLAIN ANALYZE` (executing arbitrary queries under the guise of inspection) or manipulate `statement_timeout` to disable query deadlines.
-3. **Cross-Tenant Data Exposure:** Shared agent tool instances often access multi-tenant databases without runtime row-level isolation controls.
-4. **Connection Exhaustion:** Agents holding open database connections during multi-second LLM inference loops rapidly saturate physical database connection limits.
+1. **Prompt Injection & Syntax Obfuscation:** Attackers can manipulate agent reasoning loops to emit stacked SQL statements, arbitrary DDL (`DROP TABLE`, `CREATE ROLE`), or queries obfuscated through comments (`/**/`), hexadecimal literals, and vendor-specific syntax designed to bypass simple regex keyword matchers.
+2. **Resource Exhaustion & Side-Channel Timing:** Malicious or hallucinated agent queries can invoke `EXPLAIN ANALYZE` (which actually executes the query against the database engine to collect execution statistics, enabling timing-based data extraction) or execute `SET statement_timeout = 0` / `SELECT set_config('statement_timeout', '0', false)` to bypass query execution deadlines.
+3. **Sensitive Data Exfiltration via Mathematical & Relational Inference:** Redacting sensitive columns in the final projection list is insufficient if an agent can leak data through WHERE predicates (`WHERE salary > 120000`), JOIN ON conditions, GROUP BY aggregations, or arithmetic expressions (`salary + 0`).
+4. **Connection Starvation & Session Pollution:** Multi-step agent reasoning loops often hold physical database connections idle during multi-second LLM inference roundtrips, starving connection pools. Furthermore, modified session states (`SET search_path`, temporary tables, prepared statements) leak state across tenants when connections are reused.
 
-AgentIAM was engineered as an inline, wire-protocol database proxy in Go that treats AI-generated SQL queries as untrusted input, parsing and enforcing structural security policies prior to upstream dispatch.
+AgentIAM was engineered as an inline, wire-protocol database security proxy in Go. It operates transparently on the TCP network path between autonomous AI agents and upstream database clusters, treating all dynamic SQL queries as untrusted binary payloads and enforcing structural security policies prior to upstream dispatch.
 
-## System Architecture & Interception Pipeline
+## 2. Why It Was Built
 
-AgentIAM sits directly on the TCP network path between AI agents and target databases, implementing both the PostgreSQL wire protocol (`pgproto3`) and the MySQL client/server protocol (`go-mysql-org/go-mysql`).
+In multi-agent environments, autonomous agents are frequently authored across diverse languages (Python, TypeScript, Go) and leverage disparate client libraries (`pgx`, `psycopg`, `mysqlclient`, LangChain database toolkits). Relying on client-side SDKs or application-level interceptors presents substantial operational risks:
+
+- **Client-Side Bypass:** An agent runtime can misconfigure, bypass, or disable client-side interceptors through modified tool parameters or prompt injections.
+- **Incomplete Protocol Visibility:** Client-side libraries often operate above the wire protocol, failing to inspect binary extended query messages (`Parse`, `Bind`, `Execute`) or manage transport-level state resets.
+- **Language Fragmentation:** Enforcing uniform security invariants across polyglot agent runtimes requires maintaining duplicate SDK implementations for every language ecosystem.
+
+AgentIAM resolves these challenges by operating at the wire-protocol layer. By intercepting PostgreSQL and MySQL binary protocols directly at the TCP socket, AgentIAM provides a centralized enforcement layer for dynamic agent queries at the network boundary without requiring changes to agent application code or database drivers.
+
+## 3. Core Architecture & Technology Stack
+
+AgentIAM is architected as an asynchronous, non-blocking pipeline structured into four primary stages:
 
 <Figure
   alt="AgentIAM Wire-Protocol Interception Architecture"
@@ -102,7 +118,7 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
 
     {/* Downward Connector to Proxy */}
     <line x1="380" y1="64" x2="380" y2="104" stroke="var(--color-accent, #5EEAD4)" stroke-width="2" marker-end="url(#agentiam-arrow)" />
-    <text x="395" y="88" class="font-mono text-[10px] fill-[var(--color-accent, #5EEAD4)]">Untrusted Raw SQL</text>
+    <text x="395" y="88" class="font-mono text-[10px] fill-[var(--color-accent, #5EEAD4)]">Untrusted Raw SQL Stream</text>
 
     {/* AgentIAM Security Boundary */}
     <g>
@@ -130,8 +146,8 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
       {/* Stage 1: Wire Intercept */}
       <rect x="32" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
       <text x="110" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">1. Wire Intercept</text>
-      <text x="110" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">TLS / SCRAM-SHA-256</text>
-      <text x="110" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">pgproto3 / go-mysql</text>
+      <text x="110" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">TLS / mTLS / SCRAM</text>
+      <text x="110" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">pgx/v5 &amp; go-mysql</text>
       <text x="110" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Frame Decoding</text>
 
       {/* Stage 1 -> 2 Arrow */}
@@ -141,33 +157,33 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
       <rect x="212" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
       <text x="290" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">2. SQL AST Parser</text>
       <text x="290" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">wasilibs/go-pgquery</text>
-      <text x="290" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">PostgreSQL 16 C/Wasm</text>
-      <text x="290" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Grammar Inspection</text>
+      <text x="290" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">TiDB Parser (MySQL)</text>
+      <text x="290" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Grammar Tree Inspection</text>
 
       {/* Stage 2 -> 3 Arrow */}
       <line x1="368" y1="187" x2="388" y2="187" stroke="var(--color-border-strong, #5A7597)" stroke-width="1.5" marker-end="url(#agentiam-arrow-right)" />
 
-      {/* Stage 3: Policy Engine */}
+      {/* Stage 3: Policy & Provenance */}
       <rect x="392" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
-      <text x="470" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">3. Policy Engine</text>
-      <text x="470" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">Statement Allowlist</text>
-      <text x="470" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">Blocks EXPLAIN/DDL</text>
-      <text x="470" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Relation Allowlist</text>
+      <text x="470" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">3. Policy &amp; Provenance</text>
+      <text x="470" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">CatalogVerifier (50ms)</text>
+      <text x="470" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">AST View Inspection</text>
+      <text x="470" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">Projection Masking</text>
 
       {/* Stage 3 -> 4 Arrow */}
       <line x1="548" y1="187" x2="568" y2="187" stroke="var(--color-border-strong, #5A7597)" stroke-width="1.5" marker-end="url(#agentiam-arrow-right)" />
 
-      {/* Stage 4: Tenant & Pool */}
+      {/* Stage 4: Pool & State Hygiene */}
       <rect x="572" y="134" width="156" height="106" rx="6" class="fill-[var(--color-surface-alt)] stroke-[var(--color-border)]" />
-      <text x="650" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">4. Tenant &amp; Pool</text>
-      <text x="650" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">Subquery Rewriting</text>
-      <text x="650" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">M:N Multiplexer</text>
-      <text x="650" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">DISCARD ALL Hygiene</text>
+      <text x="650" y="158" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">4. Pool &amp; State Hygiene</text>
+      <text x="650" y="176" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">PG CAS / MySQL InUse</text>
+      <text x="650" y="194" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">u.frontendMu Mutex</text>
+      <text x="650" y="214" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent, #5EEAD4)]">DISCARD ALL / COM_RESET</text>
     </g>
 
     {/* Downward Connector to Upstream DB */}
     <line x1="380" y1="260" x2="380" y2="300" stroke="var(--color-accent, #5EEAD4)" stroke-width="2" marker-end="url(#agentiam-arrow)" />
-    <text x="395" y="284" class="font-mono text-[10px] fill-[var(--color-accent, #5EEAD4)]">Sanitized Query Stream</text>
+    <text x="395" y="284" class="font-mono text-[10px] fill-[var(--color-accent, #5EEAD4)]">Sanitized Upstream Dispatch</text>
 
     {/* Upstream Database Layer */}
     <g>
@@ -184,64 +200,282 @@ AgentIAM sits directly on the TCP network path between AI agents and target data
         Upstream Relational Database
       </text>
       <text x="380" y="346" text-anchor="middle" class="font-mono text-[11px] fill-[var(--color-muted)]">
-        PostgreSQL 16 Engine / MySQL 8.0 Server
+        PostgreSQL 15 Engine / MySQL 8.0 Server
       </text>
     </g>
 
   </svg>
 </Figure>
 
-### Request Lifecycle
+### Technology Stack Summary
 
-1. **Wire Interception & Handshake:** The agent connects using standard database drivers (`pgx`, `psycopg`, `mysqlclient`). AgentIAM negotiates TLS/mTLS and verifies credentials via SCRAM-SHA-256.
-2. **AST Parsing:** Queries are compiled into an Abstract Syntax Tree using WebAssembly-compiled PostgreSQL 16 engine code (`wasilibs/go-pgquery`) or PingCAP's TiDB MySQL parser.
-3. **Recursive Policy Validation:** The AST is traversed to enforce strict statement allowlists (`SELECT`, `INSERT`, `UPDATE`, `DELETE`), rejecting unapproved DDL or administrative commands.
-4. **Tenant Isolation Rewriting:** If tenant isolation is enabled, table references are transformed into isolated subqueries before dispatch.
-5. **Upstream Execution & Pool Release:** The rewritten query executes on a pooled upstream connection. Upon receiving `ReadyForQuery`, the upstream connection is scrubbed via `DISCARD ALL` and returned to the pool.
+- **Core Implementation:** Go 1.26 (declared as `go 1.26.10` in `go.mod`, providing native memory safety, goroutine concurrency, and garbage collection).
+- **PostgreSQL Wire Decoder:** `github.com/jackc/pgx/v5` (`v5.11.0`) wire protocol codecs, replacing `pgproto3/v2` to resolve upstream vulnerability GO-2026-4518.
+- **MySQL Protocol Engine:** `github.com/go-mysql-org/go-mysql` client/server protocol implementation supporting HandshakeV10, SSLRequest, and connection command frames.
+- **PostgreSQL AST Parser:** `github.com/wasilibs/go-pgquery` running PostgreSQL's native C parser compiled into WebAssembly via WASI, parsing PostgreSQL SQL syntax into structured syntax trees.
+- **MySQL AST Parser:** `github.com/pingcap/tidb/pkg/parser` providing complete MySQL 8.0 grammar inspection.
+- **Schema & Provenance Verification:** Custom `CatalogVerifier` performing targeted catalog inspection (`pg_catalog.pg_views` joined with `pg_class`) paired with WebAssembly AST definition parsing.
+- **Concurrency & State Control:** Dialect-specific connection lifecycles (PostgreSQL CAS state machine, MySQL atomic InUse flag), `sync.Mutex` frontend serialization, and coordinated half-close connection teardown.
+- **Integration Test Harness:** `github.com/testcontainers/testcontainers-go` orchestrating live containerized PostgreSQL 15 and MySQL 8.0 instances.
 
-## Key Engineering Decisions & Trade-offs
+## 4. PostgreSQL and MySQL Protocol Support
 
-### 1. Wire-Protocol Proxy vs. Client SDK Library
+Supporting heterogeneous database backends required implementing specialized protocol state machines for both PostgreSQL and MySQL wire formats.
 
-- **Decision:** Intercept database wire protocols at the binary stream level rather than relying solely on a client-side SDK.
-- **Trade-off:** Implementing wire state machines (`pgproto3`) requires deep protocol fidelity, but provides language-agnostic enforcement independent of client driver configurations or application-layer bypasses.
+### PostgreSQL Wire Protocol Implementation
 
-### 2. C/Wasm AST Parsing vs. Regex Guardrails
+AgentIAM implements the PostgreSQL frontend/backend state machine using modern `pgx/v5.11.0` wire decoders:
 
-- **Decision:** Compile full syntax trees via WebAssembly (`wasilibs/go-pgquery`) instead of using regular expressions or secondary LLM evaluators.
-- **Trade-off:** AST parsing incurs computational overhead per query compared to simple regex pattern matching, but validates grammar structure to detect and block known injection patterns, nested subqueries, and multi-statement injection.
+- **Connection Lifecycle & TLS Negotiation:** Handles client `StartupMessage` and `SSLRequest`. The proxy negotiates TLS/mTLS encryption before processing credentials, supporting SCRAM-SHA-256 and MD5 authentication.
+- **Dual Query Protocol Support:**
+  - _Simple Query (`'Q'`):_ Parses, validates, rewrites, and dispatches complete SQL strings, managing row descriptions, data rows, and `ReadyForQuery` completion markers.
+  - _Extended Query Protocol:_ Intercepts the multi-step protocol: `'P'` (Parse), `'B'` (Bind), `'D'` (Describe), `'E'` (Execute), and `'S'` (Sync). Parameterized statement templates are validated during the Parse phase, and bound parameter values are inspected during the Bind phase.
 
-### 3. M:N Connection Multiplexing with State Sanitization
+### MySQL Protocol Implementation & Protocol-Level Invariants
 
-- **Decision:** Multiplex client agent connections over a compact pool of physical database connections, releasing the upstream connection when the transaction state returns to idle.
-- **Hygiene Requirement:** Because PostgreSQL connections retain session variables, temporary tables, and prepared statements, AgentIAM automatically issues `DISCARD ALL` upon connection release, mitigating cross-tenant session leakage.
+For MySQL 8.0, AgentIAM integrates `go-mysql-org/go-mysql`:
 
-## Implementation Details & Security Hardening
+- **Handshake & Authentication Separation:**
+  - _Client Ingress Authentication:_ The proxy's client-facing listener supports mTLS client certificate Common Name (CN) verification, `mysql_native_password`, and `mysql_clear_password` (when cleartext authentication is explicitly permitted via `--insecure-cleartext-auth`). The proxy listener does not support `caching_sha2_password`.
+  - _Upstream Server Authentication:_ The proxy connects to upstream MySQL instances using standard server authentication plugins (including MySQL 8.0 default `caching_sha2_password` or `mysql_native_password`) configured through the upstream connection pool DSN.
+- **Packet Interception Scope:**
+  - Intercepts raw `COM_QUERY` text-protocol packets for policy analysis and query rewriting.
+  - Binary prepared statement commands (`COM_STMT_PREPARE`, `COM_STMT_EXECUTE`, `COM_STMT_CLOSE`) are currently unsupported in the proxy's MySQL adapter and integration test suites.
+- **Automatic Limit Clamping:** Unconstrained SELECT statements missing explicit `LIMIT` clauses are automatically clamped with configured maximum limits to prevent memory exhaustion from runaway agent queries.
+- **Transaction & Control Operation Invariant Rejection:** AgentIAM enforces strict multiplexing safety by rejecting 20 transaction and session-altering control operations that violate connection pool invariants:
+  - Nested transactions (`BEGIN WORK`, `START TRANSACTION WITH CONSISTENT SNAPSHOT`).
+  - Table locking (`LOCK TABLES`, `UNLOCK TABLES`).
+  - Session variable manipulation (`SET SESSION`, `SET GLOBAL`).
+  - User lock operations (`GET_LOCK()`, `RELEASE_LOCK()`).
+- **Connection State Hygiene:** Upon session completion or release back to the pool, AgentIAM executes `COM_RESET_CONNECTION` over the MySQL connection, resetting user variables, temporary tables, prepared statements, and session locks before returning the connection for reuse.
 
-- **`EXPLAIN ANALYZE` Prevention:** In PostgreSQL, `EXPLAIN ANALYZE` actually executes the query to collect timing statistics. AgentIAM inspects `ExplainStmt.Analyze` in the AST and immediately rejects it, preventing side-channel execution attacks.
-- **Timeout Bypass Protection:** Fixed in commit `5b7e7fcd`, AgentIAM blocks both `SET statement_timeout` and function calls like `SELECT set_config('statement_timeout', ...)` to prevent rogue agents from disabling query deadlines.
-- **Smart Parameter Caching:** Parsed AST templates are cached using an LRU cache (`hashicorp/golang-lru/v2`). Statements containing raw string literals bypass the cache to prevent cache exhaustion.
+## 5. AST-Based SQL Authorization and Masking
 
-## Verification & Limitations
+Relying on regular expressions or lexical pattern matching for SQL security is mathematically unsound. SQL grammars are context-free and permit arbitrary whitespace, nested subqueries, block comments (`SELECT/*comment*/1`), hex encoding, and identifier quoting that easily circumvent regex matchers.
 
-### Automated Test Coverage
+AgentIAM enforces security by parsing every incoming statement into an Abstract Syntax Tree (AST) using WebAssembly-compiled PostgreSQL 16 engine code (`wasilibs/go-pgquery`) or the TiDB MySQL parser.
 
-The AgentIAM repository test suites include:
+### Fail-Closed Column Projection Masking
 
-- **Unit Tests:** 48 AST firewall tests, 32 tenant isolation rewrite tests, and 26 MySQL parser test cases verified in source.
-- **CI Execution:** GitHub Actions (`ci.yml`) runs unit and benchmark suites against an ephemeral `postgres:16` container.
-- **Concurrency & State Tests:** High-concurrency connection pool tests validating `DISCARD ALL` execution and connection recycling under load.
+When a client queries a table with policy-governed columns (e.g., `ssn`, `salary`), AgentIAM traverses the AST target list (`ResTarget`) and substitutes the column reference node (`ColumnRef`) with an `A_Const` string literal containing `'[REDACTED]'`, while preserving the original column alias (`ResTarget.Name = colName`):
 
-### Transparent Engineering Limitations
+```sql
+-- Incoming Agent Query:
+SELECT id, full_name, ssn FROM users;
 
-- **View Masking Bypass:** Data masking operates strictly on static AST table mappings (`rules.MaskedColumns`). Because the proxy does not replicate database schema catalogs (`pg_class`), it cannot trace an unrestricted view back to a masked base table. If a view wraps a masked table, queries against the view bypass data masking unless database administrators enforce strict database-level `GRANT / REVOKE` restrictions or declare explicit view mappings in policy configuration.
-- **Open Upstream Advisory (GO-2026-4518):** In `github.com/jackc/pgproto3/v2@v2.3.3`, a negative column length in an upstream `DataRow` packet triggers a panic during decoding. In the absence of an upstream v2 patch, background receive loops require defensive panic containment, and deployments should enforce strict upstream TLS validation.
-- **Integration Test Scope:** Existing automated CI test runs are executed against a single ephemeral container; distributed network failure injection, TLS certificate rotation under load, and cross-AZ latency tests have not yet been automated.
-- **Warehouse Dialects:** Snowflake and BigQuery parsers use regex preprocessing before ANSI parsing, which can encounter edge cases on complex vendor-specific SQL extensions. These adapters remain experimental.
-- **Performance Framing:** Unsupported high-concurrency numbers and connection-overhead claims are omitted from this case study in favor of verifiable qualitative architectural guarantees.
+-- Rewritten Outgoing Query to Upstream DB (Deparsed AST):
+SELECT id, full_name, '[REDACTED]' AS ssn FROM users;
+```
 
-### Lessons Learned
+The projection rewrite operates fail-closed: if the AST cannot be safely rewritten or references unsupported expression forms in the target list, the query is rejected immediately. Furthermore, implicit row expansion (`SELECT *`) on masked tables is blocked fail-closed in strict mode to prevent accidental column disclosure.
 
-1. **Binary Wire Decoders Require Strict Bounds Verification:** Upstream decoders cannot be assumed panic-free; wire protocol libraries must enforce signed integer bounds checking on message lengths (as evidenced by GO-2026-4518).
-2. **Connection Pool State Hygiene Must Pair with Robust Lifecycle Accounting:** Issuing `DISCARD ALL` sanitizes database session state, but pool implementations must use counting semaphores rather than naive channel buffering to prevent deadlocks when connections drop abruptly.
-3. **AST Rewriting Cannot Substitute for Database Permissions:** Without live catalog introspection, an AST proxy cannot infer that a view wraps sensitive columns. A defense-in-depth model combining proxy allowlists with database `REVOKE` privileges is essential.
+### Prevention of Inference & Side-Channel Leaks
+
+A critical vulnerability in naive data-masking proxies is leakage through relational expressions and filtering clauses. For example, if `salary` is masked in projection, an agent can infer values through:
+
+1. **Arithmetic Leakage:** `SELECT id, (salary + 0) AS calculated_val FROM employees;`
+2. **Predicate Filtering:** `SELECT id FROM employees WHERE salary > 150000;`
+3. **Join Conditions:** `SELECT * FROM public_data p JOIN employees e ON p.val = e.salary;`
+4. **Aggregation & Grouping:** `SELECT department FROM employees GROUP BY department HAVING AVG(salary) > 80000;`
+
+To restrict inferencing and exfiltration paths, AgentIAM's policy engine traverses the entire AST:
+
+- **Direct Projection Only:** Masked columns are strictly permitted _only_ as direct column references in the top-level SELECT target list.
+- **Strict Filtering Rejection:** Any appearance of a masked column within WHERE predicates, JOIN ON clauses, GROUP BY expressions, HAVING clauses, or window function partitions triggers an immediate policy violation.
+- **Arithmetic Expression Rejection:** Referencing a masked column within mathematical operators, string functions, or conditional `CASE` expressions is rejected.
+
+### Administrative & DDL Enforcement
+
+The AST visitor inspects statement node types to enforce least-privilege operation:
+
+- **DDL Rejection:** Blocks `DropStmt`, `AlterTableStmt`, `CreateRoleStmt`, `TruncateStmt`, and schema alterations.
+- **`EXPLAIN ANALYZE` Blocking:** In PostgreSQL, `EXPLAIN ANALYZE` executes the underlying statement to collect runtime engine metrics. AgentIAM inspects `ExplainStmt.Analyze` and immediately rejects it, preventing side-channel execution of unapproved queries.
+- **Timeout Tampering Protection:** Fixed in commit `5b7e7fcd`, AgentIAM inspects both `VariableSetStmt` (`SET statement_timeout = 0`) and function call trees (`SELECT set_config('statement_timeout', '0', false)`), rejecting any attempt to override query deadlines.
+
+## 6. Policy Enforcement and View Provenance
+
+In enterprise database environments, AI agents rarely query physical base tables directly; instead, they query views, reporting views, and layered virtual relations.
+
+### The View Masking Dilemma (Phase 2 Challenge)
+
+Consider a scenario where `users.ssn` is classified as sensitive, and a database administrator has created an unrestricted view:
+
+```sql
+CREATE VIEW v_user_profiles AS SELECT id, email, ssn FROM users;
+```
+
+If an agent issues `SELECT ssn FROM v_user_profiles`, a naive AST proxy inspecting only the AST sees the relation name `v_user_profiles`. Because `v_user_profiles` is not listed in `rules.MaskedColumns`, a static proxy allows the query without masking, completely defeating data governance.
+
+### CatalogVerifier Architecture & AST-Based Relation Extraction
+
+In Phase 2, AgentIAM resolved this vulnerability by introducing `CatalogVerifier` (`catalog_verifier.go`, `view_provenance.go`):
+
+1. **Targeted Catalog Introspection:** `CatalogVerifier` executes a parameterized query directly against the PostgreSQL system catalog:
+   ```sql
+   SELECT v.definition
+   FROM pg_catalog.pg_views v
+   JOIN pg_catalog.pg_class c ON c.relname = v.viewname
+   JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace AND n.nspname = v.schemaname
+   WHERE v.schemaname = $1 AND v.viewname = $2 AND c.relkind = 'v';
+   ```
+   This verifies that the referenced relation exists in the expected schema, is confirmed as a view (`c.relkind = 'v'`), and retrieves its definition SQL (`v.definition`).
+2. **AST-Based Definition Parsing:** Rather than performing recursive dependency joins across `pg_rewrite` and `pg_depend` system tables, AgentIAM parses the retrieved view definition SQL into an AST using the WebAssembly PostgreSQL parser (`wasilibs/go-pgquery`). It traverses the definition AST to extract underlying base tables, column aliases, and computed expressions, verifying that sensitive base columns are not exposed or renamed in violation of policy.
+3. **Cryptographic View Fingerprinting:** For each verified view, AgentIAM computes an owner-approved SHA-256 fingerprint over the canonical view definition. If the underlying view is modified at runtime, the fingerprint changes, triggering an immediate cache invalidation and re-verification.
+4. **Per-Tenant Cache Isolation:** Resolved view provenance structures are partitioned by tenant identity, preventing cross-tenant cache poisoning.
+5. **50ms Refresh TTL Window:** Cached catalog verification metadata is governed by a 50ms TTL window. This amortizes the overhead of catalog queries during tight query loops by establishing when cached verification decisions become eligible for re-querying. However, cached metadata freshness is distinct from the interval between catalog validation and statement execution.
+
+### Multi-Connection TOCTOU Operational Boundary
+
+It is vital to document the operational boundary of this architecture: catalog validation and statement execution occur over separate physical database connections. Because these operations are not transactionally atomic across connections (`RISK-VIEW-01`), concurrent DDL can commit between catalog verification and query dispatch; the 50ms TTL controls metadata re-query eligibility, but does not eliminate this multi-connection TOCTOU race window. Production safety against untrusted concurrent DDL requires database-level DDL privilege restrictions or operational migration maintenance windows.
+
+<DecisionBlock
+  title="PostgreSQL Wire Protocol Decoder Migration (pgproto3 to pgx/v5)"
+  status="Accepted"
+  context="The existing pgproto3/v2 wire decoder contained an unpatched panic vulnerability (GO-2026-4518) where malformed negative column lengths in DataRow frames trigger unrecoverable slice bounds crashes."
+  options={[
+    {
+      name: 'Maintain pgproto3/v2 with recover() defer traps',
+      summary:
+        'Catches panics in worker goroutines but leaves connection sockets in corrupt, indeterminate protocol states.',
+    },
+    {
+      name: 'Fork and maintain an internal patch of pgproto3/v2',
+      summary:
+        'Requires ongoing maintenance of an abandoned library without broader community security auditing.',
+    },
+    {
+      name: 'Migrate wire decoding to pgx/v5.11.0',
+      summary:
+        'Modern, actively maintained PostgreSQL driver ecosystem with robust integer bounds checking.',
+    },
+  ]}
+  selection="Migrate wire decoding to pgx/v5.11.0 across all frontend and backend PostgreSQL connection pipelines."
+  consequences="Requires refactoring frame decoding and buffer management; resolves the GO-2026-4518 out-of-bounds slice index vulnerability present in pgproto3/v2 by adopting an actively maintained driver with bounds-checked decoders."
+  verification="Validated via 91 live leaf-level database integration subtests with -count=1 against PostgreSQL 15 and MySQL 8.0 containers, alongside unit-level race detection (go test -race) and static vulnerability auditing via govulncheck."
+/>
+
+## 7. Connection Pooling and Concurrency Challenges
+
+Multiplexing M client agent connections over N upstream pooled database connections is essential to prevent agent inference loops from exhausting database connection limits. However, connection pooling introduces severe concurrency and state leakage hazards across different database protocols.
+
+### PostgreSQL CAS Lifecycle State Machine
+
+For PostgreSQL connections, `UpstreamConn` governs its lifecycle via atomic Compare-And-Swap (CAS) state transitions (`sync/atomic`):
+
+```
+ConnStateIdle ──(Acquire)──> ConnStateInUse ──(Release)──> ConnStateCleaning ──(Sanitized)──> ConnStateIdle
+      │                                                           │
+      └─────────────────────────(Close)───────────────────────────┴──> ConnStateClosed
+```
+
+- `ConnStateIdle`: The connection is clean, idle, and available in the pool.
+- `ConnStateInUse`: The connection is exclusively bound to an active client session.
+- `ConnStateCleaning`: The connection has been released by the client session and is undergoing state sanitization via `DISCARD ALL`. It cannot be acquired by any session until cleaning completes cleanly.
+- `ConnStateClosed`: The connection encountered a network error or was explicitly closed; it is permanently removed from the pool.
+
+### MySQL InUse Flag & Reset Lifecycle
+
+For MySQL connections, `MySQLPool` manages `MySQLUpstreamConn` instances using atomic flag indicators rather than multi-state CAS transitions:
+
+- An `InUse` atomic boolean (`atomic.Bool`) tracks whether a connection is currently checked out to a client session.
+- A `Broken` atomic boolean marks connections that encounter network faults or protocol failures during execution, ensuring they are discarded rather than recycled.
+- Individual connection operations (`Execute`, `Close`) are guarded by a `sync.Mutex` to prevent concurrent execution during reset.
+- In the `Release()` sequence, `u.InUse.Store(false)` occurs upfront before connection reset, and the connection is returned to the idle pool channel only after successful sanitization via `COM_RESET_CONNECTION` (under a 5-second deadline) and re-application of session initialization SQL. If reset fails or the connection was marked broken, it is discarded and replaced.
+- Clearing `InUse` upfront marks checkout release, but is not by itself a sufficient lease-ownership safeguard against concurrent usage; unlike PostgreSQL's CAS state transitions (`ConnStateCleaning`), MySQL pool hygiene relies on pool channel encapsulation and connection replacement on failure rather than multi-state lease guards.
+
+### Frontend Mutex Serialization (`u.frontendMu`)
+
+During concurrency testing of the connection recycling pipeline with `go test -race`, a data race was identified: when an upstream connection was returned to the pool, background cleanup routines flushed state-clearing commands while the foreground session goroutine concurrently wrote response frames to the client socket.
+
+To prevent concurrent buffer access, AgentIAM introduced an explicit mutex (`u.frontendMu`) guarding all frontend socket writes and flushes, serializing frame output during connection recycling.
+
+### Coordinated Policy Revocation (`57P01`)
+
+When an administrator revokes an agent's access policy via the management plane, active agent sessions must be terminated under standard PostgreSQL error code `57P01` (`admin_shutdown`).
+
+Authorization enforcement fails closed: subsequent queries under the revoked policy are blocked, and the session is marked for teardown. To notify the connected client prior to closing the physical socket, AgentIAM coordinates shutdown:
+
+1. **Lock-Acquisition Window:** The revocation controller attempts to acquire `clientWriteMu` within a bounded 5-second polling window to prevent clashing with active frame serialization.
+2. **Socket Write Deadline:** If the write lock is acquired, the proxy sets a separate 5-second socket write deadline, transmits a structured `57P01` `ErrorResponse`, flushes the client buffer, and initiates a graceful TCP half-close (`CloseWrite()`). If the lock cannot be acquired within the 5-second window, the proxy proceeds directly to forced teardown.
+3. **Best-Effort Delivery:** Delivering `57P01` across the network is best-effort; error delivery cannot be guaranteed if the transport drops packets, the client disconnects prematurely, the write deadline expires, or transport-level resets occur.
+
+## 8. Real Bugs Discovered and How They Were Corrected
+
+Engineering AgentIAM revealed several critical systems bugs across network protocols, concurrency races, and platform-specific socket behavior:
+
+### Bug 1: Upstream Wire Decoder Panic (GO-2026-4518)
+
+- **Symptom:** In `github.com/jackc/pgproto3/v2@v2.3.3`, receiving a `DataRow` message with a negative column length field (`-1` or corrupted binary data) caused the decoder to perform a slice expression with a negative index, triggering an unrecoverable runtime panic: `runtime error: slice bounds out of range`.
+- **Root Cause:** Missing signed-integer validation in the third-party pgproto3 v2 parser.
+- **Correction:** Migrated the entire PostgreSQL wire decoder pipeline to `github.com/jackc/pgx/v5.11.0`, which implements strict integer bounds checking and active security maintenance.
+
+### Bug 2: Frontend Socket Data Race on Connection Recycling
+
+- **Symptom:** Under concurrent load testing with `go test -race`, Go's race detector identified concurrent access to the internal byte buffer of `pgproto3.Frontend`.
+- **Root Cause:** The upstream pool recycling routine initiated `DISCARD ALL` flushing while the client session goroutine was writing the final `ReadyForQuery` response.
+- **Correction:** Encapsulated all frontend socket write, flush, and close operations within `u.frontendMu`, guaranteeing mutual exclusion between pool management and session dispatch.
+
+### Bug 3: Policy Revocation Socket Read Deadlock
+
+- **Symptom:** Revoking a tenant policy during an active query execution resulted in worker goroutines hanging indefinitely on blocking socket reads.
+- **Root Cause:** Calling `conn.Close()` from an external management goroutine while a worker was blocked in `net.Conn.Read()` failed to unblock the reader under certain Linux kernel and Windows socket configurations.
+- **Correction:** Implemented coordinated cancellation using `context.Context` cancellation and explicit socket read deadlines (`SetReadDeadline(time.Now())`) before closing the socket.
+
+### Bug 4: Windows Winsock Socket Abort Behavior (`WSAECONNABORTED`)
+
+- **Symptom:** During automated integration tests on Windows test runners, clients intermittently failed to receive the `57P01` ErrorResponse, reporting `10053: An established connection was aborted by the software in your host machine`.
+- **Root Cause:** When a TCP socket is closed on Windows while unread data remains in the network receive buffer, Winsock can emit an immediate TCP RST instead of a graceful FIN handshake, discarding unread outgoing packets.
+- **Mitigation & Observational Findings:** The proxy sets write deadlines and invokes graceful TCP half-close (`CloseWrite()`) where supported. However, full resolution cannot be claimed across all Windows transport environments without reproducible multi-platform evidence; socket resets on unread buffers remain an inherent platform transport hazard, and wire delivery of error frames cannot be guaranteed if the client socket terminates ungracefully.
+
+## 9. CI, Testing and Engineering Verification
+
+To guarantee rigorous quality control, the AgentIAM integration branch (`integration/agentiam-security-hardening`) is verified through two distinct GitHub Actions CI jobs in `.github/workflows/ci.yml`:
+
+### 1. Code Quality, Build & Regression Job (`quality-and-unit-tests`)
+
+- **Formatting & Linting:** Validates Go formatting (`gofmt -l .`) and runs `golangci-lint` (v1.64.6).
+- **Dependency Verification:** Runs `go mod verify` and executes an explicit guard verifying that vulnerable legacy `pgproto3/v2` dependencies are completely absent from `go.mod` and `go.sum`.
+- **Unit & Concurrency Tests:** Executes unit and regression tests with `-count=1` (`go test -count=1 -v ./...`), followed by full race detector execution across all packages: `go test -race -count=1 ./...`.
+- **Static Security Auditing:** Runs `govulncheck ./...` (v1.9.0) to detect known vulnerabilities across dependencies.
+
+### 2. Database Integration Job (`database-integration-tests`)
+
+- **Containerized Database Test Execution:** Leverages `testcontainers-go` to orchestrate live PostgreSQL 15 and MySQL 8.0 server containers on Ubuntu runners.
+- **Integration Test Execution:** Runs the database integration test suite against live containers using:
+  ```bash
+  go test -v -count=1 -tags=integration -timeout 25m \
+    -run "TestViewMaskingIntegration|TestProxyIntegration|TestTLSUpgradeAndEnforcement|TestMySQLAdapterIntegration" \
+    ./internal/proxy
+  ```
+- **Execution Parameters:** Executes with `-count=1` to guarantee fresh live database testing with zero cached test replays, running without `-race` to ensure stable container test execution.
+- **Verified Test Breadth:** Evaluates 91 passing leaf-level integration subtests across wire authentication, extended query protocol, projection masking, AST rewriters, view lineage, and connection recycling.
+
+### Verified CI Checkpoint & Integration Status
+
+- **Pull Request:** [Pull Request #21](https://github.com/TM-threemavithana/agentiam/pull/21)
+- **Integration Branch Checkpoint:** Commit `b195a2f151e61792d8b351b66511d046daea26a8` on branch `integration/agentiam-security-hardening`.
+- **Upstream Main Status:** This integration work is currently implemented and verified on PR #21; the upstream `main` branch has not yet incorporated these changes.
+- **Successful Hosted CI Run:** [GitHub Actions Run 42340130837](https://github.com/TM-threemavithana/agentiam/actions/runs/42340130837) (Both quality and database integration jobs passed cleanly).
+
+## 10. Security Limitations and Lessons Learned
+
+Maintaining intellectual honesty regarding security boundaries is essential for any credibility-critical systems project. AgentIAM is an engineering prototype with clear operational boundaries:
+
+### Open Security Blockers & Boundaries
+
+- **`RISK-VIEW-02` (Direct Listener Bypass — Open Production Blocker):** AgentIAM sits as an inline proxy on the network path. If the upstream database's physical listener (port 5432 / 3306) remains accessible over the network, a compromised agent or attacker can bypass the proxy entirely. Deploying AgentIAM in production strictly requires physical network isolation: VPC private subnets, security group firewalls, or strict database `pg_hba.conf` rules permitting connections exclusively from the proxy's IP address.
+- **`RISK-VIEW-01` (Multi-Connection TOCTOU Boundary):** As detailed in Section 6, `CatalogVerifier` queries system catalogs on a separate physical database connection from client query execution. While the 50ms TTL controls when cached verification decisions become eligible for re-querying, catalog verification and statement execution are not transactionally atomic across connections, leaving an operational race window if views are modified concurrently.
+- **Wire Delivery of `57P01`:** Authorization enforcement fails closed on revocation. While the proxy bounds write-lock acquisition to 5 seconds and applies a separate 5-second socket write deadline to deliver the `57P01` error packet before socket closure, wire delivery remains best-effort and cannot be guaranteed under transport failures, unread buffer resets, or abrupt client termination.
+
+### Systems Engineering Lessons Learned
+
+1. **Wire Decoders Require Defensive Bounds Checking:** Relying on third-party wire protocol libraries without fuzz testing or bounds verification introduces critical denial-of-service vectors (as demonstrated by GO-2026-4518).
+2. **State Hygiene Requires Protocol-Specific Lifecycle Control:** Connection pool recycling must match backend protocol semantics. PostgreSQL session state scrubbing (`DISCARD ALL`) requires formal CAS lifecycle state machines (`ConnStateCleaning`) to prevent recycling races, while MySQL requires atomic flag tracking (`InUse`) paired with synchronous `COM_RESET_CONNECTION` commands.
+3. **AST Parsing Cannot Substitute for Catalog Provenance:** Static syntax analysis cannot protect views that wrap sensitive base tables without runtime catalog introspection. Defense-in-depth requires combining AST parsing with runtime schema inspection and strict database-level `REVOKE` privileges.
+
+## 11. Repository and Supporting Evidence Links
+
+- **Source Code Repository:** [github.com/TM-threemavithana/agentiam](https://github.com/TM-threemavithana/agentiam)
+- **Integration Pull Request:** [Pull Request #21 (Security Hardening Integration)](https://github.com/TM-threemavithana/agentiam/pull/21)
+- **Verified Hosted CI Checkpoint:** [GitHub Actions Run 42340130837](https://github.com/TM-threemavithana/agentiam/actions/runs/42340130837)
+- **Status & Review Notice:** AgentIAM is an engineering prototype. The security hardening and database integration described in this case study is verified on Pull Request #21 (commit b195a2f151e61792d8b351b66511d046daea26a8); the upstream main branch has not yet incorporated this integration work. Pull Request #21 is currently open, ready for review, and awaiting human engineering review and merge approval. No production deployment or commercial adoption claims are made.

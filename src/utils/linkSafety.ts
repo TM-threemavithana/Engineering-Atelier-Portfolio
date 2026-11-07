@@ -18,9 +18,9 @@ export const APPROVED_STATIC_ASSETS = new Set<string>(['/favicon.svg', '/robots.
 /**
  * Registry of individually cleared and published project detail routes.
  * Strictly exact-matching: wildcards (e.g. /projects/*) are strictly prohibited (EA-023).
- * In EA-023, all candidate projects remain unpublished, so this registry is empty.
+ * In EA-024 Phase B, AgentIAM is cleared and registered for local publication.
  */
-export const APPROVED_PROJECT_ROUTES = new Set<string>();
+export const APPROVED_PROJECT_ROUTES = new Set<string>(['/projects/agentiam/']);
 
 /**
  * Check if an internal route is currently verified and published.
