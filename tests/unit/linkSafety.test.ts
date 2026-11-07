@@ -31,6 +31,11 @@ assert.equal(
   'Approved project detail route "/projects/streamforge/" must be published'
 );
 assert.equal(
+  isRoutePublished('/projects/forgetasks/'),
+  true,
+  'Approved project detail route "/projects/forgetasks/" must be published'
+);
+assert.equal(
   isRoutePublished('/projects/devforge/'),
   false,
   'Unapproved project detail route "/projects/devforge/" must NOT be published'
@@ -57,6 +62,11 @@ const contactResult = validateLinkDestination('/contact/');
 assert.equal(contactResult.isValid, true, 'Published "/contact/" must be valid');
 assert.equal(contactResult.isExternal, false);
 assert.equal(contactResult.sanitizedHref, '/contact/');
+
+const forgetasksResult = validateLinkDestination('/projects/forgetasks/');
+assert.equal(forgetasksResult.isValid, true, 'Published "/projects/forgetasks/" must be valid');
+assert.equal(forgetasksResult.isExternal, false);
+assert.equal(forgetasksResult.sanitizedHref, '/projects/forgetasks/');
 
 const faviconResult = validateLinkDestination('/favicon.svg');
 assert.equal(faviconResult.isValid, true);

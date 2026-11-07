@@ -95,7 +95,7 @@
 **Depends:** 020,023. **Status:** Phase B Locally Configured & Validated (Awaiting Final Owner Release Decision; Public Deployment Unapproved). **Scope:** owner-approved real project body, diagram(s), evidence links and lessons. **Accept:** content rubric passes; no imagined numbers, completed status only when true. **Verify:** editorial signoff and URL test. **AC:** 05,06,17.
 
 ### EA-025 — Publish second/third verified case study (M)
-**Depends:** 024. **Status:** Phase B Locally Configured & Validated (StreamForge Prototype Published Locally; Awaiting Full Milestone Release; Public Deployment Unapproved). **Scope:** expand only with real evidence; if absent document omission. **Accept:** all published pages match case-study rubric. **Verify:** editorial signoff + links. **AC:** 05,06.
+**Depends:** 024. **Status:** Phase D Locally Configured & Validated (ForgeTasks / ForgeOps Published Locally alongside AgentIAM and StreamForge; Exactly 8 Static Pages; Awaiting Full Milestone Release; Public Deployment Unapproved). **Scope:** expand only with real evidence; if absent document omission. **Accept:** all published pages match case-study rubric. **Verify:** editorial signoff + links. **AC:** 05,06.
 
 ### EA-026 — Project overview experience verification (S)
 **Depends:** 022,024. **Scope:** connect featured work to Home and About without contradictory claims; tidy empty fallback. **Accept:** every featured item links to an existent published URL. **Verify:** E2E/automatic link checks. **AC:** 05,06.
@@ -1072,6 +1072,53 @@
 - Deployment Status:
   - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 
+### EA-025 Execution Record — Phase D ForgeTasks / ForgeOps Local Publication Preparation
+- Status: REVIEW (Phase D Locally Configured & Validated — Public Deployment Separately Unapproved)
+- Authorization: Owner explicit authorization for EA-025 Phase D ForgeTasks / ForgeOps local publication preparation (2026-11-07).
+- Scope implemented:
+  - Preserved reviewed ForgeTasks / ForgeOps technical narrative (Java 21 Spring Boot 3 task management API, JPA `@Version` optimistic concurrency with RFC 7232/9110 weak ETag and HTTP 428/412 precondition semantics, owner-scoped repository read/mutation tenant isolation, assignedAccountId collaborator model, self-hosted Kubernetes platform with MetalLB, Ingress-NGINX, ArgoCD GitOps app-of-apps, Prometheus/Grafana observability, automated disaster recovery runbooks with G12/G13 rehearsal [RPO=0, RTO=4m12s], and two formal architectural DecisionBlocks).
+  - Draft migrated from `src/content/projects/java-task-api.mdx` to `src/content/projects/forgetasks.mdx` with publication frontmatter:
+    - `status: 'prototype'`
+    - `publishedAt: 2026-11-07`
+    - `draft: false`
+    - `editorialApproval: true`
+    - `featured: false` (homepage `#featured-work` continues featuring only AgentIAM and StreamForge)
+  - Detail route updated: `/projects/forgetasks/` registered in `APPROVED_PROJECT_ROUTES` (`src/utils/linkSafety.ts`), retaining `/projects/agentiam/` and `/projects/streamforge/`. Old slug `/projects/java-task-api/` strictly remains rejected as an unbuilt route.
+  - Gating preserved: Remaining 2 candidate projects (`devforge`, `currency-auth-research`) strictly remain in `draft: true` and `editorialApproval: false`.
+  - Static build output verified: Exactly 8 static HTML pages generated in `dist/` (`404.html`, `about/index.html`, `contact/index.html`, `index.html`, `projects/index.html`, `projects/agentiam/index.html`, `projects/streamforge/index.html`, `projects/forgetasks/index.html`).
+  - Page integration verified: `/projects/` renders populated layout with all 3 published prototype case studies (AgentIAM, StreamForge, ForgeTasks); homepage renders `#featured-work` displaying exactly 2 featured prototype cards (`featured: false` on ForgeTasks verified).
+- Files modified / created:
+  - `src/content/projects/forgetasks.mdx` (new file with verified narrative, architecture diagram, 2 DecisionBlocks, and publication frontmatter)
+  - `src/content/projects/java-task-api.mdx` (deleted old draft file)
+  - `src/utils/linkSafety.ts` (registered `/projects/forgetasks/` in `APPROVED_PROJECT_ROUTES`)
+  - `tests/unit/projects.test.ts` (reconciled EA-025 Phase D project state: 3 approved prototypes, 2 remaining drafts)
+  - `tests/unit/caseStudy.test.ts` (reconciled 3-case-study routing, route exactness, and strict rejection of retired `java-task-api`)
+  - `tests/unit/linkSafety.test.ts` (added positive assertion for `/projects/forgetasks/`; retained negative assertion for `/projects/java-task-api/`)
+  - `tests/unit/projectCards.test.ts` (added positive assertion for `/projects/forgetasks/`; retained negative assertion for `/projects/java-task-api/`)
+  - `tests/unit/projectSchema.test.ts` (added Scenario F publishability test for `forgetasks`)
+  - `tests/unit/projectsIndex.test.ts` (added positive assertion for `/projects/forgetasks/`; retained negative assertion for `/projects/java-task-api/`)
+  - `tests/artifacts/artifact-verification.ts` (reconciled exact 8 static HTML pages, allPageEntries landmarks across 8 pages, ForgeTasks detail verification, and `/projects/` 3-card listing)
+  - `docs/CONTENT_STATUS.md` (updated EA-025 status and Candidate Projects Status table)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (updated EA-025 status and execution record)
+- Automated verification executed:
+  - `npm run check`: PASS (83 files checked, 0 errors, 0 warnings, 0 hints)
+  - `npm run lint`: PASS (0 ESLint errors)
+  - `npm run format:check`: PASS (100% compliant with Prettier)
+  - `npm run test`: PASS (13 unit test suites, 46/46 tests passed)
+  - `verify:primitives`: PASS (isolated HTML primitive semantics verified)
+  - `verify:project-cards`: PASS (isolated project card rendering verified)
+  - `verify:case-studies`: PASS (isolated case-study rendering verified)
+  - `npm run build`: PASS (8 static pages built in dist/)
+  - `npm run verify:artifacts`: PASS (17 production artifact verification test suites passed)
+- Browser evidence captured (Microsoft Edge headless):
+  - Desktop 1440px: `forgetasks_detail_desktop_1440.png` (73,681 bytes)
+  - Tablet 768px: `forgetasks_detail_tablet_768.png` (54,396 bytes)
+  - Mobile 390px: `forgetasks_detail_mobile_390.png` (39,553 bytes)
+  - Narrow Mobile 320px: `forgetasks_detail_mobile_320.png` (29,187 bytes)
+  - Projects Index Desktop (1440px): `projects_index_desktop_1440_ea025_forgetasks.png` (70,655 bytes)
+  - Homepage Featured Desktop (1440px): `homepage_featured_desktop_1440_ea025_forgetasks.png` (98,223 bytes)
+- Deployment Status:
+  - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 ### EA-025 Execution Record — Phase B StreamForge Local Publication Preparation
 - Status: REVIEW (Phase B Locally Configured & Validated — Public Deployment Separately Unapproved)
 - Authorization: Owner explicit authorization for EA-025 Phase B StreamForge local publication preparation (2026-11-07).
@@ -1111,5 +1158,52 @@
 - Deployment Status:
   - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 
+### EA-025 Execution Record — Phase D ForgeTasks / ForgeOps Local Publication Preparation
+- Status: REVIEW (Phase D Locally Configured & Validated — Public Deployment Separately Unapproved)
+- Authorization: Owner explicit authorization for EA-025 Phase D ForgeTasks / ForgeOps local publication preparation (2026-11-07).
+- Scope implemented:
+  - Preserved reviewed ForgeTasks / ForgeOps technical narrative (Java 21 Spring Boot 3 task management API, JPA `@Version` optimistic concurrency with RFC 7232/9110 weak ETag and HTTP 428/412 precondition semantics, owner-scoped repository read/mutation tenant isolation, assignedAccountId collaborator model, self-hosted Kubernetes platform with MetalLB, Ingress-NGINX, ArgoCD GitOps app-of-apps, Prometheus/Grafana observability, automated disaster recovery runbooks with G12/G13 rehearsal [RPO=0, RTO=4m12s], and two formal architectural DecisionBlocks).
+  - Draft migrated from `src/content/projects/java-task-api.mdx` to `src/content/projects/forgetasks.mdx` with publication frontmatter:
+    - `status: 'prototype'`
+    - `publishedAt: 2026-11-07`
+    - `draft: false`
+    - `editorialApproval: true`
+    - `featured: false` (homepage `#featured-work` continues featuring only AgentIAM and StreamForge)
+  - Detail route updated: `/projects/forgetasks/` registered in `APPROVED_PROJECT_ROUTES` (`src/utils/linkSafety.ts`), retaining `/projects/agentiam/` and `/projects/streamforge/`. Old slug `/projects/java-task-api/` strictly remains rejected as an unbuilt route.
+  - Gating preserved: Remaining 2 candidate projects (`devforge`, `currency-auth-research`) strictly remain in `draft: true` and `editorialApproval: false`.
+  - Static build output verified: Exactly 8 static HTML pages generated in `dist/` (`404.html`, `about/index.html`, `contact/index.html`, `index.html`, `projects/index.html`, `projects/agentiam/index.html`, `projects/streamforge/index.html`, `projects/forgetasks/index.html`).
+  - Page integration verified: `/projects/` renders populated layout with all 3 published prototype case studies (AgentIAM, StreamForge, ForgeTasks); homepage renders `#featured-work` displaying exactly 2 featured prototype cards (`featured: false` on ForgeTasks verified).
+- Files modified / created:
+  - `src/content/projects/forgetasks.mdx` (new file with verified narrative, architecture diagram, 2 DecisionBlocks, and publication frontmatter)
+  - `src/content/projects/java-task-api.mdx` (deleted old draft file)
+  - `src/utils/linkSafety.ts` (registered `/projects/forgetasks/` in `APPROVED_PROJECT_ROUTES`)
+  - `tests/unit/projects.test.ts` (reconciled EA-025 Phase D project state: 3 approved prototypes, 2 remaining drafts)
+  - `tests/unit/caseStudy.test.ts` (reconciled 3-case-study routing, route exactness, and strict rejection of retired `java-task-api`)
+  - `tests/unit/linkSafety.test.ts` (added positive assertion for `/projects/forgetasks/`; retained negative assertion for `/projects/java-task-api/`)
+  - `tests/unit/projectCards.test.ts` (added positive assertion for `/projects/forgetasks/`; retained negative assertion for `/projects/java-task-api/`)
+  - `tests/unit/projectSchema.test.ts` (added Scenario F publishability test for `forgetasks`)
+  - `tests/unit/projectsIndex.test.ts` (added positive assertion for `/projects/forgetasks/`; retained negative assertion for `/projects/java-task-api/`)
+  - `tests/artifacts/artifact-verification.ts` (reconciled exact 8 static HTML pages, allPageEntries landmarks across 8 pages, ForgeTasks detail verification, and `/projects/` 3-card listing)
+  - `docs/CONTENT_STATUS.md` (updated EA-025 status and Candidate Projects Status table)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (updated EA-025 status and execution record)
+- Automated verification executed:
+  - `npm run check`: PASS (83 files checked, 0 errors, 0 warnings, 0 hints)
+  - `npm run lint`: PASS (0 ESLint errors)
+  - `npm run format:check`: PASS (100% compliant with Prettier)
+  - `npm run test`: PASS (13 unit test suites, 46/46 tests passed)
+  - `verify:primitives`: PASS (isolated HTML primitive semantics verified)
+  - `verify:project-cards`: PASS (isolated project card rendering verified)
+  - `verify:case-studies`: PASS (isolated case-study rendering verified)
+  - `npm run build`: PASS (8 static pages built in dist/)
+  - `npm run verify:artifacts`: PASS (17 production artifact verification test suites passed)
+- Browser evidence captured (Microsoft Edge headless):
+  - Desktop 1440px: `forgetasks_detail_desktop_1440.png` (73,681 bytes)
+  - Tablet 768px: `forgetasks_detail_tablet_768.png` (54,396 bytes)
+  - Mobile 390px: `forgetasks_detail_mobile_390.png` (39,553 bytes)
+  - Narrow Mobile 320px: `forgetasks_detail_mobile_320.png` (29,187 bytes)
+  - Projects Index Desktop (1440px): `projects_index_desktop_1440_ea025_forgetasks.png` (70,655 bytes)
+  - Homepage Featured Desktop (1440px): `homepage_featured_desktop_1440_ea025_forgetasks.png` (98,223 bytes)
+- Deployment Status:
+  - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 
 

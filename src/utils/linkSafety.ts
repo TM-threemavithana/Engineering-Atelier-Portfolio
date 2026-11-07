@@ -18,11 +18,12 @@ export const APPROVED_STATIC_ASSETS = new Set<string>(['/favicon.svg', '/robots.
 /**
  * Registry of individually cleared and published project detail routes.
  * Strictly exact-matching: wildcards (e.g. /projects/*) are strictly prohibited (EA-023).
- * In EA-024/EA-025 Phase B, AgentIAM and StreamForge are cleared and registered for local publication.
+ * In EA-024/EA-025 Phase B/D, AgentIAM, StreamForge, and ForgeTasks are cleared and registered for local publication.
  */
 export const APPROVED_PROJECT_ROUTES = new Set<string>([
   '/projects/agentiam/',
   '/projects/streamforge/',
+  '/projects/forgetasks/',
 ]);
 
 /**

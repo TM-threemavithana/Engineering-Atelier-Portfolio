@@ -78,8 +78,14 @@ test('EA-022: Activating /projects/ does NOT activate unapproved project detail 
     true,
     'Approved StreamForge detail route must be published'
   );
+  assert.equal(
+    isRoutePublished('/projects/forgetasks/'),
+    true,
+    'Approved ForgeTasks detail route must be published'
+  );
   assert.equal(validateLinkDestination('/projects/agentiam/').isValid, true);
   assert.equal(validateLinkDestination('/projects/streamforge/').isValid, true);
+  assert.equal(validateLinkDestination('/projects/forgetasks/').isValid, true);
 
   // Unapproved candidate detail routes must strictly remain unpublished
   const unapprovedDetailRoutes = [

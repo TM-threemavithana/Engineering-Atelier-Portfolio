@@ -424,6 +424,17 @@ test('isProjectPublishable enforces strict 4-layer gate and suppresses drafts', 
   };
   assert.equal(isProjectPublishable(approvedStreamforge), true);
 
+  // Scenario F: draft: false, editorialApproval: true, route is approved ForgeTasks -> PUBLISHABLE
+  const approvedForgetasks: ProjectItem = {
+    ...candidateDraft,
+    id: 'forgetasks',
+    slug: 'forgetasks',
+    href: '/projects/forgetasks/',
+    draft: false,
+    editorialApproval: true,
+  };
+  assert.equal(isProjectPublishable(approvedForgetasks), true);
+
   console.log('✓ 4-layer publication gate strictly enforces draft exclusion and route checks');
 });
 

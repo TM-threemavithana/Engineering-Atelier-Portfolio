@@ -130,6 +130,22 @@ assert.ok(
   'dist/projects/index.html must link to /projects/streamforge/'
 );
 assert.ok(
+  projectsHtml.includes(
+    'ForgeTasks &amp; ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+  ) ||
+    projectsHtml.includes(
+      'ForgeTasks & ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+    ) ||
+    projectsHtml.includes(
+      'ForgeTasks &#38; ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+    ),
+  'dist/projects/index.html must display ForgeTasks project title'
+);
+assert.ok(
+  projectsHtml.includes('href="/projects/forgetasks/"'),
+  'dist/projects/index.html must link to /projects/forgetasks/'
+);
+assert.ok(
   projectsHtml.includes('Prototype Architecture'),
   'dist/projects/index.html must visibly display Prototype Architecture status'
 );
@@ -137,6 +153,11 @@ assert.ok(
   projectsHtml.includes('Creator &amp; Systems Engineer') ||
     projectsHtml.includes('Creator & Systems Engineer'),
   'dist/projects/index.html must display Creator & Systems Engineer role'
+);
+assert.ok(
+  projectsHtml.includes('Backend &amp; Platform Systems Engineer') ||
+    projectsHtml.includes('Backend & Platform Systems Engineer'),
+  'dist/projects/index.html must display Backend & Platform Systems Engineer role'
 );
 
 // Verify AgentIAM case study detail page exists and contains required elements
@@ -204,6 +225,43 @@ assert.ok(
 assert.ok(
   streamforgeHtml.includes('9,792.9 events/sec'),
   'StreamForge case study must link to verified benchmark metric'
+);
+
+// Verify ForgeTasks case study detail page exists and contains required elements (EA-025 Phase D)
+const forgetasksHtmlPath = path.join(distDir, 'projects', 'forgetasks', 'index.html');
+assert.ok(
+  fs.existsSync(forgetasksHtmlPath),
+  'dist/projects/forgetasks/index.html must exist in production build output'
+);
+const forgetasksHtml = fs.readFileSync(forgetasksHtmlPath, 'utf8');
+assert.ok(
+  forgetasksHtml.includes(
+    'ForgeTasks &amp; ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+  ) ||
+    forgetasksHtml.includes(
+      'ForgeTasks & ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+    ) ||
+    forgetasksHtml.includes(
+      'ForgeTasks &#38; ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+    ),
+  'ForgeTasks case study must contain title H1'
+);
+assert.ok(
+  forgetasksHtml.includes('Prototype Architecture'),
+  'ForgeTasks case study must visibly classify status as Prototype Architecture'
+);
+assert.ok(
+  forgetasksHtml.includes('Backend &amp; Platform Systems Engineer') ||
+    forgetasksHtml.includes('Backend & Platform Systems Engineer'),
+  'ForgeTasks case study must contain verified role'
+);
+assert.ok(
+  forgetasksHtml.includes('https://github.com/TM-threemavithana/ForgeOps'),
+  'ForgeTasks case study must link to GitHub repo'
+);
+assert.ok(
+  forgetasksHtml.includes('G12') && forgetasksHtml.includes('G13'),
+  'ForgeTasks case study must contain verified GitOps and reliability gate evidence'
 );
 
 // Draft candidate detail routes must NOT exist
@@ -537,6 +595,10 @@ assert.ok(
   !indexHtml.includes('Java Task API'),
   'Draft candidate Java Task API must strictly not appear in public index.html'
 );
+assert.ok(
+  !indexHtml.includes('href="/projects/forgetasks/"'),
+  'ForgeTasks is unfeatured and must not appear in featured work on dist/index.html'
+);
 
 // D. Heading IDs and aria-labelledby consistency check
 const sectionsWithLabelledBy = [
@@ -817,11 +879,13 @@ for (const link of prohibited404Links) {
   );
 }
 
-// E. Global Landmark Structure across ALL 6 Production Pages (Home, Projects, AgentIAM Detail, About, Contact, 404)
+// E. Global Landmark Structure across ALL 8 Production Pages (Home, Projects, AgentIAM Detail, StreamForge Detail, ForgeTasks Detail, About, Contact, 404)
 const allPageEntries = [
   { name: 'Home', path: path.join(distDir, 'index.html') },
   { name: 'Projects', path: path.join(distDir, 'projects', 'index.html') },
   { name: 'AgentIAM Detail', path: path.join(distDir, 'projects', 'agentiam', 'index.html') },
+  { name: 'StreamForge Detail', path: path.join(distDir, 'projects', 'streamforge', 'index.html') },
+  { name: 'ForgeTasks Detail', path: path.join(distDir, 'projects', 'forgetasks', 'index.html') },
   { name: 'About', path: path.join(distDir, 'about', 'index.html') },
   { name: 'Contact', path: path.join(distDir, 'contact', 'index.html') },
   { name: '404', path: path.join(distDir, '404.html') },
@@ -933,8 +997,8 @@ const projectsDir = path.join(distDir, 'projects');
 const projectDirEntries = fs.readdirSync(projectsDir).sort();
 assert.deepEqual(
   projectDirEntries,
-  ['agentiam', 'index.html', 'streamforge'].sort(),
-  `dist/projects/ must contain ONLY index.html, agentiam/, and streamforge/, found: ${JSON.stringify(projectDirEntries)}`
+  ['agentiam', 'forgetasks', 'index.html', 'streamforge'].sort(),
+  `dist/projects/ must contain ONLY index.html, agentiam/, forgetasks/, and streamforge/, found: ${JSON.stringify(projectDirEntries)}`
 );
 
 // Verify dev-case-study fixture isolation
@@ -963,7 +1027,7 @@ for (const page of allPageEntries) {
   }
 }
 
-// Strictly verify total HTML pages across entire dist/ output equals exactly 7 (EA-025)
+// Strictly verify total HTML pages across entire dist/ output equals exactly 8 (EA-025 Phase D)
 function findHtmlFiles(dir: string, baseDir: string = dir): string[] {
   let results: string[] = [];
   const list = fs.readdirSync(dir);
@@ -988,6 +1052,7 @@ const expectedHtmlFiles = [
   'contact/index.html',
   'index.html',
   'projects/agentiam/index.html',
+  'projects/forgetasks/index.html',
   'projects/streamforge/index.html',
   'projects/index.html',
 ].sort();
@@ -995,10 +1060,10 @@ const expectedHtmlFiles = [
 assert.deepEqual(
   allGeneratedHtmlFiles,
   expectedHtmlFiles,
-  `Production dist/ must contain EXACTLY 7 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
+  `Production dist/ must contain EXACTLY 8 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
 );
 console.log(
-  '✓ EA-025 Case Study production invariants confirmed: exactly 7 HTML pages, cleared AgentIAM and StreamForge detail routes, zero fixture leaks'
+  '✓ EA-025 Phase D Case Study production invariants confirmed: exactly 8 HTML pages, cleared AgentIAM, StreamForge, and ForgeTasks detail routes, zero fixture leaks'
 );
 
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

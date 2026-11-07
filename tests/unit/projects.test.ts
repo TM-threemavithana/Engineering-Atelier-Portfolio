@@ -2,19 +2,23 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { getPublishedFeaturedProjects, type ProjectItem } from '../../src/data/projects';
+import {
+  getPublishedFeaturedProjects,
+  getPublishedProjects,
+  type ProjectItem,
+} from '../../src/data/projects';
 
 console.log('--- Starting Projects Inventory & Draft Gating Unit Suite ---');
 
 const contentProjectsDir = path.resolve('src/content/projects');
 
-test('Project MDX files in src/content/projects enforce EA-025 publication state (AgentIAM and StreamForge cleared, 3 candidates draft)', () => {
+test('Project MDX files in src/content/projects enforce EA-025 Phase D publication state (AgentIAM, StreamForge, and ForgeTasks cleared, 2 candidates draft)', () => {
   assert.ok(fs.existsSync(contentProjectsDir), 'src/content/projects directory must exist');
 
   const files = fs.readdirSync(contentProjectsDir).filter((f) => f.endsWith('.mdx'));
   assert.equal(files.length, 5, 'Must contain exactly 5 candidate project MDX files');
 
-  const draftSlugs = ['devforge.mdx', 'java-task-api.mdx', 'currency-auth-research.mdx'];
+  const draftSlugs = ['devforge.mdx', 'currency-auth-research.mdx'];
   for (const slug of draftSlugs) {
     assert.ok(
       files.includes(slug),
@@ -114,8 +118,41 @@ test('Project MDX files in src/content/projects enforce EA-025 publication state
     'streamforge.mdx body must NOT use HTML comments <!-- --> (must use JSX comments {/* */})'
   );
 
+  // Verify owner-cleared ForgeTasks prototype case study (EA-025 Phase D)
+  assert.ok(files.includes('forgetasks.mdx'), 'forgetasks.mdx must exist in src/content/projects/');
+  const forgetasksRaw = fs.readFileSync(path.join(contentProjectsDir, 'forgetasks.mdx'), 'utf-8');
+  const forgetasksMatch = forgetasksRaw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  assert.ok(forgetasksMatch, 'forgetasks.mdx must contain valid frontmatter enclosed in ---');
+
+  assert.match(
+    forgetasksMatch[1],
+    /draft:\s*false/,
+    'Approved forgetasks.mdx frontmatter must have draft: false'
+  );
+  assert.match(
+    forgetasksMatch[1],
+    /editorialApproval:\s*true/,
+    'Approved forgetasks.mdx frontmatter must have editorialApproval: true'
+  );
+  assert.match(
+    forgetasksMatch[1],
+    /publishedAt:\s*2026-11-07/,
+    'Approved forgetasks.mdx frontmatter must specify publishedAt: 2026-11-07'
+  );
+  assert.match(
+    forgetasksMatch[1],
+    /status:\s*'prototype'/,
+    'Approved forgetasks.mdx frontmatter must have status: prototype'
+  );
+
+  const forgetasksBody = forgetasksRaw.slice(forgetasksMatch[0].length);
+  assert.ok(
+    !forgetasksBody.includes('<!--'),
+    'forgetasks.mdx body must NOT use HTML comments <!-- --> (must use JSX comments {/* */})'
+  );
+
   console.log(
-    '✓ EA-025 project content state confirmed: AgentIAM and StreamForge cleared, 3 remaining candidates strictly gated'
+    '✓ EA-025 Phase D project content state confirmed: AgentIAM, StreamForge, and ForgeTasks cleared, 2 remaining candidates strictly gated'
   );
 });
 
@@ -199,12 +236,41 @@ test('getPublishedFeaturedProjects enforces publication gates with controlled fi
     summary: 'High-throughput polyglot streaming pipeline',
     href: '/projects/streamforge/',
   };
+  const mockForgetasks: ProjectItem = {
+    id: 'forgetasks',
+    slug: 'forgetasks',
+    title: 'ForgeTasks & ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability',
+    problem: 'Java 21 task API with optimistic concurrency and GitOps reliability',
+    role: 'Backend & Platform Systems Engineer',
+    contribution: 'Architected Spring Boot REST API, ETag optimistic concurrency, and GitOps lab',
+    stack: ['Java', 'Spring Boot', 'PostgreSQL', 'Kubernetes'],
+    status: 'prototype',
+    draft: false,
+    editorialApproval: true,
+    featured: false,
+    summary: 'Java 21 and Spring Boot task-management API with owner-scoped data access',
+    href: '/projects/forgetasks/',
+  };
+
+  const allPublished = await getPublishedProjects([
+    mockAgentiam,
+    mockStreamforge,
+    mockForgetasks,
+    ...mockDrafts,
+  ]);
+  assert.equal(allPublished.length, 3, 'All 3 approved projects must be listed in Projects index');
+
   const publishedFeatured = await getPublishedFeaturedProjects([
     mockAgentiam,
     mockStreamforge,
+    mockForgetasks,
     ...mockDrafts,
   ]);
-  assert.equal(publishedFeatured.length, 2, 'Both approved projects must be featured');
+  assert.equal(
+    publishedFeatured.length,
+    2,
+    'Homepage featured work must contain only the 2 featured projects'
+  );
   assert.equal(publishedFeatured[0].id, 'agentiam');
   assert.equal(publishedFeatured[1].id, 'streamforge');
 

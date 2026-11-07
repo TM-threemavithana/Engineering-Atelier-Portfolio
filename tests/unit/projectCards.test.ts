@@ -41,6 +41,11 @@ test('1. Safe Project Navigation: Unpublished and draft project routes are rejec
     true,
     'Approved StreamForge project must return true'
   );
+  assert.equal(
+    isRoutePublished('/projects/forgetasks/'),
+    true,
+    'Approved ForgeTasks project must return true'
+  );
 
   // Candidate project routes and draft fixtures must not be recognized as published
   assert.equal(

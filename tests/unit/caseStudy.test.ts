@@ -18,13 +18,13 @@ import {
 
 console.log('--- Starting Case Study Template & Rich MDX Unit Suite ---');
 
-test('EA-025: Controlled fixtures and runtime state verify two-case-study publication gating', async () => {
+test('EA-025 Phase D: Controlled fixtures and runtime state verify three-case-study publication gating', async () => {
   const collectionEntries = await fetchProjectsCollection();
 
   // In standalone Node.js runner, fetchProjectsCollection falls back to empty array gracefully
-  // If run in Astro runtime with loaded entries, only AgentIAM and StreamForge pass publication gating
+  // If run in Astro runtime with loaded entries, only AgentIAM, StreamForge, and ForgeTasks pass publication gating
   for (const entry of collectionEntries) {
-    if (entry.id === 'agentiam' || entry.id === 'streamforge') {
+    if (entry.id === 'agentiam' || entry.id === 'streamforge' || entry.id === 'forgetasks') {
       assert.equal(
         isProjectPublishable(entry),
         true,
@@ -82,6 +82,29 @@ test('EA-025: Controlled fixtures and runtime state verify two-case-study public
     'StreamForge controlled fixture must pass all 4 publication gates'
   );
 
+  const forgetasksFixture: GenericProjectEntry = {
+    id: 'forgetasks',
+    data: {
+      title: 'ForgeTasks & ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability',
+      summary:
+        'Java 21 and Spring Boot task-management API with owner-scoped data access and version-based optimistic concurrency, supported by a self-hosted Kubernetes GitOps and reliability lab.',
+      status: 'prototype',
+      role: 'Backend & Platform Systems Engineer',
+      individualContribution:
+        'Architected and implemented the Spring Boot REST API, ETag optimistic concurrency engine, Flyway relational schemas, and self-hosted GitOps/observability infrastructure across Argo CD, SOPS/age, and Grafana Alloy.',
+      technologies: ['Java', 'Spring Boot', 'PostgreSQL', 'Kubernetes'],
+      categories: ['backend', 'distributed'],
+      draft: false,
+      editorialApproval: true,
+      publishedAt: new Date('2026-11-07'),
+    },
+  };
+  assert.equal(
+    isProjectPublishable(forgetasksFixture),
+    true,
+    'ForgeTasks controlled fixture must pass all 4 publication gates'
+  );
+
   const draftFixture: GenericProjectEntry = {
     id: 'devforge',
     data: {
@@ -113,16 +136,16 @@ test('EA-025: Controlled fixtures and runtime state verify two-case-study public
   );
 
   console.log(
-    '✓ Dynamic route publication gating verified: only cleared AgentIAM and StreamForge routes permitted'
+    '✓ Dynamic route publication gating verified: only cleared AgentIAM, StreamForge, and ForgeTasks routes permitted'
   );
 });
 
-test('EA-025: APPROVED_PROJECT_ROUTES enforces exact matching and contains only cleared AgentIAM and StreamForge routes', () => {
-  // 1. Initial state: registry contains exactly the approved AgentIAM and StreamForge detail routes
+test('EA-025 Phase D: APPROVED_PROJECT_ROUTES enforces exact matching and contains only cleared AgentIAM, StreamForge, and ForgeTasks routes', () => {
+  // 1. Initial state: registry contains exactly the approved AgentIAM, StreamForge, and ForgeTasks detail routes
   assert.equal(
     APPROVED_PROJECT_ROUTES.size,
-    2,
-    'APPROVED_PROJECT_ROUTES must contain exactly 2 routes in EA-025'
+    3,
+    'APPROVED_PROJECT_ROUTES must contain exactly 3 routes in EA-025 Phase D'
   );
   assert.ok(
     APPROVED_PROJECT_ROUTES.has('/projects/agentiam/'),
@@ -132,14 +155,20 @@ test('EA-025: APPROVED_PROJECT_ROUTES enforces exact matching and contains only 
     APPROVED_PROJECT_ROUTES.has('/projects/streamforge/'),
     'APPROVED_PROJECT_ROUTES must contain "/projects/streamforge/"'
   );
+  assert.ok(
+    APPROVED_PROJECT_ROUTES.has('/projects/forgetasks/'),
+    'APPROVED_PROJECT_ROUTES must contain "/projects/forgetasks/"'
+  );
 
   // 2. Verified routes are published (both trailing slash and normalized)
   assert.equal(isRoutePublished('/projects/agentiam/'), true);
   assert.equal(isRoutePublished('/projects/agentiam'), true);
   assert.equal(isRoutePublished('/projects/streamforge/'), true);
   assert.equal(isRoutePublished('/projects/streamforge'), true);
+  assert.equal(isRoutePublished('/projects/forgetasks/'), true);
+  assert.equal(isRoutePublished('/projects/forgetasks'), true);
 
-  // 3. Unregistered routes are strictly rejected
+  // 3. Unregistered routes are strictly rejected (including old java-task-api slug)
   assert.equal(isRoutePublished('/projects/currency-auth-research/'), false);
   assert.equal(isRoutePublished('/projects/devforge/'), false);
   assert.equal(isRoutePublished('/projects/java-task-api/'), false);
@@ -147,6 +176,7 @@ test('EA-025: APPROVED_PROJECT_ROUTES enforces exact matching and contains only 
   // 4. Wildcard / sub-path routes are strictly rejected
   assert.equal(isRoutePublished('/projects/agentiam/deep/'), false);
   assert.equal(isRoutePublished('/projects/streamforge/deep/'), false);
+  assert.equal(isRoutePublished('/projects/forgetasks/deep/'), false);
   assert.equal(isRoutePublished('/projects/*'), false);
 
   // 5. Simulated exact registration with guaranteed restoration
@@ -174,9 +204,10 @@ test('EA-025: APPROVED_PROJECT_ROUTES enforces exact matching and contains only 
   }
 
   // Confirm registry state is fully restored
-  assert.equal(APPROVED_PROJECT_ROUTES.size, 2);
+  assert.equal(APPROVED_PROJECT_ROUTES.size, 3);
   assert.ok(APPROVED_PROJECT_ROUTES.has('/projects/agentiam/'));
   assert.ok(APPROVED_PROJECT_ROUTES.has('/projects/streamforge/'));
+  assert.ok(APPROVED_PROJECT_ROUTES.has('/projects/forgetasks/'));
 
   console.log(
     '✓ Exact per-project route approval verified (wildcards prohibited, restoration guaranteed)'

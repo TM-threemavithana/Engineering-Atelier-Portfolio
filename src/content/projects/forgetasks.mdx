@@ -1,0 +1,707 @@
+---
+# Locally Approved Engineering Prototype Case Study (EA-025 Phase D)
+title: 'ForgeTasks & ForgeOps: Java Backend Engineering and Self-Hosted Platform Reliability'
+summary: 'Java 21 and Spring Boot task-management API with owner-scoped data access and version-based optimistic concurrency, supported by a self-hosted Kubernetes GitOps and reliability lab.'
+status: 'prototype'
+publishedAt: 2026-11-07
+role: 'Backend & Platform Systems Engineer'
+individualContribution: 'Architected and implemented the Spring Boot REST API, ETag optimistic concurrency engine, Flyway relational schemas, and self-hosted GitOps/observability infrastructure across Argo CD, SOPS/age, and Grafana Alloy.'
+categories:
+  - 'backend'
+  - 'distributed'
+technologies:
+  - 'Java'
+  - 'Spring Boot'
+  - 'PostgreSQL'
+  - 'Kubernetes'
+  - 'Docker'
+  - 'OpenTelemetry'
+  - 'Prometheus'
+  - 'Grafana'
+featured: false
+repoUrl: 'https://github.com/TM-threemavithana/ForgeOps'
+evidence:
+  - label: 'GitHub Repository'
+    url: 'https://github.com/TM-threemavithana/ForgeOps'
+    kind: 'repo'
+  - label: 'Architecture Decision Records (ADR-0001 to ADR-0014)'
+    url: 'https://github.com/TM-threemavithana/ForgeOps/tree/master/docs/adr'
+    kind: 'document'
+  - label: 'Gate G12 k6 Load Test Summaries'
+    url: 'https://github.com/TM-threemavithana/ForgeOps/tree/master/docs/evidence/G12/results'
+    kind: 'test'
+  - label: 'Gate G13 Disaster Recovery Drill Report'
+    url: 'https://github.com/TM-threemavithana/ForgeOps/blob/master/docs/evidence/G13/G13-acceptance-report.md'
+    kind: 'document'
+draft: false
+editorialApproval: true
+---
+
+{/* LOCALLY APPROVED PROTOTYPE: Authentic ForgeTasks & ForgeOps implementation and reliability verification approved for local portfolio presentation (EA-025 Phase D). Gated from public production deployment. */}
+
+## 1. Project Overview & The Platform Engineering Challenge
+
+Modern enterprise backend development demands more than writing functional REST endpoints. High-assurance systems require strict transactional integrity, non-blocking concurrent writes, and owner-scoped data access at the application tier—coupled with automated delivery, continuous observability, and verified disaster recovery at the platform tier.
+
+However, organizations frequently suffer from two operational extremes:
+
+1. **The Cloud Black-Box Trap:** Cloud hyperscalers (AWS, GCP, Azure) provide convenient managed services, but abstract away fundamental infrastructure mechanics—such as container network routing, storage volume persistence, Linux cgroups, and TLS termination—while imposing steep recurring compute and data egress fees that discourage aggressive chaos injection and recovery rehearsals.
+2. **The Eventual Consistency Fallacy:** Many distributed architectures default to complex asynchronous messaging and eventual consistency for workflows that fundamentally demand strict ACID guarantees, leading to subtle race conditions, lost updates, and corrupted relational state.
+
+**ForgeTasks & ForgeOps** resolves this duality through an intentional two-tier architecture:
+
+- **ForgeTasks API (Application Layer):** A modern Java 21 LTS / Spring Boot 4.1.2 RESTful service built with Jakarta Persistence (JPA), Hibernate 6, Flyway migrations, and PostgreSQL 16. It enforces version-based HTTP optimistic concurrency control via ETags, BCrypt-authenticated owner-scoped relational data isolation, and RFC 7807/9457 `ProblemDetail` error contracts.
+- **ForgeOps Platform (Infrastructure & SRE Layer):** A self-hosted, reproducible GitOps delivery and observability platform running on a local-first Kubernetes (Kind) cluster. It integrates pull-based continuous delivery via Argo CD, dual-escrow secret encryption via Mozilla SOPS and `age`, client-side policy-as-code with Kyverno, and three-pillar correlated telemetry powered by Grafana Alloy, Loki, Tempo, and Prometheus.
+
+Every metric, latency percentile, and recovery time objective documented in this case study is derived from actual captured command execution logs within the repository's 15-gate verification suite.
+
+## 2. Why the System Was Built
+
+Production systems frequently fail not because business logic is incorrect, but because the underlying platform and concurrency boundaries were never subjected to real failure conditions:
+
+- **Lost-Update Anomalies:** In collaborative task systems, two users concurrently modifying the same record will overwrite each other's changes if the API relies on uncoordinated `PUT` or `PATCH` updates. Standard database pessimistic locks (`SELECT ... FOR UPDATE`) solve this at the expense of database thread contention, connection pool starvation, and distributed deadlocks.
+- **Hidden Deployment Failures:** Traditional push-based CI/CD pipelines use imperative scripts (`kubectl apply` or `helm install`) that bypass version control as the single source of truth, mask partial rollouts, and lack automated rollback safeguards when faulty container images are pushed.
+- **Fragmented Observability Silos:** When an API request experiences elevated latency or returns HTTP 500, engineers often waste hours correlating disparate systems: searching disconnected log aggregators, inspecting disconnected metric dashboards, and tracing unlinked network spans.
+- **Theoretical Disaster Recovery:** Most disaster recovery plans exist solely on paper. Without automated, non-destructive restoration drills executed against disposable validation targets, organizations have no verified evidence of their actual Recovery Time Objective (RTO) or Recovery Point Objective (RPO).
+
+ForgeTasks and ForgeOps was engineered from first principles to solve these challenges in an auditable, zero-cost, local-first lab environment that mirrors enterprise platform standards.
+
+## 3. Architecture & Operational Boundary Separation
+
+To ensure operational stability, ForgeOps enforces a strict **single-owner-per-resource** governance model (ADR-0002). No tool or operator is permitted to mutate resources outside its designated operational lifecycle:
+
+<Figure
+  alt="ForgeTasks Application and ForgeOps GitOps Platform Architecture"
+  caption="End-to-end architecture: HTTP client traffic, Java 21 Spring Boot REST API with ETag concurrency, Flyway relational persistence, and the surrounding ForgeOps GitOps delivery, SOPS encryption, and three-pillar observability platform."
+  figureNumber="1"
+>
+  <svg
+    viewBox="0 0 760 410"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    class="w-full h-auto overflow-visible select-none py-2"
+    role="img"
+    aria-label="ForgeTasks and ForgeOps Architecture Diagram: Ingress, Spring Boot API Pod, PostgreSQL Persistence, Argo CD GitOps, SOPS Secrets, Alloy, Prometheus, Loki, and Tempo"
+  >
+    <defs>
+      <marker
+        id="fo-arrow"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-border-strong)" />
+      </marker>
+      <marker
+        id="fo-arrow-gold"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-gold)" />
+      </marker>
+      <marker
+        id="fo-arrow-accent"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-accent)" />
+      </marker>
+    </defs>
+
+    {/* Section Background: Application Boundary */}
+    <rect
+      x="20"
+      y="15"
+      width="430"
+      height="380"
+      rx="10"
+      class="fill-[var(--color-surface)] stroke-[var(--color-border)]"
+      stroke-width="1.5"
+    />
+    <text x="35" y="38" class="font-mono text-[11px] font-bold uppercase tracking-wider fill-[var(--color-fg)]">
+      ForgeTasks Workload Boundary (Java 21 / Spring Boot 4)
+    </text>
+
+    {/* Section Background: Platform Boundary */}
+    <rect
+      x="465"
+      y="15"
+      width="275"
+      height="380"
+      rx="10"
+      class="fill-[var(--color-surface)] stroke-[var(--color-border)]"
+      stroke-width="1.5"
+    />
+    <text x="480" y="38" class="font-mono text-[11px] font-bold uppercase tracking-wider fill-[var(--color-fg)]">
+      ForgeOps Platform Boundary (Kind SRE)
+    </text>
+
+    {/* Stage 1: Client & Traffic */}
+    <g>
+      <rect
+        x="40"
+        y="60"
+        width="110"
+        height="70"
+        rx="6"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="95" y="86" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">
+        k6 / REST Client
+      </text>
+      <text x="95" y="103" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        If-Match: "2"
+      </text>
+      <text x="95" y="117" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent)]">
+        X-Request-ID
+      </text>
+    </g>
+
+    {/* Arrow: Client -> Port-Forward */}
+    <path d="M 150 95 L 180 95" fill="none" stroke="var(--color-border-strong)" stroke-width="1.5" marker-end="url(#fo-arrow)" />
+
+    {/* Stage 2: Ingress & Pod Ingress */}
+    <g>
+      <rect
+        x="180"
+        y="60"
+        width="250"
+        height="185"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="305" y="82" text-anchor="middle" class="font-mono text-[11px] font-bold fill-[var(--color-fg)]">
+        ForgeTasks Pod (Spring Boot 4.1.2)
+      </text>
+
+      {/* Internal Subcomponents */}
+      <rect x="195" y="95" width="220" height="30" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="305" y="114" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-accent)]">
+        RequestCorrelationFilter & MDC
+      </text>
+
+      <rect x="195" y="132" width="220" height="30" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="305" y="151" text-anchor="middle" class="font-mono text-[10px] font-semibold fill-[var(--color-gold)]">
+        TaskController (ETag / If-Match)
+      </text>
+
+      <rect x="195" y="169" width="220" height="30" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="305" y="188" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-fg)]">
+        TaskService & JPA @Version Check
+      </text>
+
+      <rect x="195" y="206" width="220" height="26" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="305" y="223" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        OpenTelemetry Java Agent (W3C Tracing)
+      </text>
+    </g>
+
+    {/* Stage 3: PostgreSQL Database */}
+    <g>
+      <rect
+        x="180"
+        y="280"
+        width="250"
+        height="95"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="305" y="303" text-anchor="middle" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+        PostgreSQL 16 (StatefulSet)
+      </text>
+      <text x="305" y="321" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-accent)]">
+        Flyway Migrations (V1 DDL)
+      </text>
+      <text x="305" y="337" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        UUID PKs / Version BIGINT DEFAULT 0
+      </text>
+      <text x="305" y="353" text-anchor="middle" class="font-mono text-[9px] font-semibold fill-[var(--color-gold)]">
+        PVC: postgres-storage (Bound 1Gi)
+      </text>
+    </g>
+
+    {/* Arrow: App -> PostgreSQL */}
+    <path d="M 305 245 L 305 280" fill="none" stroke="var(--color-border-strong)" stroke-width="1.5" marker-end="url(#fo-arrow)" />
+
+    {/* Stage 4: GitOps & CI */}
+    <g>
+      <rect
+        x="485"
+        y="60"
+        width="235"
+        height="85"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="602" y="82" text-anchor="middle" class="font-mono text-[11px] font-bold fill-[var(--color-fg)]">
+        Argo CD GitOps Engine
+      </text>
+      <text x="602" y="99" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-gold)]">
+        Pull-Based Sync (v3.5.6)
+      </text>
+      <text x="602" y="115" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        Helm Chart Parameterization
+      </text>
+      <text x="602" y="130" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent)]">
+        SOPS + age Encrypted Secrets
+      </text>
+    </g>
+
+    {/* Stage 5: Three-Pillar Observability Stack */}
+    <g>
+      <rect
+        x="485"
+        y="160"
+        width="235"
+        height="125"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="602" y="180" text-anchor="middle" class="font-mono text-[11px] font-bold fill-[var(--color-fg)]">
+        Grafana Alloy Telemetry Pipeline
+      </text>
+      <text x="602" y="196" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        OTLP Receiver (:4317) & Pod Log Collector
+      </text>
+
+      {/* 3 Pillars */}
+      <rect x="495" y="206" width="68" height="65" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="529" y="226" text-anchor="middle" class="font-mono text-[10px] font-semibold fill-[var(--color-gold)]">Prometheus</text>
+      <text x="529" y="242" text-anchor="middle" class="font-mono text-[8px] fill-[var(--color-muted)]">Metrics</text>
+      <text x="529" y="256" text-anchor="middle" class="font-mono text-[8px] fill-[var(--color-muted)]">15s Scrape</text>
+
+      <rect x="568" y="206" width="68" height="65" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="602" y="226" text-anchor="middle" class="font-mono text-[10px] font-semibold fill-[var(--color-accent)]">Loki</text>
+      <text x="602" y="242" text-anchor="middle" class="font-mono text-[8px] fill-[var(--color-muted)]">Structured</text>
+      <text x="602" y="256" text-anchor="middle" class="font-mono text-[8px] fill-[var(--color-muted)]">JSON Logs</text>
+
+      <rect x="641" y="206" width="68" height="65" rx="4" class="fill-[var(--color-surface)] stroke-[var(--color-border)]" stroke-width="1" />
+      <text x="675" y="226" text-anchor="middle" class="font-mono text-[10px] font-semibold fill-[var(--color-fg)]">Tempo</text>
+      <text x="675" y="242" text-anchor="middle" class="font-mono text-[8px] fill-[var(--color-muted)]">Distributed</text>
+      <text x="675" y="256" text-anchor="middle" class="font-mono text-[8px] fill-[var(--color-muted)]">W3C Spans</text>
+    </g>
+
+    {/* Stage 6: Disaster Recovery Lab */}
+    <g>
+      <rect
+        x="485"
+        y="300"
+        width="235"
+        height="75"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="602" y="321" text-anchor="middle" class="font-mono text-[11px] font-bold fill-[var(--color-gold)]">
+        Disaster Recovery Lab (G13)
+      </text>
+      <text x="602" y="337" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-fg)]">
+        Clean-Room pg_restore (252 ms)
+      </text>
+      <text x="602" y="352" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        Ephemeral Target (forgeops-dr-lab)
+      </text>
+      <text x="602" y="366" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent)]">
+        End-to-End API RTO: 89.29s
+      </text>
+    </g>
+
+    {/* Cross-boundary telemetry and deployment links */}
+    <path d="M 430 180 L 485 180" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#fo-arrow-accent)" />
+    <path d="M 485 105 L 430 105" fill="none" stroke="var(--color-gold)" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#fo-arrow-gold)" />
+
+  </svg>
+</Figure>
+
+### Platform Technology & Domain Ownership Boundaries:
+
+| Functional Domain              | Primary Technology               | Exact Pinned Version | Operational Ownership & Lifecycle Boundary                                                           |
+| :----------------------------- | :------------------------------- | :------------------- | :--------------------------------------------------------------------------------------------------- |
+| **Workload / Runtime**         | **Java 21 LTS / Spring Boot 4**  | `4.1.2`              | REST API, Flyway migrations, JPA entity validation, version-based ETag concurrency checks.           |
+| **Relational Storage**         | **PostgreSQL**                   | `16-alpine`          | ACID transactions, unique indexes, multi-tenant relational persistence, persistent volume storage.   |
+| **Local Orchestrator**         | **Kubernetes in Docker (Kind)**  | `v1.34.11`           | Single-node control plane and worker; owned strictly via cluster bootstrap scripts.                  |
+| **GitOps Continuous Delivery** | **Argo CD**                      | `v3.5.6`             | Pull-based reconciliation of declarative Helm manifests from Git repository.                         |
+| **Package Management**         | **Helm**                         | `v3.19.5`            | Manifest templating and parameterization across development, rehearsal, and lab fixtures.            |
+| **Metrics & Alerting**         | **Prometheus & Alertmanager**    | `v3.15.0 / v0.34.1`  | Pull-based scrape loop (`/actuator/prometheus`), latency recording rules, alert dispatch.            |
+| **Log Aggregation**            | **Grafana Loki & Grafana Alloy** | `3.4.2 / v1.21.2`    | Structured JSON log shipping, sensitive field redaction, and LogQL index queries.                    |
+| **Distributed Tracing**        | **OpenTelemetry Java & Tempo**   | `v2.1.0 / 2.9.0`     | W3C `traceparent` propagation, gRPC OTLP export, and Grafana trace-to-log correlation.               |
+| **Policy-as-Code**             | **Kyverno CLI**                  | `v1.19.2`            | Static client-side CI auditing of rendered Pod specifications against restricted security standards. |
+| **Encrypted Secrets**          | **Mozilla SOPS + age**           | `v3.13.3 / v1.2.1`   | Asymmetric envelope encryption with dual-key escrow; metadata preserved in Git.                      |
+| **Reliability & DR Testing**   | **k6 & Bash / pg_dump**          | `v1.8.2`             | Arrival-rate load testing, controlled chaos experiments, and clean-room disaster recovery.           |
+
+## 4. Architectural Requirements & System Invariants
+
+To guarantee production-grade safety without enterprise cloud overhead, ForgeTasks and ForgeOps enforce five non-negotiable architectural invariants:
+
+### 1. Version-Based HTTP Optimistic Concurrency Control (ADR-0013)
+
+To prevent lost updates in multi-client environments, mutating endpoints (`PATCH /api/v1/tasks/{id}` and `DELETE /api/v1/tasks/{id}`) enforce version-based optimistic concurrency control:
+
+- Every resource response contains an `ETag` header formatted with quoted version values (e.g. `ETag: "3"`), derived directly from the JPA `@Version` column (`version = 0L`).
+- Clients mutating or deleting a task must supply the `If-Match` request header.
+- If `If-Match` is omitted, `TaskService` halts immediately by throwing `PreconditionRequiredException`, mapped by the global exception handler to **HTTP 428 Precondition Required** (`application/problem+json`).
+- If `If-Match` does not match the current database entity version, the service throws `PreconditionFailedException`, returning **HTTP 412 Precondition Failed** with RFC 7807/9457 problem details.
+- ETag parsing and formatting is handled via `ETagUtils`: `parseIfMatch` strips surrounding quotes and accepts weak prefixes (`W/"..."`), parsing the underlying numeric version rather than performing full RFC 7232/9110 byte-for-byte strong comparison validation.
+- This mechanism eliminates database row deadlocks while providing non-blocking reads and deterministic concurrency protection.
+
+### 2. Owner-Scoped Relational Data Isolation & Assignment Boundaries
+
+ForgeTasks enforces ownership boundaries directly in the relational domain model:
+
+- **Owner-Scoped Queries:** Tasks belong to Projects, and Projects belong to Accounts. Mutating and retrieval queries join against the authenticated account: `taskRepository.findByIdAndOwner(taskId, owner)` and `projectRepository.findByIdAndOwner(projectId, owner)`.
+- **Enumeration Defense:** When an authenticated caller requests a task or project owned by another account, the repository query returns empty. `TaskService` throws `ResourceNotFoundException`, resulting in **HTTP 404 Not Found** rather than HTTP 403 Forbidden, mitigating resource enumeration across accounts.
+- **Assignment Scope Boundary:** While project ownership and task mutations are strictly owner-scoped, assigning a task (`assignedAccountId` in `createTask` and `updateTask`) verifies account existence via `accountRepository.findById(id)`. Because the prototype does not define an organizational boundary or tenant group model, task assignment can reference any existing registered account in the system rather than being restricted to an organizational boundary.
+
+### 3. Pull-Based GitOps with Push-to-Pull Inversion (ADR-0004)
+
+Direct deployment from developer workstations or CI runners (`kubectl apply`) is strictly prohibited:
+
+- GitHub Actions CI builds immutable container images tagged with git commit SHAs, signs them, and publishes them to GitHub Container Registry (GHCR).
+- Argo CD continuously monitors the repository and synchronizes cluster state to match Git.
+- In production rehearsal environments (`G08`), automated sync was intentionally disabled (`syncPolicy.automated.enabled: false`) to require human review before applying changes, preventing automated failure cascades during recovery drills.
+
+### 4. Client-Side Policy Enforcement Shift-Left (ADR-0010)
+
+Dynamic Kubernetes admission webhooks inside a single-node local cluster introduce severe failure modes: if an in-cluster validating webhook pod runs out of memory or crashes, the Kubernetes API server blocks all pod scheduling and bricks the cluster.
+
+ForgeOps shifts policy evaluation left: **Kyverno CLI (`kyverno apply`) runs client-side in GitHub Actions CI**. It audits 100% of Helm-rendered manifests against 10 security policies (disallowing root UIDs, privilege escalation, host namespaces, and writable root filesystems) before pull requests can merge.
+
+### 5. Clean-Room Target Isolation for Disaster Recovery (ADR-0008)
+
+Automated database restoration drills must never target an active operational database. Early DR automation that executed `pg_restore --clean` risked irreversible data loss if executed against the wrong namespace.
+
+ForgeOps mandates that disaster recovery rehearsals execute strictly against a **disposable target namespace (`forgeops-dr-lab`)**. Restores are performed into freshly initialized databases with `--exit-on-error`, asserting zero pre-existing application tables and verifying complete relational and BCrypt authentication integrity before teardown.
+
+## 5. Key Architectural Decisions & Trade-Offs
+
+<DecisionBlock
+  title="Version-Based ETag Optimistic Concurrency vs. Database Pessimistic Locking (ADR-0013)"
+  status="Accepted"
+  context="In collaborative task management systems, concurrent updates from web clients or automated scripts risk lost updates. We needed a concurrency strategy that prevents race conditions without exhausting database connection pools or causing transaction deadlocks under load."
+  options={[
+    {
+      name: 'Pessimistic Database Locking (SELECT FOR UPDATE)',
+      summary:
+        'Locks database rows across the entire HTTP transaction lifecycle. Eliminates race conditions but causes thread contention, connection pool starvation, and distributed deadlocks when transactions span network round-trips.',
+    },
+    {
+      name: 'Last-Write-Wins (No Application Concurrency Control)',
+      summary:
+        'Accepts incoming payloads and overwrites database rows unconditionally. Requires zero concurrency code but silently discards intervening modifications, violating data integrity.',
+    },
+    {
+      name: 'Version-Based ETag Optimistic Concurrency (JPA @Version + ETagUtils)',
+      summary:
+        'Tracks an integer version column on entities via JPA @Version. Exposes version state via HTTP ETag and requires version-matched If-Match headers on mutating updates, rejecting stale updates before executing database writes.',
+    },
+  ]}
+  selection="Implement version-based optimistic concurrency control using JPA @Version, exposing version state via ETag and requiring If-Match headers on PATCH and DELETE operations."
+  consequences="Enables non-blocking database reads and eliminates database deadlocks. Enforces RFC 7807/9457 ProblemDetail responses (HTTP 412 Precondition Failed when versions mismatch, HTTP 428 Precondition Required when If-Match is missing). Relies on numeric version parsing in ETagUtils (accepting weak prefixes) rather than full RFC 7232/9110 strong entity-tag comparison."
+  verification="Verified through ConcurrencyLockingIntegrationTest asserting HTTP 428 on missing headers, HTTP 412 on stale version matches, and successful entity increments from version 0 to 1 on valid requests."
+/>
+
+<DecisionBlock
+  title="Local-First Kind Kubernetes Architecture vs. Managed Cloud PaaS (ADR-0001 & ADR-0004)"
+  status="Accepted"
+  context="Designing a platform engineering demonstration laboratory capable of simulating complete GitOps delivery, chaos resilience, three-pillar observability, and disaster recovery drills without recurring cloud bills or external vendor lock-in."
+  options={[
+    {
+      name: 'Managed Cloud Kubernetes (AWS EKS / GCP GKE)',
+      summary:
+        'Provides fully managed control planes, native cloud KMS, and managed object storage. Incurs recurring hourly cluster charges, NAT gateway fees, and egress costs that limit frequent automated teardown and chaos testing.',
+    },
+    {
+      name: 'Local Virtual Machines (Minikube / Vagrant / Hyper-V)',
+      summary:
+        'Runs Kubernetes inside dedicated hypervisor VMs. Incurs heavy virtualization overhead (CPU/RAM partitioning), slow bootstrap times, and complex networking bridges on developer laptops.',
+    },
+    {
+      name: 'Local-First Kubernetes in Docker (Kind on WSL2 / Linux)',
+      summary:
+        'Runs containerized Kubernetes control plane and worker nodes directly via Docker containers on the host Linux/WSL2 kernel. Enables fast cluster provisioning, reproducible node image pinning (v1.34.11), and zero cloud hosting cost.',
+    },
+  ]}
+  selection="Adopt Kind on WSL2 as the foundational orchestrator, paired with HashiCorp Terraform and Ansible for reproducible node and fixture bootstrapping."
+  consequences="Enables 100% offline reproducibility and eliminates cloud infrastructure bills. Direct access to Linux kernel cgroups and container sockets enables realistic chaos injection. Known trade-off: Kind runs on a single host kernel, and default kindnet CNI lacks kernel-level NetworkPolicy packet dropping without an advanced CNI like Cilium."
+  verification="Validated across 15 complete project gates, executing 5 k6 load test scenarios (2,275 HTTP requests, 0.00% errors) and automated disaster recovery drills without any external network dependency."
+/>
+
+## 6. Implementation Deep-Dive: Concurrency, Correlation, and Schema Lifecycle
+
+The ForgeTasks backend couples Spring Boot 4 web MVC with declarative transaction management and strict request tracing.
+
+### 1. HTTP ETag Optimistic Concurrency Validation
+
+When a task update is submitted via `PATCH /api/v1/tasks/{id}`, the controller extracts the `If-Match` header and passes the parsed version to `TaskService`:
+
+```java
+// TaskService.java: Optimistic Concurrency Check & Precondition Enforcement
+@Transactional
+public TaskResponse updateTask(UUID taskId, String username, TaskUpdateRequest request, Long ifMatchVersion) {
+    Account owner = getAuthenticatedAccount(username);
+    Task task = taskRepository.findByIdAndOwner(taskId, owner)
+            .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
+
+    if (ifMatchVersion == null) {
+        throw new PreconditionRequiredException("Header 'If-Match' is required for mutating task updates.");
+    }
+
+    if (!task.getVersion().equals(ifMatchVersion)) {
+        throw new PreconditionFailedException("Supplied If-Match version " + ifMatchVersion +
+                " does not match current resource version " + task.getVersion() + ".");
+    }
+
+    if (request.title() != null && !request.title().isBlank()) {
+        task.setTitle(request.title());
+    }
+    if (request.description() != null) {
+        task.setDescription(request.description());
+    }
+    if (request.status() != null) {
+        task.setStatus(request.status());
+    }
+    if (request.priority() != null) {
+        task.setPriority(request.priority());
+    }
+    if (request.dueDate() != null) {
+        task.setDueDate(request.dueDate());
+    }
+    if (request.assignedAccountId() != null) {
+        Account assigned = accountRepository.findById(request.assignedAccountId())
+                .orElseThrow(() -> new ResourceNotFoundException("Assigned account not found with id: " + request.assignedAccountId()));
+        task.setAssignedAccount(assigned);
+    }
+
+    Task updated = taskRepository.saveAndFlush(task);
+    return TaskResponse.from(updated);
+}
+```
+
+The corresponding web controller wraps the returned entity and formats the updated version into an HTTP `ETag` header:
+
+```java
+// TaskController.java: ETag Formatting and Header Parsing
+@PatchMapping("/tasks/{id}")
+public ResponseEntity<TaskResponse> updateTask(
+        @PathVariable UUID id,
+        @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
+        @Valid @RequestBody TaskUpdateRequest request) {
+
+    String username = getCurrentUsername();
+    Long version = ETagUtils.parseIfMatch(ifMatch);
+    TaskResponse response = taskService.updateTask(id, username, request, version);
+
+    return ResponseEntity.ok()
+            .eTag(ETagUtils.formatETag(response.version()))
+            .body(response);
+}
+```
+
+### 2. Request Correlation & Distributed Context Propagation
+
+To guarantee that incoming HTTP requests can be traced across log streams and Tempo spans, the `RequestCorrelationFilter` executes at the highest precedence filter boundary:
+
+```java
+// RequestCorrelationFilter.java: X-Request-ID Extraction and MDC Binding
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class RequestCorrelationFilter extends OncePerRequestFilter {
+
+    public static final String CORRELATION_ID_HEADER = "X-Request-ID";
+    public static final String MDC_CORRELATION_KEY = "correlationId";
+    private static final Pattern SAFE_CORRELATION_ID_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_]{8,64}$");
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String correlationId = request.getHeader(CORRELATION_ID_HEADER);
+        if (correlationId == null || !SAFE_CORRELATION_ID_PATTERN.matcher(correlationId.trim()).matches()) {
+            correlationId = UUID.randomUUID().toString();
+        } else {
+            correlationId = correlationId.trim();
+        }
+
+        MDC.put(MDC_CORRELATION_KEY, correlationId);
+        response.setHeader(CORRELATION_ID_HEADER, correlationId);
+
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove(MDC_CORRELATION_KEY);
+        }
+    }
+}
+```
+
+### 3. Flyway Relational Schema with Versioning
+
+The relational schema is managed strictly through immutable Flyway migrations. The initial migration (`V1__init_schema.sql`) declares UUID primary keys, cascade rules, and the optimistic locking version:
+
+```sql
+-- V1__init_schema.sql: Relational Schema DDL
+CREATE TABLE accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(50) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_accounts_username UNIQUE (username)
+);
+
+CREATE TABLE projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    version BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    archived_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    assigned_account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'TODO',
+    priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM',
+    due_date TIMESTAMP WITH TIME ZONE,
+    version BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_tasks_status CHECK (status IN ('TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE')),
+    CONSTRAINT chk_tasks_priority CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH'))
+);
+
+CREATE INDEX idx_tasks_project_id ON tasks(project_id);
+CREATE INDEX idx_tasks_assigned_account_id ON tasks(assigned_account_id);
+CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_tasks_created_at ON tasks(created_at);
+```
+
+## 7. Site Reliability Engineering, Load Testing & Chaos Resilience (Gate G12)
+
+In Gate G12, the platform underwent Site Reliability Engineering (SRE) verification within the local single-node Kind Kubernetes cluster (`kind-forgeops` on WSL2) using a progressive load testing suite authored in k6.
+
+### Controlled Load Injection Architecture
+
+To prevent unconstrained load from exhausting local host TCP socket buffers, testing was executed against an isolated, disposable fixture namespace (`forgeops-sre-lab`) over a dedicated local port-forward (`:8082`). Traffic pacing utilized k6 arrival-rate governors, enforcing an aggregate traffic ceiling of 20 requests/second and a maximum of 25 Virtual Users (VUs).
+
+### Progressive Load Testing Results:
+
+| Scenario     | Target Throughput / Profile                             | Total Requests | Error Rate | Latency (p50) | Latency (p95) | Latency (p99) | Max Latency  | SLO Status |
+| :----------- | :------------------------------------------------------ | :------------: | :--------: | :-----------: | :-----------: | :-----------: | :----------: | :--------: |
+| **Smoke**    | 2 req/s constant (20s)                                  |       41       | **0.00%**  |    7.98 ms    |   10.72 ms    |   34.56 ms    |   35.03 ms   |  **PASS**  |
+| **Baseline** | 10 req/s constant (45s)                                 |      450       | **0.00%**  |    5.31 ms    |    7.50 ms    |    9.37 ms    |   25.86 ms   |  **PASS**  |
+| **Ramp-Up**  | 2 $\rightarrow$ 10 $\rightarrow$ 18 req/s (70s)         |      672       | **0.00%**  |    4.26 ms    |    6.37 ms    |   28.87 ms    |   32.89 ms   |  **PASS**  |
+| **Stress**   | 5 $\rightarrow$ 15 $\rightarrow$ 20 req/s ceiling (80s) |     1,052      | **0.00%**  |    3.51 ms    |    5.20 ms    |   27.00 ms    |   33.80 ms   |  **PASS**  |
+| **Recovery** | 2 req/s constant (30s)                                  |       60       | **0.00%**  |    3.47 ms    |    5.33 ms    |    9.76 ms    |   10.02 ms   |  **PASS**  |
+| **TOTAL**    | _Full Sequential Suite_                                 |   **2,275**    | **0.00%**  |  **4.21 ms**  |  **6.82 ms**  | **28.10 ms**  | **35.03 ms** |  **PASS**  |
+
+Key Service Level Indicator (SLI) achievements:
+
+- **Availability SLI:** 100.00% success rate across all 2,275 HTTP requests (SLO target: $\ge$ 99.50%).
+- **Latency SLI:** Aggregate p95 latency of 6.82 ms (SLO target: p95 &lt; 500 ms).
+- **Zero Restarts:** 0 container restarts and 0 OOMKills during sustained stress testing.
+
+> [!NOTE]
+> **Local Kind SRE Environment & Port-Forward Architecture:** These load testing measurements reflect execution within the local single-node `kind-forgeops` test environment over `kubectl port-forward` to `forgeops-sre-lab` on port 8082. Port-forwarding tunnels traffic over a single multiplexed SPDY stream directly to a single backend pod, bypassing multi-replica service round-robin routing. These metrics characterize single-pod saturation and host loopback performance under arrival-rate governors (20 req/s, 25 VUs ceiling), rather than generalized Kubernetes service-wide production throughput across multi-replica ingress balancers.
+
+### Controlled Chaos Resilience Experiments:
+
+The platform was subjected to five automated failure injection drills:
+
+1. **Stateless Pod Termination:** The active API pod was terminated via `SIGKILL`. The failure was detected in **1.69 seconds**; Kubernetes restored full 2/2 ready replica capacity in **52.86 seconds** with zero dropped connections.
+2. **Readiness Probe Failure Injection:** A synthetic failure was injected into a replica's readiness probe. The unhealthy pod was immediately excluded from service endpoints; the probe recovered to healthy status in **706 milliseconds**.
+3. **Invalid Image Rollout Guard:** A nonexistent container image tag was deployed via Helm. The deployment halted in `ErrImagePull` while existing healthy replicas continued serving traffic without downtime. The deployment was rolled back in **813 milliseconds**.
+4. **Bounded Resource Pressure:** Handled 1,052 requests up to the 20 req/s ceiling with zero process memory bloat and zero container restarts.
+5. **Declarative Drift Reconciliation:** An imperative scaling modification (`kubectl scale --replicas=5`) was executed against the cluster. Argo CD detected the out-of-sync drift and reconciled the deployment back to the desired Git state (2 replicas) in **1.47 seconds**.
+
+## 8. PostgreSQL Disaster Recovery & Rehearsal Verification (Gate G13)
+
+Disaster recovery readiness was verified through an automated rehearsal script (`scripts/cluster/dr/rehearse-dr.sh`) performing non-destructive recovery into an isolated disposable test target.
+
+### The Clean-Room Disposable Target Pattern
+
+To eliminate blast-radius risk against operational databases while preserving the live cluster baseline, the rehearsal drill executed against an ephemeral target in `forgeops-dr-lab` without destroying the active Kind cluster:
+
+1. **Synthetic State Generation:** Seeded a synthetic relational dataset: 2 accounts (`dr_admin`, `dr_user` with real BCrypt hashes), 2 projects, and 4 tasks with versioning.
+2. **Compressed Logical Backup:** Executed `pg_dump -Fc` via local port-forward in **273 milliseconds**, generating a 10,675-byte custom-format archive.
+3. **Cryptographic Manifest Verification:** Computed the SHA-256 hash (`132646cba1ea1b2bb5a7d377bf188cf4c8038b1f558ef2333066373b5dfd46ff`) and verified binary magic headers (`PGDMP`) and Table of Contents (TOC) entries.
+4. **Target Freshness Guard:** The restore script asserted that the destination database contained zero application tables before proceeding, rejecting any attempt to restore over existing data.
+5. **Strict Clean-Room Restoration:** Executed `pg_restore --exit-on-error` into the disposable target database in **252 milliseconds**.
+6. **End-to-End Service Validation:** Deployed a fresh ForgeTasks API instance pointing to the restored database. Executed authentication smoke tests, verifying that BCrypt credentials, relational foreign keys, and task entities were fully accessible.
+
+### Quantitative Disaster Recovery Metrics:
+
+- **Logical Backup Execution Time (`pg_dump -Fc`):** **273 ms** (10,675-byte custom-format archive).
+- **Database Restoration Execution Time (`pg_restore`):** **252 ms** (schema and row loading into disposable target).
+- **End-to-End Service Recovery RTO:** **89.29 seconds** (total elapsed rehearsal time: disposable database provisioning, schema restoration, Spring Boot pod startup, readiness probe stabilization, and authenticated REST smoke testing).
+- **Measured Backup Age (Currency):** **12.00 seconds** (the age of the test snapshot when restored during the rehearsal drill).
+- **Protected PVC Continuity:** Throughout the drill, all **5 protected baseline PersistentVolumeClaims remained 100% intact with zero UID mutation or storage leaks**.
+
+> [!NOTE]
+> **Disaster Recovery Scope & Simulation Boundaries:** The drill demonstrated automated non-destructive schema and data restoration into an isolated disposable target (`forgeops-dr-lab`) with cryptographic SHA-256 verification. The live operational cluster, nodes, and persistent volumes were not destroyed during this exercise. The procedure utilizes discrete, point-in-time logical backups (`pg_dump -Fc`); it does not demonstrate multi-node physical cluster recovery, continuous streaming Write-Ahead Log (WAL) archiving with point-in-time recovery (PITR) to cloud object storage, or recovery from total hardware host loss.
+
+## 9. Platform Security, Secret Hygiene & Policy-as-Code (Gate G14)
+
+Platform security in ForgeOps implements a defense-in-depth posture spanning secrets management, container runtime constraints, and CI policy enforcement.
+
+### Asymmetric Secret Encryption with Dual Escrow (ADR-0011)
+
+Kubernetes secrets committed to Git are encrypted using Mozilla SOPS with `age` public-key cryptography:
+
+- Secrets are encrypted for two distinct asymmetric recipients: `Primary Operational` and `Recovery Escrow`.
+- Configuration uses value-only encryption (`encrypted_regex: '^(data|stringData)$'`). Kubernetes metadata, secret names, labels, and annotations remain unencrypted in plaintext, enabling linters, Kustomize, and Git diff tools to inspect resources without decrypting sensitive payloads.
+- Zero private keys or plaintext secrets exist in git history.
+
+### Client-Side Kyverno Policy Enforcement (ADR-0010)
+
+Ten Kyverno policies enforce Kubernetes Restricted Pod Security Standards and hygiene across all Helm-rendered manifests:
+
+1. `disallow-privileged-containers`: Disallows `privileged: true` in container security contexts.
+2. `disallow-privilege-escalation`: Mandates `allowPrivilegeEscalation: false`.
+3. `require-run-as-non-root`: Enforces `runAsNonRoot: true` (UID `10001`).
+4. `require-drop-all-capabilities`: Requires explicit `drop: ["ALL"]` on all containers.
+5. `require-seccomp-default`: Mandates `seccompProfile.type: RuntimeDefault` or `Localhost`.
+6. `disallow-latest-tag`: Rejects `:latest` tags and untagged image references.
+7. `require-resource-requests-limits`: Mandates explicit CPU and memory requests and limits.
+8. `disallow-host-namespaces`: Prevents pods from sharing host PID, IPC, or network namespaces.
+9. `restrict-image-registries`: Restricts images to approved registries (pattern-matched hostname enforcement).
+10. `require-security-labels`: Mandates standard `app.kubernetes.io/name` and security tier metadata labels.
+
+In Gate G14 verification, the Kyverno CLI executed client-side in GitHub Actions CI across 20 positive and negative test cases, recording a **20/20 (100%) pass rate** before code merge. Running policy validation client-side in CI explicitly eliminated in-cluster admission webhook memory overhead and prevented cluster deadlock failure modes on local developer workstations.
+
+## 10. Engineering Lessons, Postmortems & Architectural Boundaries
+
+### Operational Postmortems & Key Lessons:
+
+- **The OCI Attestation vs. Runnable Image Digest Incident (Gate G10):** When automating image promotion from GitHub Container Registry (GHCR), an automated release script mistakenly captured an OCI attestation manifest digest (SLSA provenance JSON) instead of the runnable Linux container image. The container runtime failed with `executable file not found in $PATH`. The incident was contained without downtime because Kubernetes rolling updates held the healthy replica. We resolved this by introducing a pre-flight verification script (`test_publish_hardening.py`) that strictly validates container image MIME types (`application/vnd.docker.distribution.manifest.v2+json`) before updating Helm values.
+- **TCP Socket Exhaustion Under High Load (Gate G12):** Early k6 load testing over `kubectl port-forward` caused intermittent connection timeouts due to local host TCP socket exhaustion over single SPDY multiplexed streams. Adding arrival-rate throttling (20 req/s, 25 VUs) eliminated socket exhaustion, achieving 2,275 requests with 0.00% errors and sub-7 ms p95 latencies.
+- **The Danger of `pg_restore --clean` in Disaster Recovery (Gate G13):** Initial DR scripts used `pg_restore --clean`, which issues `DROP TABLE` before recreating objects. When chained with non-fatal shell commands, a corrupted archive could drop active tables and leave the system empty. We replaced this with the disposable target pattern: restores are performed exclusively into fresh, empty databases with `--exit-on-error` and strict exit code trapping.
+
+### Known Architectural Boundaries:
+
+- **Single-Node Kind Limitations:** The cluster operates on a single Docker container host inside WSL2. Physical node hardware failures, split-brain cross-hypervisor network partitions, and WAN latency are not modeled.
+- **NetworkPolicy Scope:** Default `kindnet` implements basic IPAM and NAT routing, but does not enforce Kubernetes `NetworkPolicy` packet filtering at the kernel layer. Enforcing kernel-level egress/ingress dropping requires deploying an eBPF CNI such as Cilium.
+- **Local Secret Custody:** `age` private keys reside on the operator's local filesystem rather than a dedicated cloud Key Management Service (AWS KMS, GCP KMS) or Hardware Security Module (HSM).
+- **Manual Argo CD Synchronization:** Automatic synchronization is intentionally disabled in rehearsal environments to prevent automated reconciliation loops during fault drills, requiring operator review before applying changes.
