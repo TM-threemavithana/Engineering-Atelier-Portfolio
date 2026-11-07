@@ -18,17 +18,17 @@ import {
 
 console.log('--- Starting Case Study Template & Rich MDX Unit Suite ---');
 
-test('EA-024: Controlled fixtures and runtime state verify single-case-study publication gating', async () => {
+test('EA-025: Controlled fixtures and runtime state verify two-case-study publication gating', async () => {
   const collectionEntries = await fetchProjectsCollection();
 
   // In standalone Node.js runner, fetchProjectsCollection falls back to empty array gracefully
-  // If run in Astro runtime with loaded entries, only AgentIAM passes publication gating
+  // If run in Astro runtime with loaded entries, only AgentIAM and StreamForge pass publication gating
   for (const entry of collectionEntries) {
-    if (entry.id === 'agentiam') {
+    if (entry.id === 'agentiam' || entry.id === 'streamforge') {
       assert.equal(
         isProjectPublishable(entry),
         true,
-        'AgentIAM entry must pass publication gating in EA-024'
+        `Approved project "${entry.id}" must pass publication gating in EA-025`
       );
     } else {
       assert.equal(
@@ -61,16 +61,37 @@ test('EA-024: Controlled fixtures and runtime state verify single-case-study pub
     'AgentIAM controlled fixture must pass all 4 publication gates'
   );
 
-  const draftFixture: GenericProjectEntry = {
+  const streamforgeFixture: GenericProjectEntry = {
     id: 'streamforge',
     data: {
-      title: 'StreamForge: Distributed Raft Log Engine',
-      summary: 'High-throughput consensus log engine',
+      title: 'StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine',
+      summary: 'High-throughput polyglot streaming pipeline',
+      status: 'prototype',
+      role: 'Backend Systems Engineer & Creator',
+      individualContribution: 'Architected and implemented the end-to-end streaming pipeline',
+      technologies: ['Go', 'Apache Kafka', 'Java'],
+      categories: ['distributed', 'backend'],
+      draft: false,
+      editorialApproval: true,
+      publishedAt: new Date('2026-11-07'),
+    },
+  };
+  assert.equal(
+    isProjectPublishable(streamforgeFixture),
+    true,
+    'StreamForge controlled fixture must pass all 4 publication gates'
+  );
+
+  const draftFixture: GenericProjectEntry = {
+    id: 'devforge',
+    data: {
+      title: 'DevForge: Scala Developer Orchestration CLI',
+      summary: 'Developer tooling CLI',
       status: 'prototype',
       role: 'Engineer',
-      individualContribution: 'Consensus engine development',
-      technologies: ['Java'],
-      categories: ['distributed'],
+      individualContribution: 'CLI development',
+      technologies: ['Scala'],
+      categories: ['backend'],
       draft: true,
       editorialApproval: false,
     },
@@ -91,33 +112,41 @@ test('EA-024: Controlled fixtures and runtime state verify single-case-study pub
     'Project with unapproved route must be rejected even if draft: false'
   );
 
-  console.log('✓ Dynamic route publication gating verified: only cleared AgentIAM route permitted');
+  console.log(
+    '✓ Dynamic route publication gating verified: only cleared AgentIAM and StreamForge routes permitted'
+  );
 });
 
-test('EA-024: APPROVED_PROJECT_ROUTES enforces exact matching and contains only cleared AgentIAM route', () => {
-  // 1. Initial state: registry contains exactly the approved AgentIAM detail route
+test('EA-025: APPROVED_PROJECT_ROUTES enforces exact matching and contains only cleared AgentIAM and StreamForge routes', () => {
+  // 1. Initial state: registry contains exactly the approved AgentIAM and StreamForge detail routes
   assert.equal(
     APPROVED_PROJECT_ROUTES.size,
-    1,
-    'APPROVED_PROJECT_ROUTES must contain exactly 1 route in EA-024'
+    2,
+    'APPROVED_PROJECT_ROUTES must contain exactly 2 routes in EA-025'
   );
   assert.ok(
     APPROVED_PROJECT_ROUTES.has('/projects/agentiam/'),
     'APPROVED_PROJECT_ROUTES must contain "/projects/agentiam/"'
   );
+  assert.ok(
+    APPROVED_PROJECT_ROUTES.has('/projects/streamforge/'),
+    'APPROVED_PROJECT_ROUTES must contain "/projects/streamforge/"'
+  );
 
-  // 2. Verified route is published (both trailing slash and normalized)
+  // 2. Verified routes are published (both trailing slash and normalized)
   assert.equal(isRoutePublished('/projects/agentiam/'), true);
   assert.equal(isRoutePublished('/projects/agentiam'), true);
+  assert.equal(isRoutePublished('/projects/streamforge/'), true);
+  assert.equal(isRoutePublished('/projects/streamforge'), true);
 
   // 3. Unregistered routes are strictly rejected
   assert.equal(isRoutePublished('/projects/currency-auth-research/'), false);
-  assert.equal(isRoutePublished('/projects/streamforge/'), false);
   assert.equal(isRoutePublished('/projects/devforge/'), false);
   assert.equal(isRoutePublished('/projects/java-task-api/'), false);
 
   // 4. Wildcard / sub-path routes are strictly rejected
   assert.equal(isRoutePublished('/projects/agentiam/deep/'), false);
+  assert.equal(isRoutePublished('/projects/streamforge/deep/'), false);
   assert.equal(isRoutePublished('/projects/*'), false);
 
   // 5. Simulated exact registration with guaranteed restoration
@@ -145,8 +174,9 @@ test('EA-024: APPROVED_PROJECT_ROUTES enforces exact matching and contains only 
   }
 
   // Confirm registry state is fully restored
-  assert.equal(APPROVED_PROJECT_ROUTES.size, 1);
+  assert.equal(APPROVED_PROJECT_ROUTES.size, 2);
   assert.ok(APPROVED_PROJECT_ROUTES.has('/projects/agentiam/'));
+  assert.ok(APPROVED_PROJECT_ROUTES.has('/projects/streamforge/'));
 
   console.log(
     '✓ Exact per-project route approval verified (wildcards prohibited, restoration guaranteed)'
@@ -157,7 +187,13 @@ test('EA-023: Breadcrumb item validation and terminal page state', () => {
   const validDestination = validateLinkDestination('/projects/');
   assert.equal(validDestination.isValid, true, '/projects/ must be a valid internal destination');
 
-  const unapprovedDetail = validateLinkDestination('/projects/streamforge/');
+  const approvedDetail1 = validateLinkDestination('/projects/agentiam/');
+  assert.equal(approvedDetail1.isValid, true, 'Approved AgentIAM detail route must be valid');
+
+  const approvedDetail2 = validateLinkDestination('/projects/streamforge/');
+  assert.equal(approvedDetail2.isValid, true, 'Approved StreamForge detail route must be valid');
+
+  const unapprovedDetail = validateLinkDestination('/projects/devforge/');
   assert.equal(
     unapprovedDetail.isValid,
     false,

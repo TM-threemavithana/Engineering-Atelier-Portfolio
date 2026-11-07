@@ -8,18 +8,13 @@ console.log('--- Starting Projects Inventory & Draft Gating Unit Suite ---');
 
 const contentProjectsDir = path.resolve('src/content/projects');
 
-test('Project MDX files in src/content/projects enforce EA-024 publication state (AgentIAM cleared, 4 candidates draft)', () => {
+test('Project MDX files in src/content/projects enforce EA-025 publication state (AgentIAM and StreamForge cleared, 3 candidates draft)', () => {
   assert.ok(fs.existsSync(contentProjectsDir), 'src/content/projects directory must exist');
 
   const files = fs.readdirSync(contentProjectsDir).filter((f) => f.endsWith('.mdx'));
   assert.equal(files.length, 5, 'Must contain exactly 5 candidate project MDX files');
 
-  const draftSlugs = [
-    'streamforge.mdx',
-    'devforge.mdx',
-    'java-task-api.mdx',
-    'currency-auth-research.mdx',
-  ];
+  const draftSlugs = ['devforge.mdx', 'java-task-api.mdx', 'currency-auth-research.mdx'];
   for (const slug of draftSlugs) {
     assert.ok(
       files.includes(slug),
@@ -50,7 +45,7 @@ test('Project MDX files in src/content/projects enforce EA-024 publication state
     );
   }
 
-  // Verify owner-cleared AgentIAM prototype case study (EA-024 Phase B)
+  // Verify owner-cleared AgentIAM prototype case study (EA-024)
   assert.ok(files.includes('agentiam.mdx'), 'agentiam.mdx must exist in src/content/projects/');
   const agentiamRaw = fs.readFileSync(path.join(contentProjectsDir, 'agentiam.mdx'), 'utf-8');
   const agentiamMatch = agentiamRaw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -83,8 +78,44 @@ test('Project MDX files in src/content/projects enforce EA-024 publication state
     'agentiam.mdx body must NOT use HTML comments <!-- --> (must use JSX comments {/* */})'
   );
 
+  // Verify owner-cleared StreamForge prototype case study (EA-025 Phase B)
+  assert.ok(
+    files.includes('streamforge.mdx'),
+    'streamforge.mdx must exist in src/content/projects/'
+  );
+  const streamforgeRaw = fs.readFileSync(path.join(contentProjectsDir, 'streamforge.mdx'), 'utf-8');
+  const streamforgeMatch = streamforgeRaw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  assert.ok(streamforgeMatch, 'streamforge.mdx must contain valid frontmatter enclosed in ---');
+
+  assert.match(
+    streamforgeMatch[1],
+    /draft:\s*false/,
+    'Approved streamforge.mdx frontmatter must have draft: false'
+  );
+  assert.match(
+    streamforgeMatch[1],
+    /editorialApproval:\s*true/,
+    'Approved streamforge.mdx frontmatter must have editorialApproval: true'
+  );
+  assert.match(
+    streamforgeMatch[1],
+    /publishedAt:\s*2026-11-07/,
+    'Approved streamforge.mdx frontmatter must specify publishedAt: 2026-11-07'
+  );
+  assert.match(
+    streamforgeMatch[1],
+    /status:\s*'prototype'/,
+    'Approved streamforge.mdx frontmatter must have status: prototype'
+  );
+
+  const streamforgeBody = streamforgeRaw.slice(streamforgeMatch[0].length);
+  assert.ok(
+    !streamforgeBody.includes('<!--'),
+    'streamforge.mdx body must NOT use HTML comments <!-- --> (must use JSX comments {/* */})'
+  );
+
   console.log(
-    '✓ EA-024 project content state confirmed: AgentIAM cleared, 4 remaining candidates strictly gated'
+    '✓ EA-025 project content state confirmed: AgentIAM and StreamForge cleared, 3 remaining candidates strictly gated'
   );
 });
 
@@ -100,21 +131,6 @@ test('getPublishedFeaturedProjects enforces publication gates with controlled fi
   // 2. Controlled fixture: mock draft candidates are strictly excluded
   const mockDrafts: ProjectItem[] = [
     {
-      id: 'streamforge',
-      slug: 'streamforge',
-      title: 'StreamForge',
-      problem: 'Draft problem',
-      role: 'Engineer',
-      contribution: 'Draft contribution',
-      stack: ['Java'],
-      status: 'prototype',
-      draft: true,
-      editorialApproval: false,
-      featured: true,
-      summary: 'Draft summary',
-      href: '/projects/streamforge/',
-    },
-    {
       id: 'devforge',
       slug: 'devforge',
       title: 'DevForge',
@@ -129,6 +145,21 @@ test('getPublishedFeaturedProjects enforces publication gates with controlled fi
       summary: 'Draft summary',
       href: '/projects/devforge/',
     },
+    {
+      id: 'java-task-api',
+      slug: 'java-task-api',
+      title: 'Java Task API',
+      problem: 'Draft problem',
+      role: 'Engineer',
+      contribution: 'Draft contribution',
+      stack: ['Java'],
+      status: 'prototype',
+      draft: true,
+      editorialApproval: false,
+      featured: true,
+      summary: 'Draft summary',
+      href: '/projects/java-task-api/',
+    },
   ];
   const publishedFromDrafts = await getPublishedFeaturedProjects(mockDrafts);
   assert.equal(
@@ -137,7 +168,7 @@ test('getPublishedFeaturedProjects enforces publication gates with controlled fi
     'Zero projects may be returned for public display while projects remain in DRAFT'
   );
 
-  // 3. Controlled fixture: owner-approved AgentIAM prototype is returned for featured display
+  // 3. Controlled fixture: owner-approved AgentIAM and StreamForge prototypes are returned for featured display
   const mockAgentiam: ProjectItem = {
     id: 'agentiam',
     slug: 'agentiam',
@@ -153,9 +184,29 @@ test('getPublishedFeaturedProjects enforces publication gates with controlled fi
     summary: 'Wire-protocol database security proxy',
     href: '/projects/agentiam/',
   };
-  const publishedFeatured = await getPublishedFeaturedProjects([mockAgentiam, ...mockDrafts]);
-  assert.equal(publishedFeatured.length, 1, 'Only the approved AgentIAM project must be featured');
+  const mockStreamforge: ProjectItem = {
+    id: 'streamforge',
+    slug: 'streamforge',
+    title: 'StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine',
+    problem: 'Distributed mobility streaming pipeline',
+    role: 'Backend Systems Engineer & Creator',
+    contribution: 'Architected and implemented the end-to-end streaming pipeline',
+    stack: ['Go', 'Apache Kafka', 'Java'],
+    status: 'prototype',
+    draft: false,
+    editorialApproval: true,
+    featured: true,
+    summary: 'High-throughput polyglot streaming pipeline',
+    href: '/projects/streamforge/',
+  };
+  const publishedFeatured = await getPublishedFeaturedProjects([
+    mockAgentiam,
+    mockStreamforge,
+    ...mockDrafts,
+  ]);
+  assert.equal(publishedFeatured.length, 2, 'Both approved projects must be featured');
   assert.equal(publishedFeatured[0].id, 'agentiam');
+  assert.equal(publishedFeatured[1].id, 'streamforge');
 
   console.log('✓ Controlled fixture publication gating and Node fallback confirmed');
 });

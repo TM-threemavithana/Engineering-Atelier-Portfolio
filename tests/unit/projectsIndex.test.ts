@@ -67,16 +67,30 @@ test('EA-022: Navigation activation for /projects/ route', () => {
 test('EA-022: Activating /projects/ does NOT activate unapproved project detail routes', () => {
   assert.equal(isRoutePublished('/projects/'), true, '/projects/ index route is published');
 
-  // Candidate detail routes must strictly remain unpublished
-  const detailRoutes = [
-    '/projects/streamforge/',
+  // Approved project detail routes must be published
+  assert.equal(
+    isRoutePublished('/projects/agentiam/'),
+    true,
+    'Approved AgentIAM detail route must be published'
+  );
+  assert.equal(
+    isRoutePublished('/projects/streamforge/'),
+    true,
+    'Approved StreamForge detail route must be published'
+  );
+  assert.equal(validateLinkDestination('/projects/agentiam/').isValid, true);
+  assert.equal(validateLinkDestination('/projects/streamforge/').isValid, true);
+
+  // Unapproved candidate detail routes must strictly remain unpublished
+  const unapprovedDetailRoutes = [
     '/projects/devforge/',
     '/projects/java-task-api/',
     '/projects/currency-auth-research/',
     '/projects/unknown-slug/',
+    '/projects/unapproved-test-fixture/',
   ];
 
-  for (const route of detailRoutes) {
+  for (const route of unapprovedDetailRoutes) {
     assert.equal(
       isRoutePublished(route),
       false,
@@ -91,7 +105,7 @@ test('EA-022: Activating /projects/ does NOT activate unapproved project detail 
   }
 
   console.log(
-    '✓ Strict isolation confirmed: index is published, all detail routes remain unpublished'
+    '✓ Strict isolation confirmed: index is published, approved routes published, unapproved routes remain rejected'
   );
 });
 

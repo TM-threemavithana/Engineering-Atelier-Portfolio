@@ -370,21 +370,21 @@ test('validatePublishedProject enforces full rubric for publication approval', (
 });
 
 test('isProjectPublishable enforces strict 4-layer gate and suppresses drafts', () => {
-  // Scenario A: Candidate draft entry (current state of all 4 projects)
+  // Scenario A: Candidate draft entry (current state of unapproved candidate)
   const candidateDraft: ProjectItem = {
-    id: 'streamforge',
-    slug: 'streamforge',
-    title: 'StreamForge: Distributed Raft Log Engine',
-    problem: 'Event ingestion under partition.',
+    id: 'devforge',
+    slug: 'devforge',
+    title: 'DevForge: Scala Developer Orchestration CLI',
+    problem: 'Developer tooling and workflow automation.',
     role: 'Backend Systems Engineer',
-    contribution: 'Designed Raft consensus replication.',
-    stack: ['Java 21'],
+    contribution: 'Designed build tool orchestration engine.',
+    stack: ['Scala', 'Cats Effect'],
     status: 'prototype',
     draft: true, // GATED
     editorialApproval: false,
     featured: true,
-    summary: 'High-throughput distributed log.',
-    href: '/projects/streamforge/',
+    summary: 'Developer orchestration CLI.',
+    href: '/projects/devforge/',
   };
   assert.equal(isProjectPublishable(candidateDraft), false);
 
@@ -396,7 +396,7 @@ test('isProjectPublishable enforces strict 4-layer gate and suppresses drafts', 
   };
   assert.equal(isProjectPublishable(prematureDraftFalse), false);
 
-  // Scenario C: draft: false, editorialApproval: true, but route is NOT published (/projects/streamforge/) -> MUST NOT PUBLISH
+  // Scenario C: draft: false, editorialApproval: true, but route is NOT published (/projects/devforge/) -> MUST NOT PUBLISH
   const unbuiltRoute: ProjectItem = {
     ...candidateDraft,
     draft: false,
@@ -413,26 +413,23 @@ test('isProjectPublishable enforces strict 4-layer gate and suppresses drafts', 
   };
   assert.equal(isProjectPublishable(clearedWithRoute), true);
 
+  // Scenario E: draft: false, editorialApproval: true, route is approved StreamForge -> PUBLISHABLE
+  const approvedStreamforge: ProjectItem = {
+    ...candidateDraft,
+    id: 'streamforge',
+    slug: 'streamforge',
+    href: '/projects/streamforge/',
+    draft: false,
+    editorialApproval: true,
+  };
+  assert.equal(isProjectPublishable(approvedStreamforge), true);
+
   console.log('✓ 4-layer publication gate strictly enforces draft exclusion and route checks');
 });
 
 test('getPublishedFeaturedProjects returns empty array for candidate drafts', async () => {
-  // Test with mock entries representing the four current candidates
+  // Test with mock entries representing remaining draft candidates
   const mockCandidates: GenericProjectEntry[] = [
-    {
-      id: 'streamforge',
-      data: {
-        title: 'StreamForge',
-        summary: 'Distributed log',
-        status: 'prototype',
-        role: 'Engineer',
-        categories: ['backend'],
-        technologies: ['Java'],
-        featured: true,
-        draft: true,
-        editorialApproval: false,
-      },
-    },
     {
       id: 'devforge',
       data: {
@@ -442,6 +439,20 @@ test('getPublishedFeaturedProjects returns empty array for candidate drafts', as
         role: 'Engineer',
         categories: ['backend'],
         technologies: ['Scala'],
+        featured: true,
+        draft: true,
+        editorialApproval: false,
+      },
+    },
+    {
+      id: 'java-task-api',
+      data: {
+        title: 'Java Task API',
+        summary: 'Task API',
+        status: 'prototype',
+        role: 'Engineer',
+        categories: ['backend'],
+        technologies: ['Java'],
         featured: true,
         draft: true,
         editorialApproval: false,

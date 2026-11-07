@@ -95,7 +95,7 @@
 **Depends:** 020,023. **Status:** Phase B Locally Configured & Validated (Awaiting Final Owner Release Decision; Public Deployment Unapproved). **Scope:** owner-approved real project body, diagram(s), evidence links and lessons. **Accept:** content rubric passes; no imagined numbers, completed status only when true. **Verify:** editorial signoff and URL test. **AC:** 05,06,17.
 
 ### EA-025 — Publish second/third verified case study (M)
-**Depends:** 024. **Scope:** expand only with real evidence; if absent document omission. **Accept:** all published pages match case-study rubric. **Verify:** editorial signoff + links. **AC:** 05,06.
+**Depends:** 024. **Status:** Phase B Locally Configured & Validated (StreamForge Prototype Published Locally; Awaiting Full Milestone Release; Public Deployment Unapproved). **Scope:** expand only with real evidence; if absent document omission. **Accept:** all published pages match case-study rubric. **Verify:** editorial signoff + links. **AC:** 05,06.
 
 ### EA-026 — Project overview experience verification (S)
 **Depends:** 022,024. **Scope:** connect featured work to Home and About without contradictory claims; tidy empty fallback. **Accept:** every featured item links to an existent published URL. **Verify:** E2E/automatic link checks. **AC:** 05,06.
@@ -1072,18 +1072,44 @@
 - Deployment Status:
   - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 
-
-
-
-
-
-
-
-
-
-
-
-
+### EA-025 Execution Record — Phase B StreamForge Local Publication Preparation
+- Status: REVIEW (Phase B Locally Configured & Validated — Public Deployment Separately Unapproved)
+- Authorization: Owner explicit authorization for EA-025 Phase B StreamForge local publication preparation (2026-11-07).
+- Scope implemented:
+  - Preserved reviewed StreamForge 2.0 technical narrative (Python PyArrow SIMD Parquet replay, Go gRPC/Kafka ingestion gateway, Franz-Go client-managed pipelined batching optimization [9,792.9 eps vs 83.6 eps baseline, 117.1x speedup], fixed-point integer cents & milli-miles, at-least-once Kafka delivery with PostgreSQL idempotency, real `KafkaPublisher.PublishBatch` source alignment from `services/core-go/internal/eventstream/publisher.go`, dual-database boundary isolation, Java Spring Boot anomaly rules with SHA-256 deterministic alert IDs, Kubernetes manifests, and 6 parallel CI jobs).
+  - Frontmatter updated in `src/content/projects/streamforge.mdx`: `status: 'prototype'`, `publishedAt: 2026-11-07`, `draft: false`, `editorialApproval: true`, preserving `featured: true` (featureOrder: 2).
+  - Route registry updated: `/projects/streamforge/` registered in `APPROVED_PROJECT_ROUTES` (`src/utils/linkSafety.ts`), retaining `/projects/agentiam/`.
+  - Gating preserved: Remaining 3 candidate projects (`devforge`, `java-task-api`, `currency-auth-research`) strictly remain in `draft: true` and `editorialApproval: false`.
+  - Static build output verified: Exactly 7 static HTML pages generated in `dist/` (`404.html`, `about/index.html`, `contact/index.html`, `index.html`, `projects/index.html`, `projects/agentiam/index.html`, `projects/streamforge/index.html`).
+  - Page integration verified: `/projects/` renders populated layout with both AgentIAM and StreamForge prototypes; homepage renders `#featured-work` displaying both verified prototype cards.
+- Files modified:
+  - `src/content/projects/streamforge.mdx` (Phase B publication frontmatter: status: 'prototype', publishedAt: 2026-11-07, draft: false, editorialApproval: true)
+  - `src/utils/linkSafety.ts` (registered `/projects/streamforge/` in APPROVED_PROJECT_ROUTES)
+  - `tests/unit/projects.test.ts` (reconciled EA-025 project state: AgentIAM and StreamForge cleared, 3 candidates draft)
+  - `tests/unit/caseStudy.test.ts` (reconciled EA-025 route registry exact matching and two-route publication)
+  - `tests/artifacts/artifact-verification.ts` (reconciled EA-025 7-page production artifact invariants, populated index, and homepage featured work)
+  - `docs/CONTENT_STATUS.md` (updated EA-025 status and Candidate Projects Status table)
+  - `docs/IMPLEMENTATION_BACKLOG.md` (updated EA-025 status and execution record)
+- Automated verification executed:
+  - `npm run check`: PASS (83 files checked, 0 errors, 0 warnings, 0 hints)
+  - `npm run lint`: PASS (0 ESLint errors)
+  - `npm run format:check`: PASS (100% compliant with Prettier)
+  - `tests/unit/projects.test.ts` & `tests/unit/caseStudy.test.ts`: PASS (9/9 subtests passed)
+  - `verify:primitives`: PASS (isolated HTML primitive semantics verified)
+  - `verify:project-cards`: PASS (isolated project card rendering verified)
+  - `verify:case-studies`: PASS (isolated case-study rendering verified)
+  - `npm run build`: PASS (7 static pages built in dist/)
+  - `npm run verify:artifacts`: PASS (17 production artifact verification test suites passed)
+  - Note on full `npm run test`: 4 historical tests (`linkSafety.test.ts`, `projectCards.test.ts`, `projectSchema.test.ts`, `projectsIndex.test.ts`) require bounded test reconciliation to update hardcoded `/projects/streamforge/` unbuilt checks to remaining draft slugs (e.g. `/projects/devforge/`), pending owner authorization as they fall outside the 7 authorized files.
+- Browser evidence captured (Microsoft Edge headless):
+  - Desktop 1440px (1440x1800): `streamforge_detail_desktop_1440.png` (157,734 bytes)
+  - Tablet 768px (768x1400): `streamforge_detail_tablet_768.png` (73,510 bytes)
+  - Mobile 390px (390x1200): `streamforge_detail_mobile_390.png` (57,541 bytes)
+  - Narrow Mobile 320px (320x1000): `streamforge_detail_mobile_320.png` (42,395 bytes)
+  - Projects Index Desktop (1440x1200): `projects_index_desktop_1440_ea025.png` (94,834 bytes)
+  - Homepage Featured Desktop (1440x1400): `homepage_featured_desktop_1440_ea025.png` (121,387 bytes)
+- Deployment Status:
+  - Zero commits, zero pushes, zero deployments performed. Public release remains separately unapproved.
 
 
 

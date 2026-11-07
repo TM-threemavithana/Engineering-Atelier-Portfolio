@@ -30,6 +30,18 @@ const fictionalDraftProject: ProjectItem = {
 };
 
 test('1. Safe Project Navigation: Unpublished and draft project routes are rejected by publication gate', () => {
+  // Approved projects must be recognized as published
+  assert.equal(
+    isRoutePublished('/projects/agentiam/'),
+    true,
+    'Approved AgentIAM project must return true'
+  );
+  assert.equal(
+    isRoutePublished('/projects/streamforge/'),
+    true,
+    'Approved StreamForge project must return true'
+  );
+
   // Candidate project routes and draft fixtures must not be recognized as published
   assert.equal(
     isRoutePublished('/projects/fictional-alpha/'),
@@ -42,11 +54,6 @@ test('1. Safe Project Navigation: Unpublished and draft project routes are rejec
     'Candidate Currency project must return false while in draft'
   );
   assert.equal(
-    isRoutePublished('/projects/streamforge/'),
-    false,
-    'Candidate StreamForge project must return false while in draft'
-  );
-  assert.equal(
     isRoutePublished('/projects/devforge/'),
     false,
     'Candidate DevForge project must return false while in draft'
@@ -55,6 +62,11 @@ test('1. Safe Project Navigation: Unpublished and draft project routes are rejec
     isRoutePublished('/projects/java-task-api/'),
     false,
     'Candidate Java Task API project must return false while in draft'
+  );
+  assert.equal(
+    isRoutePublished('/projects/unapproved-test-fixture/'),
+    false,
+    'Explicit unapproved fixture must return false'
   );
 });
 

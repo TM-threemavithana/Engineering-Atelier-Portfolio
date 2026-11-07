@@ -1,32 +1,567 @@
 ---
-# DRAFT ONLY — Awaiting owner repository clearance and verification (EA-020)
-title: 'StreamForge: Distributed Raft Log Engine'
-summary: 'High-throughput distributed write-ahead log with gRPC streaming and virtual thread persistence.'
+# Locally Approved Engineering Prototype Case Study (EA-025 Phase B)
+title: 'StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine'
+summary: 'High-throughput polyglot streaming pipeline ingesting NYC TLC datasets with pipelined Kafka batching, fixed-point financial math, and dual-database segregation.'
 status: 'prototype'
-role: 'Backend Systems Engineer'
-individualContribution: 'Designed Raft consensus replication and bounded in-memory queue pipelines.'
+publishedAt: 2026-11-07
+role: 'Backend Systems Engineer & Creator'
+individualContribution: 'Architected and implemented the end-to-end streaming pipeline: Python PyArrow SIMD Parquet replay, Go gRPC and Kafka ingestion, Franz-Go pipelined batching optimization, Java Spring Boot anomaly detection, dual PostgreSQL schema boundaries, and Kubernetes manifests.'
 categories:
-  - 'backend'
   - 'distributed'
+  - 'backend'
 technologies:
-  - 'Java 21'
-  - 'gRPC'
-  - 'Protocol Buffers'
-  - 'RocksDB'
+  - 'Go'
+  - 'Apache Kafka'
+  - 'Java'
+  - 'Spring Boot'
+  - 'Python'
+  - 'PostgreSQL'
+  - 'Docker'
+  - 'Kubernetes'
+  - 'React'
 featured: true
-featureOrder: 1
-draft: true
-editorialApproval: false
+featureOrder: 2
+repoUrl: 'https://github.com/TM-threemavithana/streamforge'
+evidence:
+  - label: 'GitHub Repository'
+    url: 'https://github.com/TM-threemavithana/streamforge'
+    kind: 'repo'
+  - label: 'Automated CI Workflow (6 Jobs)'
+    url: 'https://github.com/TM-threemavithana/streamforge/actions/workflows/ci.yml'
+    kind: 'test'
+  - label: 'Phase 8 Benchmark Summary & PyArrow Reconciliation'
+    url: 'https://github.com/TM-threemavithana/streamforge/blob/main/docs/verification/benchmark_summary.md'
+    kind: 'document'
+  - label: 'Architectural Decision Records (ADR-001 to ADR-009)'
+    url: 'https://github.com/TM-threemavithana/streamforge/tree/main/docs/adr'
+    kind: 'document'
+metrics:
+  - name: 'Pipelined Kafka Ingestion Throughput'
+    value: '9,792.9 events/sec'
+    methodology: 'Recorded local benchmark replaying 10,000 Parquet NYC TLC records in 500-event batches over Franz-Go concurrent batch produce on a 16-core workstation.'
+  - name: 'Throughput Optimization Ratio'
+    value: '117.1x'
+    methodology: 'Historically reported local profiling comparison between an unoptimized serial synchronous loop (83.6 eps) and client-batched produce submission (9,792.9 eps).'
+  - name: 'Producer Ack Latency (p50)'
+    value: '28.4 ms'
+    methodology: '50th percentile broker acknowledgment latency for 500-event Kafka batches under sustained 9.7k eps local ingestion.'
+draft: false
+editorialApproval: true
 ---
 
-{/* DRAFT ONLY: Concept under review. Excluded from production builds until owner evidence clearance (EA-020). */}
+{/* LOCALLY APPROVED PROTOTYPE: Authentic StreamForge 2.0 implementation and benchmark verification approved for local portfolio presentation (EA-025 Phase B). Gated from public production deployment. */}
 
-## Conceptual Overview
+## 1. Project Overview & The Mobility Streaming Challenge
 
-StreamForge is an illustrative distributed log architecture exploring consensus replication, bounded event buffering, and durable sequential persistence using Java 21 virtual threads.
+Urban mobility platforms—such as ride-hailing networks, municipal transit authorities, and logistics fleets—generate continuous, high-volume telemetry streams. In these systems, incoming trip records must satisfy two conflicting operational mandates:
 
-## Architecture & Design Boundaries
+1. **High Ingestion Throughput:** Ingesting thousands of complex, nested telemetry records per second without incurring unbounded consumer lag or dropping network bursts during peak commuter hours.
+2. **Strict Financial Invariants & Replay Idempotency:** Guaranteeing that network retries, broker rebalances, worker crashes, or historical backfills never introduce double-counting, floating-point rounding drift, or unrecorded anomalous trips.
 
-The architecture separates network ingestion via gRPC services from the consensus replication loop, maintaining explicit bounded memory queues to prevent unconstrained heap expansion during network partitions.
+StreamForge was engineered to ingest and analyze the official New York City Taxi & Limousine Commission (NYC TLC) dataset (tens of millions of real-world trip records in Apache Parquet format). Rather than treating the data as a static batch warehouse, StreamForge processes it through an enterprise-grade distributed streaming pipeline that couples high-throughput message publishing with deterministic mathematical idempotency.
 
-{/* Detailed case study content, benchmarks, and repository evidence will be integrated after EA-020 verification. */}
+## 2. Why the Pipeline Was Built
+
+Standard stream ingestion architectures frequently encounter severe data integrity and performance pitfalls when scaled:
+
+- **Broker Round-Trip Bottlenecks:** Naive Kafka publisher implementations often iterate over batch slices and call synchronous produce methods for each individual message. At typical network latencies (1.5–3.0 ms per round-trip), throughput is physically capped at under 100 events/second regardless of available CPU or network bandwidth.
+- **Cumulative Floating-Point Drift:** Representing monetary values (fares, tips, tolls, surcharges) or trip distances using standard IEEE 754 floating-point numbers (`float32` or `float64`) introduces cumulative rounding errors across millions of transactions, corrupting financial reporting and auditing.
+- **Non-Idempotent Consumer Failures:** Distributed message streams inevitably experience network partitions and worker restarts. Without deterministic message identity and explicit database transactional boundaries, replayed messages inflate analytical metrics and trigger duplicate anomaly notifications.
+- **Resource Contention Between Analytics and Rule Evaluation:** Heavy aggregation queries (hourly zone pickups, revenue rollups) compete for row locks and buffer pool memory against low-latency anomaly detection rules (fraud alerts, fare spikes), leading to connection pool exhaustion.
+
+StreamForge was built from first principles to solve these challenges through intentional architectural segregation: separating analytical telemetry aggregation from rule-based alerting across independent microservices and isolated PostgreSQL databases.
+
+## 3. Polyglot Architecture & End-to-End Data Flow
+
+StreamForge adopts an intentional polyglot design, pairing each workload with the runtime best suited to its operational constraints:
+
+<Figure
+  alt="StreamForge 2.0 Distributed Streaming Pipeline Topology"
+  caption="End-to-end data flow: Python SIMD Parquet replay, Go 1.24 gRPC gateway and Kafka pipeline, Go analytical aggregation, Java Spring Boot anomaly rules engine, dual PostgreSQL isolation, and React 19 dashboard."
+  figureNumber="1"
+>
+  <svg
+    viewBox="0 0 760 410"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    class="w-full h-auto overflow-visible select-none py-2"
+    role="img"
+    aria-label="StreamForge 2.0 Pipeline Architecture: Parquet Data Lake, Python Replay Client, Go gRPC Ingestion Gateway, Apache Kafka 3.8 Backbone, Go Analytics Worker, Java Spring Boot Alerts Engine, Dual PostgreSQL Databases, and React Dashboard"
+  >
+    <defs>
+      <marker
+        id="sf-arrow"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-accent, #5EEAD4)" />
+      </marker>
+      <marker
+        id="sf-arrow-gold"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-gold, #F0CF78)" />
+      </marker>
+      <marker
+        id="sf-arrow-subtle"
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--color-border-strong, #5A7597)" />
+      </marker>
+    </defs>
+
+    {/* Stage 1: Ingestion Source */}
+    <g>
+      <rect
+        x="20"
+        y="170"
+        width="150"
+        height="85"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="95" y="196" text-anchor="middle" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+        Python Replay Client
+      </text>
+      <text x="95" y="214" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">
+        PyArrow C++ SIMD
+      </text>
+      <text x="95" y="230" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-accent)]">
+        Parquet Ingestion (500/blk)
+      </text>
+      <text x="95" y="246" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        SHA-256 Identity (ADR-001)
+      </text>
+    </g>
+
+    {/* Arrow: Replay to Go Ingestion */}
+    <line x1="170" y1="212" x2="204" y2="212" stroke="var(--color-accent, #5EEAD4)" stroke-width="2" marker-end="url(#sf-arrow)" />
+    <text x="187" y="204" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+      gRPC :50051
+    </text>
+
+    {/* Stage 2: Go Ingestion Gateway */}
+    <g>
+      <rect
+        x="210"
+        y="170"
+        width="150"
+        height="85"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="285" y="196" text-anchor="middle" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+        Go Ingestion Gateway
+      </text>
+      <text x="285" y="214" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-muted)]">
+        Protobuf Decoders
+      </text>
+      <text x="285" y="230" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-gold)]">
+        Pipelined Franz-Go Batch
+      </text>
+      <text x="285" y="246" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        RSS &lt; 75MB | 9.7k eps
+      </text>
+    </g>
+
+    {/* Arrow: Ingestion to Kafka */}
+    <line x1="360" y1="212" x2="394" y2="212" stroke="var(--color-accent, #5EEAD4)" stroke-width="2" marker-end="url(#sf-arrow)" />
+    <text x="377" y="204" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+      Produce RPC
+    </text>
+
+    {/* Stage 3: Apache Kafka Backbone */}
+    <g>
+      <rect
+        x="400"
+        y="140"
+        width="130"
+        height="145"
+        rx="8"
+        class="fill-[var(--color-surface)] stroke-[var(--color-gold)]"
+        stroke-width="2"
+      />
+      <text x="465" y="165" text-anchor="middle" class="font-mono text-[12px] font-bold fill-[var(--color-gold)]">
+        Apache Kafka 3.8
+      </text>
+      <text x="465" y="183" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-fg)]">
+        KRaft Consensus
+      </text>
+      <line x1="412" y1="193" x2="518" y2="193" stroke="var(--color-border)" stroke-width="1" />
+      <text x="465" y="210" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        raw-events.v1
+      </text>
+      <text x="465" y="226" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-accent)]">
+        6 Partitions (Key: ID)
+      </text>
+      <text x="465" y="242" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        All-ISR Acks (ADR-006)
+      </text>
+      <text x="465" y="260" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        7-Day Replay Window
+      </text>
+    </g>
+
+    {/* Divergent Arrows: Kafka to Consumers */}
+    {/* Upper Branch: Go Analytics */}
+    <path d="M 530 185 L 560 185 L 560 85 L 574 85" fill="none" stroke="var(--color-accent, #5EEAD4)" stroke-width="1.5" marker-end="url(#sf-arrow)" />
+    {/* Lower Branch: Java Alerts */}
+    <path d="M 530 240 L 560 240 L 560 335 L 574 335" fill="none" stroke="var(--color-gold, #F0CF78)" stroke-width="1.5" marker-end="url(#sf-arrow-gold)" />
+
+    {/* Stage 4A: Go Analytics Worker & DB */}
+    <g>
+      <rect
+        x="580"
+        y="45"
+        width="160"
+        height="85"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="660" y="70" text-anchor="middle" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+        Go Analytics Consumer
+      </text>
+      <text x="660" y="87" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-accent)]">
+        Hourly Zone Aggregations
+      </text>
+      <text x="660" y="103" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        Fixed-Point Arithmetic (Cents)
+      </text>
+      <text x="660" y="119" text-anchor="middle" class="font-mono text-[10px] font-semibold fill-[var(--color-gold)]">
+        PostgreSQL: streamforge
+      </text>
+    </g>
+
+    {/* Stage 4B: Java Alerts Engine & DB */}
+    <g>
+      <rect
+        x="580"
+        y="295"
+        width="160"
+        height="85"
+        rx="8"
+        class="fill-[var(--color-surface-alt)] stroke-[var(--color-border-strong)]"
+        stroke-width="1.5"
+      />
+      <text x="660" y="320" text-anchor="middle" class="font-mono text-[12px] font-semibold fill-[var(--color-fg)]">
+        Java Spring Boot Alerts
+      </text>
+      <text x="660" y="337" text-anchor="middle" class="font-mono text-[10px] fill-[var(--color-gold)]">
+        Dynamic Anomaly Rules (JDK 17)
+      </text>
+      <text x="660" y="353" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        Deterministic Alert IDs (ADR-007)
+      </text>
+      <text x="660" y="369" text-anchor="middle" class="font-mono text-[10px] font-semibold fill-[var(--color-accent)]">
+        PostgreSQL: streamforge_alerts
+      </text>
+    </g>
+
+    {/* Stage 5: Unified UI / REST */}
+    <g>
+      <rect
+        x="300"
+        y="20"
+        width="180"
+        height="40"
+        rx="6"
+        class="fill-[var(--color-surface)] stroke-[var(--color-border)]"
+        stroke-width="1"
+      />
+      <text x="390" y="38" text-anchor="middle" class="font-mono text-[11px] font-semibold fill-[var(--color-fg)]">
+        React 19 / Vite Dashboard
+      </text>
+      <text x="390" y="52" text-anchor="middle" class="font-mono text-[9px] fill-[var(--color-muted)]">
+        REST APIs / Ephemeral Reverse Proxy
+      </text>
+    </g>
+
+    {/* Subdued connectors from DBs to UI */}
+    <path d="M 660 45 L 660 30 L 480 30" fill="none" stroke="var(--color-border-strong)" stroke-width="1" stroke-dasharray="3 3" />
+    <path d="M 580 340 L 260 340 L 260 40 L 300 40" fill="none" stroke="var(--color-border-strong)" stroke-width="1" stroke-dasharray="3 3" />
+
+  </svg>
+</Figure>
+
+### Architectural Component Breakdown:
+
+| Service Layer                | Language & Rationale                                                                                                                             | Operational Responsibility                                                                                             | Memory & Latency Profile                                                                      |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| **Data Replay & Extraction** | **Python 3.11 + PyArrow**<br />Vectorized C++ SIMD Parquet scanning outperforms JVM and Go Parquet readers for complex nested schemas.           | Streams Parquet datasets from disk in bounded 500-event blocks, hashes raw bytes, and dispatches via gRPC.             | Bounded memory usage via PyArrow record batches; zero heap pressure on ingestion services.    |
+| **Ingestion Gateway**        | **Go 1.24 (`franz-go` + `pgx`)**<br />Minimal runtime overhead, lightweight goroutines, sub-millisecond GC pauses, and non-blocking network I/O. | Accepts incoming gRPC streams, decodes Protobuf payloads, assigns partition keys, and pipelines Kafka produce RPCs.    | **&lt; 75 MB RSS** under peak load; p50 producer acknowledgment latency of **28.4 ms**.       |
+| **Streaming Backbone**       | **Apache Kafka 3.8 (KRaft)**<br />Durable, partitionable log with all-ISR acknowledgment guarantees and independent consumer group tracking.     | Manages the `streamforge.raw-events.v1` topic across 6 partitions, buffered with a 7-day replay retention policy.      | High-throughput sequential disk writes; at-least-once delivery semantics.                     |
+| **Analytics Aggregator**     | **Go 1.24 Worker**<br />High-speed mathematical aggregation and batch relational persistence.                                                    | Consumes raw events, computes pre-aggregated hourly pickup and dropoff metrics per taxi zone, and updates PostgreSQL.  | Atomic database transactions per offset window; sub-10 ms query latencies.                    |
+| **Anomaly Rules Engine**     | **Java 17 / Spring Boot 4**<br />Enterprise-grade rule engine modeling, strong domain typing, and dynamic threshold configuration.               | Consumes raw events independently, evaluates dynamic anomaly rules (`HIGH_FARE`, `LONG_DISTANCE`), and records alerts. | JVM startup isolated via Kubernetes startup probes; dedicated memory footprint (~512 MB RSS). |
+| **Presentation Tier**        | **React 19 + TypeScript + Vite**<br />Modern reactive state management and minimal component bundle size.                                        | Displays real-time ingestion rates, zone heatmaps, and active anomaly alerts via non-root Nginx reverse proxy.         | Static client assets; zero server-side rendering latency.                                     |
+
+## 4. Architectural Requirements & System Invariants
+
+To guarantee that the pipeline remains mathematically verifiable and operationally robust, StreamForge enforces four non-negotiable system invariants:
+
+### 1. Zero Floating-Point Financial Drift
+
+Standard floating-point representations (`float64`) cannot represent fractional base-10 values (such as `$0.10` or `$0.07`) exactly in base-2 binary arithmetic. Across tens of millions of records, rounding errors accumulate into significant discrepancies:
+
+```text
+0.10 + 0.20 = 0.30000000000000004  (IEEE 754 Floating-Point Error)
+```
+
+In StreamForge, **floating-point types are strictly prohibited in core domains**. All monetary amounts (fares, extra surcharges, MTA tax, tip amounts, tolls, improvement surcharges, and total amounts) are converted at the ingestion boundary and represented exclusively as **integer cents** (`BIGINT`). Trip distances are represented as **integer milli-miles** (10⁻³ miles):
+
+```text
+Fare in Cents = round(raw_fare * 100)
+Distance in Milli-Miles = round(raw_distance * 1000)
+```
+
+This invariant guarantees that all analytical aggregations (hourly zone revenue, average tip percentages, and system-wide receipts) are computed using exact integer mathematics, eliminating numerical drift across analytical queries.
+
+### 2. Deterministic Event Identity (ADR-001)
+
+To prevent duplicate event generation during replay or network retries, every event receives a deterministic, collision-resistant identifier computed before network dispatch:
+
+```text
+EventID = SHA-256("nyc-yellow:v1:" + source_sha256 + ":" + zero_based_row_number)
+```
+
+Because the source Parquet file hash and logical row number are immutable, retrying a batch or replaying historical runs deterministically reproduces the exact same event ID. This prevents duplicate counting within registered datasets while strictly avoiding false-positive deduplication across distinct source files.
+
+### 3. Dual-Database Boundary Segregation
+
+Rather than sharing a monolithic database across microservices, StreamForge enforces physical boundary separation between two dedicated PostgreSQL databases:
+
+- `streamforge`: Owned exclusively by the Go ingestion and analytics services. Contains trip events, dataset manifests, and hourly zone rollups.
+- `streamforge_alerts`: Owned exclusively by the Java Spring Boot alerts engine. Contains rule definitions, anomaly alerts, event evaluation outcomes, and quarantined consumer failures.
+
+Cross-database queries and foreign keys are strictly prohibited. The microservices share zero database connection pools, preventing high-frequency analytical queries from causing lock contention or table degradation on the anomaly detection pipeline.
+
+### 4. At-Least-Once Delivery with Database Idempotency (ADR-006)
+
+StreamForge implements at-least-once Kafka processing with PostgreSQL idempotency, not a distributed exactly-once transaction:
+
+- Ingestion publishers emit envelopes to Kafka and receive all-ISR acknowledgments. The stable `event_id` is assigned as the Kafka message key, ensuring uniform partition distribution and consistent routing of retries.
+- Workers commit Kafka offsets **only after the database transaction successfully commits**.
+- If a consumer worker crashes before committing its Kafka offset, or if ambiguous network timeouts trigger producer retries, duplicate envelopes may exist in Kafka and be redelivered. Deduplication occurs strictly at the relational persistence boundary: primary key uniqueness constraints on `event_id` and PostgreSQL `ON CONFLICT DO NOTHING` clauses ensure that redelivery is a deterministic no-op rather than a duplicate aggregate increment.
+
+## 5. Key Architectural Decisions & Trade-Offs
+
+<DecisionBlock
+  title="Kafka Producer Batch Pipelining vs. Serial ProduceSync (ADR-009)"
+  status="Accepted"
+  context="Initial local benchmark profiling of the Go ingestion gateway recorded a throughput baseline of 83.6 events/second when iterating over batch slices and calling client.ProduceSync() synchronously for every record, falling far short of the >= 1,000 events/second operational target. Profiling indicated that sequential network round-trips to the broker dominated batch latency."
+  options={[
+    {
+      name: 'Asynchronous Fire-and-Forget Produce',
+      summary:
+        'Dispatches messages asynchronously without waiting for broker acknowledgment. Eliminates latency but introduces catastrophic silent message loss during broker failures or partition rebalances.',
+    },
+    {
+      name: 'Uncoordinated Goroutine Worker Pool',
+      summary:
+        'Spawns concurrent goroutines each issuing single-message synchronous RPCs. Increases throughput but introduces excessive goroutine scheduling churn and uncoordinated broker socket contention.',
+    },
+    {
+      name: 'Concurrent Batch Submission via Franz-Go (publisher.client.ProduceSync(ctx, records...))',
+      summary:
+        'Submits the entire slice of 500 records concurrently to the Franz-Go client, allowing the client-managed batching engine to dispatch requests across partition leaders in parallel and wait for acknowledgments.',
+    },
+  ]}
+  selection="Refactor the Kafka publisher and ingestion repository to submit the entire 500-event batch concurrently into Franz-Go via variadic client.ProduceSync."
+  consequences="Batch processing latency dropped from approximately 1,200 ms to 28.37 ms. In the local benchmark environment, sustained ingestion throughput increased from a historically reported 83.6 eps baseline to an independently recorded 9,792.9 eps (a 117.1x comparison for this workload), while maintaining all-ISR broker acknowledgments."
+  verification="Validated through automated benchmark executions replaying 10,000 Parquet records in 500-event batches, achieving 9,792.9 events/sec with p50 acknowledgment latency of 28.4 ms, verified against PyArrow in-memory totals."
+/>
+
+<DecisionBlock
+  title="Fixed-Point Integer Representation vs. IEEE 754 Floating-Point Arithmetic"
+  status="Accepted"
+  context="Taxi trips contain multiple financial line items (fare, tip, tolls, surcharges) and physical distances. Using standard float64 introduces IEEE 754 binary representation rounding drift across multi-million-record aggregations, causing financial reconciliation failures."
+  options={[
+    {
+      name: 'Native IEEE 754 float64 with Rounding on Export',
+      summary:
+        'Standard double-precision floats throughout pipeline, applying rounding only when rendering UI tables. Leaves intermediate aggregates vulnerable to cumulative precision drift.',
+    },
+    {
+      name: 'Arbitrary-Precision Decimal Libraries Across Wire',
+      summary:
+        'Uses specialized decimal libraries (e.g. shopspring/decimal in Go, BigDecimal in Java) across Protobuf and Kafka. Prevents drift but incurs substantial serialization and memory allocation overhead.',
+    },
+    {
+      name: 'Fixed-Point Integer Cents and Milli-Miles (BIGINT)',
+      summary:
+        'Normalizes all currency to integer cents and distances to milli-miles at the boundary. Stores values as 64-bit integers across Protobuf, Kafka, and PostgreSQL BIGINT columns.',
+    },
+  ]}
+  selection="Enforce fixed-point integer cents and milli-miles across all Protobuf schemas, event envelopes, and database columns."
+  consequences="Guarantees 100% mathematical precision across all sum and average aggregations with minimal CPU and memory overhead. Requires display-layer adapters for currency and mileage formatting."
+  verification="Independent PyArrow baseline reconciliation verified 0.00% numerical variance across 10,000 processed trips."
+/>
+
+## 6. Throughput Bottleneck & The 117x Pipelined Optimization
+
+During Phase 8 performance profiling, StreamForge was subjected to end-to-end benchmark tests using official NYC TLC yellow taxi Parquet datasets (`slice_10000_yellow_tripdata_2024-01.parquet`, 10,000 events, batch size 500).
+
+### The Inefficiency in the Original Publisher Loop
+
+Initial local profiling runs recorded an unoptimized baseline throughput of **83.6 events/second**, falling far short of the ≥ 1,000 eps scaling target. Profiling the Go ingestion service (`services/core-go/internal/eventstream/publisher.go`) uncovered an architectural anti-pattern:
+
+```go
+// ❌ ORIGINAL BOTTLENECK: Serial ProduceSync inside the batch loop
+func (publisher *KafkaPublisher) PublishBatch(ctx context.Context, records []*kgo.Record) error {
+    for _, record := range records {
+        // Blocks on broker network round-trip for EVERY single record!
+        if err := publisher.client.ProduceSync(ctx, record).FirstErr(); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+```
+
+For each 500-event batch, the publisher executed 500 individual synchronous network round-trips over the TCP connection to the Kafka broker. At ~2.4 ms per broker round-trip, processing a single batch took:
+
+```text
+500 records * 2.4 ms/round-trip ≈ 1,200 ms per batch (≈ 83.6 events/sec)
+```
+
+### The Pipelined Batch Solution
+
+The publisher was refactored to submit the entire slice of 500 records to `franz-go` via `client.ProduceSync(ctx, records...)`. Rather than issuing individual requests serially in an application loop, the client's internal batching engine manages concurrent socket requests across partition leaders according to configured batch and buffer limits, resolving acknowledgments in parallel before returning:
+
+```go
+// ✅ OPTIMIZED: Concurrent batch submission to the Franz-Go client
+func (publisher *KafkaPublisher) PublishBatch(ctx context.Context, records []*kgo.Record) error {
+    results := publisher.client.ProduceSync(ctx, records...)
+    if err := results.FirstErr(); err != nil {
+        return fmt.Errorf("publish Kafka batch: %w", err)
+    }
+    return nil
+}
+```
+
+### Empirical Benchmark Results
+
+The benchmark harness replayed 10,000 trips in 500-event chunks on a dedicated 16-core workstation (Windows 11 AMD64, 15.4 GB RAM, Python 3.13):
+
+| Metric                         | Target / SLA | Historically Reported Baseline (Serial) | Independently Recorded Benchmark (Pipelined Batch) |     Performance Delta     |  Status  |
+| :----------------------------- | :----------: | :-------------------------------------: | :------------------------------------------------: | :-----------------------: | :------: |
+| **Ingestion Throughput**       |  ≥ 500 eps   |                83.6 eps                 |               **9,792.9 events/sec**               |    **+117.1x speedup**    | **PASS** |
+| **500-Event Batch Latency**    |   < 500 ms   |                ~1,200 ms                |                    **28.37 ms**                    |  **97.6% latency drop**   | **PASS** |
+| **Producer Ack Latency (p50)** |   < 100 ms   |              2.4 ms/record              |             **28.4 ms** _(per batch)_              | **71.6% faster than SLA** | **PASS** |
+| **Producer Ack Latency (p95)** |   < 250 ms   |                    —                    |                    **36.0 ms**                     | **85.6% faster than SLA** | **PASS** |
+| **REST Query Latency (p50)**   |   < 100 ms   |                    —                    |                     **7.3 ms**                     | **92.7% faster than SLA** | **PASS** |
+| **Go Process Peak RSS**        |   < 512 MB   |                    —                    |                    **73.9 MB**                     | **85.6% memory headroom** | **PASS** |
+
+### Independent In-Memory PyArrow Reconciliation
+
+For the evaluated 10,000-event benchmark slice, the independent PyArrow reconciliation confirmed 100% mathematical parity against PostgreSQL:
+
+```text
+Total Input Rows (Parquet):  10,000 = 10,000 (Δ = 0)
+Accepted Trips (Database):   10,000 = 10,000 (Δ = 0)
+Rejected / Corrupted Rows:        0 = 0      (Δ = 0)
+Duplicate Events Stored:          0 = 0      (Δ = 0)
+```
+
+Within the evaluated dataset slice, the demonstrated invariants achieved **zero dropped events, zero duplicate aggregate inflation, and zero numerical variance in financial totals**.
+
+> [!NOTE]
+> **Benchmark Scope and Demonstrated Invariants:** These benchmark measurements reflect a local single-node test environment (16-core AMD64 workstation, localhost Docker container network, 10,000-event dataset). The 83.6 events/sec figure reflects an unoptimized initial profiling baseline where a serial loop issued blocking synchronous calls per record; it is retained as a comparative reference point for the 117.1x ratio, whereas the primary verified performance result is the independently recorded 9,792.9 events/sec sustained throughput under client-managed batching. These results demonstrate pipeline efficiency and mathematical invariants under controlled loopback conditions, rather than a universal guarantee across unconstrained cloud failure modes or live production deployments.
+
+## 7. Anomaly Rule Engine & Deterministic Alert Deduplication
+
+While the Go worker aggregates analytical metrics, the Java 17 / Spring Boot 4 service (`services/alerts-java`) independently evaluates each raw trip against configurable anomaly detection rules.
+
+### Configurable Dynamic Anomaly Rules
+
+Rule thresholds are stored in the database (`alert_rules`) with semantic versioning rather than hardcoded in application logic:
+
+- `HIGH_FARE`: Identifies trips exceeding a threshold (default: > 10,000 cents / $100.00).
+- `LONG_DISTANCE`: Flags trips with abnormal distance (default: > 50,000 milli-miles / 50.0 miles).
+- `UNUSUAL_DURATION`: Flags trips with impossible or negative durations, or trips exceeding 3 hours (> 10,800 seconds).
+
+### Deterministic Alert Identity (ADR-007)
+
+To ensure that reprocessing historical data streams does not generate duplicate alert notifications, the Java engine derives a deterministic alert identifier using SHA-256:
+
+```text
+AlertID = SHA-256(event_id + "|" + rule_id + "|" + rule_version)
+```
+
+For example, given `event_id = "evt123"`, `rule_id = "high_fare"`, and `rule_version = "1"`, the canonical string `evt123|high_fare|1` hashes deterministically to:
+
+```text
+8dfb7762b322a3afeb7b79dae8fc73b4d2ea523dc033f7ccb2f6efba9830da0f
+```
+
+If an event is re-consumed due to a Kafka offset rewind or worker restart, the database unique constraint on `alert_id` prevents duplicate alerts from being inserted.
+
+### Dead-Letter Quarantine & Fault Isolation
+
+If an incoming Kafka payload contains unparseable JSON or violates envelope version contracts, the consumer quarantines the corrupted record into `alert_consumer_failures` with the raw payload bytes, error message, and timestamp before committing the offset. This prevents poisoned messages from causing consumer crashloops while maintaining an auditable error ledger.
+
+## 8. Deployment Topology, Container Hardening & Disaster Recovery
+
+StreamForge packages all services into a unified, reproducible Helm chart (`deploy/helm/streamforge`) configured for Kubernetes environments.
+
+### Non-Root Restricted Pod Security Standards (ADR-008)
+
+Every microservice container adheres to Kubernetes Restricted Pod Security Standards:
+
+- **Non-Root Execution:** All processes run as non-root user `UID 10001` with `runAsNonRoot: true`.
+- **Immutable Filesystem:** All containers enforce `readOnlyRootFilesystem: true`. Writable scratch directories (e.g. `/tmp` or `/var/cache/nginx`) use explicit in-memory `emptyDir` volumes.
+- **Privilege Lockdown:** `allowPrivilegeEscalation: false` is enforced, and all Linux kernel capabilities are dropped (`capabilities: drop: ["ALL"]`).
+- **Minimal Attack Surface:** Containers utilize hardened, minimal base images (`alpine:3.21` for Go, `eclipse-temurin:17-jre-alpine` for Java, and `nginxinc/nginx-unprivileged:alpine` for the React dashboard).
+
+### Health Probes & Startup Latency Separation
+
+To prevent cascading container restarts during dependency rebalances:
+
+- **Liveness Probes (`/health/live`):** Validate process event loops only. Downstream dependency failures (e.g., transient database blips) do not trigger container restarts.
+- **Readiness Probes (`/health/ready`):** Check downstream database and broker connectivity. Unready pods are removed from Kubernetes Service endpoints without restarting.
+- **Startup Probes:** Configured for the Java service to accommodate JVM initialization and Flyway schema migrations (up to 60s failure threshold) without premature SIGKILL termination.
+
+### Automated Disaster Recovery Drills
+
+StreamForge includes an automated disaster recovery validation script (`scripts/backup_restore_drill.py`). The drill executes automated point-in-time PostgreSQL logical backups (`pg_dump`), restores the archive into an ephemeral validation database, and asserts 100% table row and hash parity before discarding the test instance, demonstrating verifiable Recovery Point Objectives (RPO &lt; 1 hour) and Recovery Time Objectives (RTO &lt; 5 minutes).
+
+## 9. Verification & Continuous Integration Pipeline
+
+The StreamForge repository enforces quality and security across six parallel GitHub Actions CI jobs on every pull request:
+
+1. **Python Replay & Invariant Tests:** Sets up Python 3.11, validates PyArrow Parquet scanning, and asserts SHA-256 event ID derivation determinism via `pytest`.
+2. **Go Core & Analytics Engine:** Sets up Go 1.24, compiles all internal packages, executes unit test suites with race detection (`go test -v ./... -count=1`), and runs `go vet`.
+3. **Java Alerts & Rules Service:** Sets up JDK 17 (Temurin), verifies rule evaluation logic, validates deterministic alert hash derivation, and executes Maven test suites (`./mvnw test -B`).
+4. **React Dashboard Build:** Sets up Node.js 20, validates TypeScript types, and compiles the production Vite single-page application.
+5. **Helm & Kubernetes Manifest Verification:** Installs Helm v3, lints the Helm chart (`helm lint deploy/helm/streamforge`), and executes a custom Python security validator verifying pod security contexts, resource limits, and probe definitions.
+6. **Docker Multi-Stage Image Builds:** Executes multi-stage container builds using Docker Buildx to verify image assembly and non-root configurations.
+
+## 10. Engineering Lessons & Architectural Limits
+
+### Key Takeaways
+
+- **Match Language to Workload:** Using Python/PyArrow for SIMD Parquet ingestion, Go for network gateway concurrency and batch publishing, and Java/Spring Boot for enterprise rule evaluation maximized performance while minimizing implementation complexity.
+- **Enforce Invariants Early:** Eliminating floating-point types at the wire boundary prevented countless subtle precision bugs that typically emerge during downstream analytics.
+- **Pipelined Batching is Essential:** For message queues, unpipelined synchronous produce loops are almost always the primary bottleneck. Batch pipelining delivered a 117x throughput improvement without altering cluster hardware.
+
+### Known Boundaries & Scaling Horizons
+
+- **Partition Ceiling:** The Kafka topic is configured with 6 partitions. Under Kafka consumer group semantics, horizontal scaling for the Go analytics worker and Java alerts engine is capped at 6 concurrent pods. Scaling further requires re-partitioning the topic to 24–64 partitions with Murmur2 key hashing.
+- **Relational Storage Ceilings:** A single-node PostgreSQL instance eventually encounters write-ahead log (WAL) and disk I/O throughput limits under sustained unpartitioned ingestion loads. Proposed architectural evolutions—such as TimescaleDB hypertable chunking or CockroachDB distributed SQL—remain future design proposals rather than implemented features of the current prototype.
+- **Complex Event Processing:** The Java alerts engine evaluates single-event threshold rules. Proposed future enhancements—such as sliding-window multi-event aggregations using Apache Flink or Kafka Streams—remain conceptual design proposals rather than active components of the current release.

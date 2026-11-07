@@ -21,9 +21,19 @@ assert.equal(
   'Unapproved "/resume.pdf" must NOT be published'
 );
 assert.equal(
+  isRoutePublished('/projects/agentiam/'),
+  true,
+  'Approved project detail route "/projects/agentiam/" must be published'
+);
+assert.equal(
   isRoutePublished('/projects/streamforge/'),
+  true,
+  'Approved project detail route "/projects/streamforge/" must be published'
+);
+assert.equal(
+  isRoutePublished('/projects/devforge/'),
   false,
-  'Unapproved project detail route must NOT be published'
+  'Unapproved project detail route "/projects/devforge/" must NOT be published'
 );
 console.log('✓ Published route and asset checks confirmed');
 
@@ -57,8 +67,10 @@ console.log('✓ Safe internal links validated successfully');
 const unbuiltRoutes = [
   '/writing/',
   '/resume.pdf',
-  '/projects/streamforge/',
+  '/projects/devforge/',
+  '/projects/java-task-api/',
   '/projects/currency-auth-research/',
+  '/projects/unapproved-test-fixture/',
 ];
 for (const route of unbuiltRoutes) {
   const result = validateLinkDestination(route);

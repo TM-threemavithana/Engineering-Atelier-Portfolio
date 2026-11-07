@@ -105,7 +105,7 @@ assert.ok(
   'dist/projects/index.html must contain approved H1 "Engineering Case Studies"'
 );
 
-// Populated state verification (EA-024: AgentIAM case study is listed)
+// Populated state verification (EA-024/EA-025: AgentIAM and StreamForge case studies are listed)
 assert.ok(
   projectsHtml.includes('Featured Architectures'),
   'dist/projects/index.html must contain "Featured Architectures" section'
@@ -117,6 +117,17 @@ assert.ok(
 assert.ok(
   projectsHtml.includes('href="/projects/agentiam/"'),
   'dist/projects/index.html must link to /projects/agentiam/'
+);
+assert.ok(
+  projectsHtml.includes(
+    'StreamForge: Distributed Mobility Pipeline &amp; Real-Time Anomaly Engine'
+  ) ||
+    projectsHtml.includes('StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine'),
+  'dist/projects/index.html must display StreamForge project title'
+);
+assert.ok(
+  projectsHtml.includes('href="/projects/streamforge/"'),
+  'dist/projects/index.html must link to /projects/streamforge/'
 );
 assert.ok(
   projectsHtml.includes('Prototype Architecture'),
@@ -161,11 +172,41 @@ assert.ok(
   'AgentIAM case study must link to verified CI run 42340130837'
 );
 
-// Draft candidate detail routes must NOT exist
+// Verify StreamForge case study detail page exists and contains required elements (EA-025 Phase B)
+const streamforgeHtmlPath = path.join(distDir, 'projects', 'streamforge', 'index.html');
 assert.ok(
-  !fs.existsSync(path.join(distDir, 'projects', 'streamforge')),
-  'Draft StreamForge detail route must not exist'
+  fs.existsSync(streamforgeHtmlPath),
+  'dist/projects/streamforge/index.html must exist in production build output'
 );
+const streamforgeHtml = fs.readFileSync(streamforgeHtmlPath, 'utf8');
+assert.ok(
+  streamforgeHtml.includes(
+    'StreamForge: Distributed Mobility Pipeline &amp; Real-Time Anomaly Engine'
+  ) ||
+    streamforgeHtml.includes(
+      'StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine'
+    ),
+  'StreamForge case study must contain title H1'
+);
+assert.ok(
+  streamforgeHtml.includes('Prototype Architecture'),
+  'StreamForge case study must visibly classify status as Prototype Architecture'
+);
+assert.ok(
+  streamforgeHtml.includes('Backend Systems Engineer &amp; Creator') ||
+    streamforgeHtml.includes('Backend Systems Engineer & Creator'),
+  'StreamForge case study must contain verified role'
+);
+assert.ok(
+  streamforgeHtml.includes('https://github.com/TM-threemavithana/streamforge'),
+  'StreamForge case study must link to GitHub repo'
+);
+assert.ok(
+  streamforgeHtml.includes('9,792.9 events/sec'),
+  'StreamForge case study must link to verified benchmark metric'
+);
+
+// Draft candidate detail routes must NOT exist
 assert.ok(
   !fs.existsSync(path.join(distDir, 'projects', 'devforge')),
   'Draft DevForge detail route must not exist'
@@ -177,10 +218,6 @@ assert.ok(
 assert.ok(
   !fs.existsSync(path.join(distDir, 'projects', 'currency-auth-research')),
   'Draft Currency Auth detail route must not exist'
-);
-assert.ok(
-  !fs.existsSync(path.join(distDir, 'streamforge')),
-  'Draft StreamForge root page must not exist'
 );
 assert.ok(
   !fs.existsSync(path.join(distDir, 'devforge')),
@@ -202,10 +239,6 @@ assert.ok(
 // Ensure no draft names or unapproved metrics leak into projects index
 assert.ok(
   !projectsHtml.includes('Currency Authentication Research'),
-  'Unapproved draft project title must not appear in /projects/'
-);
-assert.ok(
-  !projectsHtml.includes('StreamForge'),
   'Unapproved draft project title must not appear in /projects/'
 );
 assert.ok(
@@ -457,10 +490,10 @@ for (const stage of expectedApproachStages) {
   assert.ok(indexHtml.includes(stage), `dist/index.html must contain approach stage: "${stage}"`);
 }
 
-// C. EA-024 Featured Work Section: AgentIAM Featured Presentation & Draft Protection
+// C. EA-024/EA-025 Featured Work Section: AgentIAM & StreamForge Featured Presentation & Draft Protection
 assert.ok(
   indexHtml.includes('id="featured-work"'),
-  'Featured Work section must be rendered on dist/index.html in EA-024'
+  'Featured Work section must be rendered on dist/index.html in EA-024/EA-025'
 );
 assert.ok(
   indexHtml.includes('Featured Engineering Projects'),
@@ -475,13 +508,22 @@ assert.ok(
   'Featured work card must link to /projects/agentiam/'
 );
 assert.ok(
+  indexHtml.includes('StreamForge: Distributed Mobility Pipeline &amp; Real-Time Anomaly Engine') ||
+    indexHtml.includes('StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine'),
+  'StreamForge project card must be present in featured work on dist/index.html'
+);
+assert.ok(
+  indexHtml.includes('href="/projects/streamforge/"'),
+  'Featured work card must link to /projects/streamforge/'
+);
+assert.ok(
   indexHtml.includes('Prototype Architecture'),
   'Featured work card must visibly display Prototype Architecture status'
 );
 // Confirm all draft candidates remain strictly excluded from homepage
 assert.ok(
   !indexHtml.includes('StreamForge: Distributed Raft Log Engine'),
-  'Draft candidate StreamForge must strictly not appear in public index.html'
+  'Draft candidate StreamForge old title must strictly not appear in public index.html'
 );
 assert.ok(
   !indexHtml.includes('DevForge: Scala Developer Orchestration CLI'),
@@ -886,13 +928,13 @@ console.log(
   '✓ Project card and blueprint production isolation confirmed: zero fixture or draft card leaks'
 );
 
-// 17. Verify EA-024 Case Study Template & Dynamic Route Production Invariants
+// 17. Verify EA-024/EA-025 Case Study Template & Dynamic Route Production Invariants
 const projectsDir = path.join(distDir, 'projects');
 const projectDirEntries = fs.readdirSync(projectsDir).sort();
 assert.deepEqual(
   projectDirEntries,
-  ['agentiam', 'index.html'].sort(),
-  `dist/projects/ must contain ONLY index.html and agentiam/, found: ${JSON.stringify(projectDirEntries)}`
+  ['agentiam', 'index.html', 'streamforge'].sort(),
+  `dist/projects/ must contain ONLY index.html, agentiam/, and streamforge/, found: ${JSON.stringify(projectDirEntries)}`
 );
 
 // Verify dev-case-study fixture isolation
@@ -921,7 +963,7 @@ for (const page of allPageEntries) {
   }
 }
 
-// Strictly verify total HTML pages across entire dist/ output equals exactly 6 (EA-024)
+// Strictly verify total HTML pages across entire dist/ output equals exactly 7 (EA-025)
 function findHtmlFiles(dir: string, baseDir: string = dir): string[] {
   let results: string[] = [];
   const list = fs.readdirSync(dir);
@@ -946,16 +988,17 @@ const expectedHtmlFiles = [
   'contact/index.html',
   'index.html',
   'projects/agentiam/index.html',
+  'projects/streamforge/index.html',
   'projects/index.html',
 ].sort();
 
 assert.deepEqual(
   allGeneratedHtmlFiles,
   expectedHtmlFiles,
-  `Production dist/ must contain EXACTLY 6 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
+  `Production dist/ must contain EXACTLY 7 static HTML pages. Found: ${JSON.stringify(allGeneratedHtmlFiles)}`
 );
 console.log(
-  '✓ EA-024 Case Study production invariants confirmed: exactly 6 HTML pages, single cleared AgentIAM detail route, zero fixture leaks'
+  '✓ EA-025 Case Study production invariants confirmed: exactly 7 HTML pages, cleared AgentIAM and StreamForge detail routes, zero fixture leaks'
 );
 
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');
