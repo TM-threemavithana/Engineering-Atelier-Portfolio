@@ -44,6 +44,26 @@ test('Hero enforces single H1 and approved positioning copy', () => {
   console.log('✓ Hero H1 and approved positioning copy confirmed');
 });
 
+test('Hero prominently displays owner full name Tharuka Madhuwantha', () => {
+  const content = fs.readFileSync(heroFile, 'utf-8');
+
+  // Verify authoritative owner full name
+  assert.match(
+    content,
+    /Tharuka Madhuwantha/,
+    'Hero must prominently display authoritative owner full name Tharuka Madhuwantha'
+  );
+
+  // Negative assertion: ensure legacy/incorrect spelling without "h" is rejected
+  assert.doesNotMatch(
+    content,
+    /Tharuka Maduwantha/,
+    'Hero must strictly not contain incorrect spelling Tharuka Maduwantha'
+  );
+
+  console.log('✓ Owner full name Tharuka Madhuwantha and negative spelling guard confirmed');
+});
+
 test('Hero CTA points to valid in-page architecture blueprint anchor', () => {
   const heroContent = fs.readFileSync(heroFile, 'utf-8');
   const blueprintContent = fs.readFileSync(blueprintFile, 'utf-8');

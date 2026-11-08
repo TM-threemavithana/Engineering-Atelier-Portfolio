@@ -7,7 +7,7 @@ Fill this table only with confirmed information. Leave pending items unknown; do
 
 | Field | Value | Status | Evidence/approval | Publish? |
 | --- | --- | --- | --- | --- |
-| Preferred public display name | `[OWNER TO SUPPLY]` | pending | — | no |
+| Preferred public display name | `Tharuka Madhuwantha` | approved | owner explicit approval | yes |
 | Professional title | `Software Engineer` | approved | owner approval | yes |
 | Headline/subtitle | `Building reliable systems. Creating meaningful experiences.` | approved | owner approval | yes |
 | Contact email | `tharukamaduwantha62@gmail.com` | approved | owner explicit approval | yes |
