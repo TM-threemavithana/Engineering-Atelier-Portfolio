@@ -1,11 +1,13 @@
 ---
-import { contactConfig } from '../../data/contact';
+import { contactConfig, getVerifiedEmail } from '../../data/contact';
+import { featureFlags } from '../../data/featureFlags';
 
 export interface Props {
   class?: string;
 }
 
 const { class: className = '' } = Astro.props;
+const verifiedEmail = getVerifiedEmail();
 ---
 
 <section
@@ -33,5 +35,28 @@ const { class: className = '' } = Astro.props;
     <p class="text-base sm:text-lg lg:text-xl text-[var(--color-muted)] leading-relaxed">
       {contactConfig.introParagraph}
     </p>
+
+    {!featureFlags.enableResume && <div
+      class="inline-flex items-center gap-2 pt-2 px-3.5 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs sm:text-sm text-[var(--color-muted)]"
+    >
+      <span
+        class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]/70 shrink-0"
+        aria-hidden="true"
+      />
+      <span>
+        Formal résumé / CV available upon request via{' '}
+        {verifiedEmail ? (
+          <a
+            href={`mailto:${verifiedEmail}`}
+            class="text-[var(--color-fg)] underline hover:text-[var(--color-accent)] transition-colors focus-ring rounded"
+          >
+            email
+          </a>
+        ) : (
+          'email'
+        )}
+        .
+      </span>
+    </div>}
   </div>
 </section>

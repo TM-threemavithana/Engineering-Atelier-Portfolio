@@ -86,6 +86,8 @@ export const technicalFamiliarityTiers: TechnicalFamiliarityCategory[] = [
     technologies: [
       'Java (Core & Modern)',
       'Spring Boot',
+      'Go (Golang)',
+      'Kafka & Event-Driven Systems',
       'RESTful API Design',
       'Relational Databases & SQL',
       'Object-Oriented Modeling',
@@ -99,6 +101,8 @@ export const technicalFamiliarityTiers: TechnicalFamiliarityCategory[] = [
     technologies: [
       'TypeScript',
       'Docker & Containers',
+      'Kubernetes & Cloud-Native Platforms',
+      'Prometheus & Observability',
       'Modern HTML5 & CSS',
       'Astro',
       'React',

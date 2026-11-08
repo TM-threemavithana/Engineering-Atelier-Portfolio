@@ -2,6 +2,8 @@
 import { getPublishedFeaturedProjects } from '../../data/projects';
 import SectionHeading from '../ui/SectionHeading.astro';
 import ProjectCard from './ProjectCard.astro';
+import Button from '../ui/Button.astro';
+import ArrowRightIcon from '../icons/ArrowRightIcon.astro';
 
 // Asynchronously query published, verified featured projects from content collections
 const projects = await getPublishedFeaturedProjects();
@@ -23,5 +25,12 @@ const projects = await getPublishedFeaturedProjects();
     {projects.map((project) => (
       <ProjectCard project={project} featured={project.featured} />
     ))}
+  </div>
+
+  <div class="mt-12 flex items-center justify-start">
+    <Button variant="secondary" size="md" href="/projects/">
+      <span>View All Projects &amp; Prototypes</span>
+      <ArrowRightIcon class="w-4 h-4 ml-1" />
+    </Button>
   </div>
 </section>}

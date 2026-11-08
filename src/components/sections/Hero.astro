@@ -11,15 +11,25 @@ import HeroBlueprint from './HeroBlueprint.astro';
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
     <!-- Editorial Headline Column (Left on Desktop, Top on Mobile) -->
     <div class="lg:col-span-6 xl:col-span-7 space-y-6 sm:space-y-8">
-      <!-- Monospace Overline with Static Cyan Indicator Dot -->
-      <div
-        class="inline-flex items-center gap-2.5 font-mono text-xs sm:text-sm font-semibold tracking-[0.12em] text-[var(--color-accent)] uppercase"
-      >
-        <span
-          class="w-2 h-2 rounded-full bg-[var(--color-accent)] shrink-0"
-          aria-hidden="true"
-        ></span>
-        <span>Software Engineer</span>
+      <!-- Monospace Overline with Static Cyan Indicator Dot & Full Identity -->
+      <div class="space-y-2">
+        <div
+          class="inline-flex items-center gap-2.5 font-mono text-xs sm:text-sm font-semibold tracking-[0.12em] text-[var(--color-accent)] uppercase"
+        >
+          <span
+            class="w-2 h-2 rounded-full bg-[var(--color-accent)] shrink-0"
+            aria-hidden="true"
+          ></span>
+          <span>Engineering Atelier</span>
+          <span class="text-[var(--color-muted)]" aria-hidden="true">&bull;</span>
+          <span>Software Engineer</span>
+        </div>
+
+        <div
+          class="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)]"
+        >
+          Tharuka Maduwantha
+        </div>
       </div>
 
       <!-- Single Primary H1 Headline -->
@@ -35,15 +45,28 @@ import HeroBlueprint from './HeroBlueprint.astro';
         class="reading-column text-[var(--color-muted)] text-base sm:text-lg leading-relaxed max-w-[560px]"
       >
         Software Engineer focused on Java, Scala, backend architecture, distributed systems, and
-        thoughtful full-stack development.
+        thoughtful full-stack development. Designing high-throughput services and cloud-native
+        infrastructure with Go, Java/Spring Boot, Kafka, and Kubernetes.
       </p>
 
       <!-- Call-To-Action Action Group -->
       <div class="flex flex-wrap items-center gap-4 pt-2">
-        <Button variant="primary" size="lg" href="#architecture-blueprint">
-          <span>Explore the Blueprint</span>
+        <Button variant="primary" size="lg" href="/projects/">
+          <span>Explore Case Studies</span>
           <ArrowRightIcon class="w-4 h-4 ml-1" />
         </Button>
+
+        <Button variant="secondary" size="lg" href="/contact/">
+          <span>Get in Touch</span>
+        </Button>
+
+        <a
+          href="#architecture-blueprint"
+          class="inline-flex items-center gap-1.5 font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-accent)] transition-colors py-2 px-1 focus-ring rounded"
+        >
+          <span>Explore the Blueprint</span>
+          <span aria-hidden="true">&darr;</span>
+        </a>
       </div>
     </div>
 
