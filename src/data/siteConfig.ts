@@ -26,10 +26,10 @@ export const siteConfig: SiteConfig = {
   wordmark: 'EA',
   headline: 'Building reliable systems. Creating meaningful experiences.',
   positioning:
-    'Software Engineer focused on Java, Scala, backend architecture, distributed systems, and thoughtful full-stack development.',
+    'Software Engineer focused on Java, backend architecture, distributed systems, and thoughtful full-stack development.',
   defaultTitle: 'Engineering Atelier — Software Engineer Portfolio',
   defaultDescription:
-    'Building reliable systems. Creating meaningful experiences. Software Engineer focused on Java, Scala, backend architecture, distributed systems, and thoughtful full-stack development.',
+    'Building reliable systems. Creating meaningful experiences. Software Engineer focused on Java, backend architecture, distributed systems, and thoughtful full-stack development.',
   defaultOgType: 'website',
   language: 'en',
   themeColor: '#080d17',

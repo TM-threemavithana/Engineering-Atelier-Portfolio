@@ -34,7 +34,6 @@ export const capabilityAreas: CapabilityArea[] = [
       'Constructing reliable server applications with strong concurrency models, clean architectural boundaries, and type-safe persistence.',
     practicalFocus: [
       'Java (Core, Virtual Threads)',
-      'Scala & Functional Paradigms',
       'Spring Boot',
       'REST & gRPC Design',
       'PostgreSQL & Relational DBs',

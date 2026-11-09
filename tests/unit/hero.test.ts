@@ -31,12 +31,13 @@ test('Hero enforces single H1 and approved positioning copy', () => {
     'Hero must contain exact approved headline'
   );
 
-  // Verify approved positioning text
+  // Verify approved positioning text (EA-034: Scala removed from homepage)
   assert.match(
     content,
-    /Software Engineer focused on Java, Scala, backend architecture, distributed systems, and\s+thoughtful full-stack development\./,
+    /Software Engineer focused on Java, backend architecture, distributed systems,\s+and\s+thoughtful\s+full-stack development\./,
     'Hero must contain exact approved positioning text'
   );
+  assert.doesNotMatch(content, /\bScala\b/i, 'Hero must not contain any reference to Scala');
 
   // Verify overline
   assert.match(content, /Software Engineer/, 'Hero must contain overline');

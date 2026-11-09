@@ -589,12 +589,12 @@ assert.match(
   'H1 must contain exact approved headline'
 );
 
-// Verify overline and positioning text
+// Verify overline and positioning text (EA-034: Scala removed from homepage)
 assert.match(indexHtml, /Software Engineer/, 'dist/index.html must contain overline role');
 assert.match(
   indexHtml,
-  /Software Engineer focused on Java, Scala, backend architecture, distributed systems, and thoughtful full-stack development\./,
-  'dist/index.html must contain exact approved positioning text'
+  /Software Engineer focused on Java, backend architecture, distributed systems, and thoughtful full-stack development\./,
+  'dist/index.html must contain exact approved positioning text without Scala'
 );
 
 // Verify Hero CTA destination and label
@@ -1258,6 +1258,20 @@ for (const slug of ['agentiam', 'streamforge', 'forgetasks']) {
 }
 console.log(
   '✓ EA-033 Phase B Production Invariants confirmed: all case studies enforce min-w-0, prose-atelier, and accessible ResponsiveTable wrappers'
+);
+
+// 19. EA-034 Phase A: Verify Complete Absence of Scala on Homepage
+assert.ok(
+  !/\bScala\b/i.test(indexHtml),
+  'dist/index.html must contain ZERO mentions of Scala in visible copy, attributes, or JSON-LD'
+);
+// Confirm About page still retains its verified content
+assert.ok(
+  aboutHtml.includes('Software Engineer focused on Java, Scala, backend architecture'),
+  'dist/about/index.html must retain verified About positioning'
+);
+console.log(
+  '✓ EA-034 Phase A Production Invariants confirmed: homepage has zero Scala references; about page and case studies remain intact'
 );
 
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');

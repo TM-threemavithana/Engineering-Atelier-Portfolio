@@ -112,6 +112,18 @@ export function generateStructuredData(
 
   const origin = getValidatedProductionSiteUrl(siteOrigin) ?? 'https://tharukamadhuwantha.dev';
 
+  const isHome = normalizePathname(pathname) === '/';
+  const knowsAbout = isHome
+    ? ['Software Engineering', 'Backend Architecture', 'Distributed Systems', 'Java', 'Go']
+    : [
+        'Software Engineering',
+        'Backend Architecture',
+        'Distributed Systems',
+        'Java',
+        'Scala',
+        'Go',
+      ];
+
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -133,14 +145,7 @@ export function generateStructuredData(
           'https://github.com/TM-threemavithana',
           'https://www.linkedin.com/in/tharuka-madhuwantha/',
         ],
-        knowsAbout: [
-          'Software Engineering',
-          'Backend Architecture',
-          'Distributed Systems',
-          'Java',
-          'Scala',
-          'Go',
-        ],
+        knowsAbout,
       },
     ],
   };
