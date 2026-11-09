@@ -1,4 +1,5 @@
 ---
+/* eslint-disable astro/no-set-html-directive */
 import type { PageMetaProps } from '../utils/seo';
 import { resolvePageMeta } from '../utils/seo';
 import Header from '../components/layout/Header.astro';
@@ -26,11 +27,26 @@ const meta = resolvePageMeta(props, Astro.url.pathname, Astro.site);
 
     {meta.canonicalUrl && <link rel="canonical" href={meta.canonicalUrl} />}
 
+    <!-- Open Graph Metadata -->
+    <meta property="og:site_name" content="Engineering Atelier" />
     <meta property="og:title" content={meta.ogTitle} />
     <meta property="og:description" content={meta.ogDescription} />
     <meta property="og:type" content={meta.ogType} />
     {meta.ogUrl && <meta property="og:url" content={meta.ogUrl} />}
     {meta.ogImage && <meta property="og:image" content={meta.ogImage} />}
+    {meta.ogImage && <meta property="og:image:width" content="1200" />}
+    {meta.ogImage && <meta property="og:image:height" content="630" />}
+    {meta.ogImageAlt && <meta property="og:image:alt" content={meta.ogImageAlt} />}
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content={meta.twitterCard} />
+    <meta name="twitter:title" content={meta.twitterTitle} />
+    <meta name="twitter:description" content={meta.twitterDescription} />
+    {meta.twitterImage && <meta name="twitter:image" content={meta.twitterImage} />}
+    {meta.twitterImageAlt && <meta name="twitter:image:alt" content={meta.twitterImageAlt} />}
+
+    <!-- Structured Data (JSON-LD) -->
+    {meta.jsonLd && <script type="application/ld+json" set:html={JSON.stringify(meta.jsonLd)} />}
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>

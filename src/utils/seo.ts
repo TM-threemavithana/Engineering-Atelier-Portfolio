@@ -7,6 +7,8 @@ export interface PageMetaProps {
   canonicalOverride?: string;
   ogType?: 'website' | 'article';
   ogImage?: string;
+  ogImageAlt?: string;
+  twitterCard?: 'summary_large_image' | 'summary';
   noindex?: boolean;
 }
 
@@ -18,10 +20,17 @@ export interface ResolvedPageMeta {
   ogDescription: string;
   ogType: 'website' | 'article';
   ogUrl?: string; // Strictly undefined when no verified production domain exists
-  ogImage?: string;
+  ogImage: string;
+  ogImageAlt: string;
+  twitterCard: 'summary_large_image' | 'summary';
+  twitterTitle: string;
+  twitterDescription: string;
+  twitterImage: string;
+  twitterImageAlt: string;
   robots: string;
   language: string;
   themeColor: string;
+  jsonLd?: Record<string, unknown>;
 }
 
 /**
@@ -85,6 +94,53 @@ export function formatCanonicalUrl(
 }
 
 /**
+ * Generates verified JSON-LD structured data for WebSite and Person schemas.
+ * Uses strictly owner-approved public facts (no placeholder credentials or unverified dates).
+ */
+export function generateStructuredData(
+  siteOrigin?: string,
+  pathname = '/'
+): Record<string, unknown> | undefined {
+  const is404 = normalizePathname(pathname) === '/404';
+  if (is404) return undefined;
+
+  const origin = getValidatedProductionSiteUrl(siteOrigin) ?? 'https://tharukamadhuwantha.dev';
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${origin}/#website`,
+        url: origin,
+        name: siteConfig.brandName,
+        description: siteConfig.defaultDescription,
+        inLanguage: siteConfig.language,
+      },
+      {
+        '@type': 'Person',
+        '@id': `${origin}/#person`,
+        name: 'Tharuka Madhuwantha',
+        jobTitle: 'Software Engineer',
+        url: origin,
+        sameAs: [
+          'https://github.com/TM-threemavithana',
+          'https://www.linkedin.com/in/tharuka-madhuwantha/',
+        ],
+        knowsAbout: [
+          'Software Engineering',
+          'Backend Architecture',
+          'Distributed Systems',
+          'Java',
+          'Scala',
+          'Go',
+        ],
+      },
+    ],
+  };
+}
+
+/**
  * Resolves comprehensive metadata for BaseLayout.
  * Enforces noindex, nofollow default during development to prevent indexing unfinished builds.
  */
@@ -119,6 +175,24 @@ export function resolvePageMeta(
   const shouldNoindex = props.noindex ?? (is404Route || !siteConfig.isProductionApproved);
   const robots = shouldNoindex ? 'noindex, nofollow' : 'index, follow';
 
+  // Social Preview & Open Graph / Twitter Card Image resolution
+  const defaultImage = '/og-image.png';
+  const rawImage = props.ogImage || defaultImage;
+  const ogImage = validatedOrigin
+    ? `${validatedOrigin}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`
+    : rawImage;
+  const ogImageAlt =
+    props.ogImageAlt ||
+    `${siteConfig.brandName} — Software Engineer Portfolio — Tharuka Madhuwantha`;
+
+  const twitterCard = props.twitterCard || 'summary_large_image';
+  const twitterTitle = title;
+  const twitterDescription = description;
+  const twitterImage = ogImage;
+  const twitterImageAlt = ogImageAlt;
+
+  const jsonLd = generateStructuredData(validatedOrigin, currentPathname);
+
   return {
     title,
     description,
@@ -127,9 +201,16 @@ export function resolvePageMeta(
     ogDescription: description,
     ogType: props.ogType || siteConfig.defaultOgType,
     ogUrl: canonicalUrl,
-    ogImage: props.ogImage,
+    ogImage,
+    ogImageAlt,
+    twitterCard,
+    twitterTitle,
+    twitterDescription,
+    twitterImage,
+    twitterImageAlt,
     robots,
     language: siteConfig.language,
     themeColor: siteConfig.themeColor,
+    jsonLd,
   };
 }

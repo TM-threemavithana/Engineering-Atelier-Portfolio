@@ -130,6 +130,15 @@ assert.equal(
   'noindex, nofollow',
   'Still noindex because isProductionApproved is false'
 );
+assert.equal(configuredMeta.twitterCard, 'summary_large_image');
+assert.equal(configuredMeta.ogImage, 'https://portfolio.engineering/og-image.png');
+assert.equal(configuredMeta.twitterImage, 'https://portfolio.engineering/og-image.png');
+assert.ok(configuredMeta.jsonLd, 'JSON-LD must be present on non-404 routes');
+
+// 404 route safety: must omit jsonLd
+const meta404 = resolvePageMeta({ title: 'Not Found' }, '/404');
+assert.equal(meta404.canonicalUrl, undefined);
+assert.equal(meta404.jsonLd, undefined, 'JSON-LD must be omitted on 404 route');
 
 console.log('✓ Page metadata resolution passed all tests');
 
