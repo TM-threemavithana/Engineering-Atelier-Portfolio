@@ -87,11 +87,11 @@ console.log('✓ Landmark anchor destinations verified as unique');
 import { siteConfig } from '../../src/data/siteConfig';
 import { getValidatedProductionSiteUrl } from '../../src/utils/domain';
 
-// 7. 404 Metadata & SEO Safety (Under default preview state)
+// 7. 404 Metadata & SEO Safety (Under production launch state)
 assert.equal(
   siteConfig.isProductionApproved,
-  false,
-  'siteConfig.isProductionApproved must be strictly false in repository baseline'
+  true,
+  'siteConfig.isProductionApproved must be strictly true in repository baseline for EA-028'
 );
 
 const defaultMeta404 = resolvePageMeta(
@@ -105,7 +105,7 @@ const defaultMeta404 = resolvePageMeta(
 assert.equal(
   defaultMeta404.robots,
   'noindex, nofollow',
-  '404 route must emit "noindex, nofollow" by default'
+  '404 route must emit "noindex, nofollow" even under production approval'
 );
 assert.equal(
   defaultMeta404.canonicalUrl,
@@ -114,18 +114,16 @@ assert.equal(
 );
 assert.equal(defaultMeta404.ogUrl, undefined, '404 route must omit og:url by default');
 
-// 8. Isolated Simulated Production Approval Test for 404
-// Validates that even if production approval were granted, 404 remains unconditionally noindexed and uncanonicalized.
+// 8. Isolated SEO Safety & Fallback Verification
+// Validates that 404 remains unconditionally noindexed and uncanonicalized under production approval,
+// and tests fallback preview protection when isProductionApproved is simulated as false.
 const baselineApprovedState = siteConfig.isProductionApproved;
 try {
-  // Temporarily simulate production approval in memory
-  (siteConfig as { isProductionApproved: boolean }).isProductionApproved = true;
-
-  // Use a domain that passes getValidatedProductionSiteUrl without hardcoding a fake production domain
-  const testValidOrigin = getValidatedProductionSiteUrl('https://simulated-domain.org');
+  // Use a domain that passes getValidatedProductionSiteUrl
+  const testValidOrigin = getValidatedProductionSiteUrl('https://tharukamadhuwantha.dev');
   assert.ok(testValidOrigin, 'Validated test origin must be well-formed');
 
-  // Test 404 metadata under simulated production approval without explicit noindex prop
+  // Test 404 metadata under production approval without explicit noindex prop
   const simMeta404 = resolvePageMeta(
     {
       title: 'Page Not Found',
@@ -138,21 +136,29 @@ try {
   assert.equal(
     simMeta404.robots,
     'noindex, nofollow',
-    'Under simulated production approval, 404 route must STILL unconditionally emit "noindex, nofollow"'
+    'Under production approval, 404 route must STILL unconditionally emit "noindex, nofollow"'
   );
   assert.equal(
     simMeta404.canonicalUrl,
     undefined,
-    'Under simulated production approval, 404 route must NEVER emit a canonical URL'
+    'Under production approval, 404 route must NEVER emit a canonical URL'
   );
   assert.equal(
     simMeta404.ogUrl,
     undefined,
-    'Under simulated production approval, 404 route must NEVER emit og:url'
+    'Under production approval, 404 route must NEVER emit og:url'
   );
 
   // Assert sitemap filter rule excludes 404 routes
-  const approvedSitemapRoutes = new Set(['/', '/about', '/contact']);
+  const approvedSitemapRoutes = new Set([
+    '/',
+    '/about',
+    '/contact',
+    '/projects',
+    '/projects/agentiam',
+    '/projects/streamforge',
+    '/projects/forgetasks',
+  ]);
   assert.equal(
     approvedSitemapRoutes.has('/404'),
     false,
@@ -164,17 +170,26 @@ try {
     'Sitemap whitelist must strictly exclude "/404.html"'
   );
 
-  // Contrast check: a published route under simulated production approval DOES receive index, follow and canonical
+  // Normal published routes under production approval receive index, follow and canonical
   const simMetaHome = resolvePageMeta({ title: 'Home' }, '/', testValidOrigin);
   assert.equal(
     simMetaHome.robots,
     'index, follow',
-    'Normal published routes must receive "index, follow" under simulated production approval'
+    'Normal published routes must receive "index, follow" under production approval'
   );
   assert.equal(
     simMetaHome.canonicalUrl,
-    'https://simulated-domain.org/',
-    'Normal published routes must receive valid canonicalUrl under simulated production approval'
+    'https://tharukamadhuwantha.dev/',
+    'Normal published routes must receive valid canonicalUrl under production approval'
+  );
+
+  // Simulated fallback test: when isProductionApproved is false, routes revert to noindex, nofollow
+  (siteConfig as { isProductionApproved: boolean }).isProductionApproved = false;
+  const devMetaHome = resolvePageMeta({ title: 'Home' }, '/', testValidOrigin);
+  assert.equal(
+    devMetaHome.robots,
+    'noindex, nofollow',
+    'Routes must revert to "noindex, nofollow" when isProductionApproved is false'
   );
 } finally {
   // Guarantee real setting is restored immediately
@@ -183,8 +198,8 @@ try {
 
 assert.equal(
   siteConfig.isProductionApproved,
-  false,
-  'siteConfig.isProductionApproved must remain strictly false after simulated tests'
+  true,
+  'siteConfig.isProductionApproved must remain strictly true after simulated tests'
 );
 console.log(
   '✓ 404 production SEO safety confirmed: unconditional noindex, omitted canonical/og:url, and sitemap exclusion'

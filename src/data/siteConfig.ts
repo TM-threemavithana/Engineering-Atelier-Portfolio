@@ -33,5 +33,5 @@ export const siteConfig: SiteConfig = {
   defaultOgType: 'website',
   language: 'en',
   themeColor: '#080d17',
-  isProductionApproved: false,
+  isProductionApproved: true,
 };

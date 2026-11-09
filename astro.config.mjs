@@ -8,7 +8,15 @@ import { getValidatedProductionSiteUrl } from './src/utils/domain.ts';
 const validatedSiteUrl = getValidatedProductionSiteUrl(process.env.PUBLIC_SITE_URL);
 
 // Whitelist of approved, published routes for production sitemap inclusion
-const APPROVED_PUBLISHED_ROUTES = new Set(['/', '/about', '/contact']);
+const APPROVED_PUBLISHED_ROUTES = new Set([
+  '/',
+  '/about',
+  '/contact',
+  '/projects',
+  '/projects/agentiam',
+  '/projects/streamforge',
+  '/projects/forgetasks',
+]);
 
 // https://astro.build/config
 export default defineConfig({

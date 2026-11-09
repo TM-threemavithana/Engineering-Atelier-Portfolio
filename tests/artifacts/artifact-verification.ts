@@ -22,34 +22,103 @@ const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
 assert.ok(indexHtml.length > 500, 'dist/index.html must not be empty or truncated');
 console.log('✓ dist/index.html exists and contains valid markup');
 
-// 2. Verify mandatory unindexed preview protection
+// 2. Verify approved public page indexing (EA-028 Public Search Launch)
 assert.match(
   indexHtml,
-  /<meta\s+name="robots"\s+content="noindex,\s*nofollow"\s*\/?>/i,
-  'Preview build must contain <meta name="robots" content="noindex, nofollow">'
-);
-console.log('✓ Preview indexing protection confirmed: noindex, nofollow present');
-
-// 3. Verify omission of canonical and OG URLs when PUBLIC_SITE_URL is unset
-assert.ok(
-  !indexHtml.includes('rel="canonical"'),
-  'Canonical link tag must be strictly omitted when site URL is unconfigured'
+  /<meta\s+name="robots"\s+content="index,\s*follow"\s*\/?>/i,
+  'Production launch build must contain <meta name="robots" content="index, follow">'
 );
 assert.ok(
-  !indexHtml.includes('property="og:url"'),
-  'og:url meta tag must be strictly omitted when site URL is unconfigured'
+  !indexHtml.includes('<meta name="robots" content="noindex'),
+  'Approved public homepage must not contain noindex directives'
 );
-console.log('✓ Canonical and og:url safety confirmed: absent when unconfigured');
+console.log('✓ Public search launch indexing confirmed: index, follow present on homepage');
 
-// 4. Verify omission of sitemap files when PUBLIC_SITE_URL is unset
+// 3. Verify Canonical, Open Graph, and Structured Data configurations
+if (process.env.PUBLIC_SITE_URL) {
+  assert.ok(
+    indexHtml.includes('rel="canonical"'),
+    'Canonical link tag must be emitted when PUBLIC_SITE_URL is configured'
+  );
+}
+
+if (indexHtml.includes('rel="canonical"')) {
+  assert.match(
+    indexHtml,
+    /<link\s+rel="canonical"\s+href="https:\/\/tharukamadhuwantha\.dev\/"\s*\/?>/i,
+    'Canonical link tag must point to production domain https://tharukamadhuwantha.dev/'
+  );
+  assert.match(
+    indexHtml,
+    /<meta\s+property="og:url"\s+content="https:\/\/tharukamadhuwantha\.dev\/"\s*\/?>/i,
+    'og:url meta tag must point to production domain https://tharukamadhuwantha.dev/'
+  );
+  console.log('✓ Canonical and og:url verified: pointing to https://tharukamadhuwantha.dev/');
+} else {
+  // When built in local dev environments where PUBLIC_SITE_URL is unconfigured:
+  assert.ok(
+    !indexHtml.includes('example.com') && !indexHtml.includes('localhost'),
+    'Canonical and og:url must not leak placeholder or local hosts when unconfigured'
+  );
+  console.log('✓ Canonical and og:url unconfigured fallback safety confirmed');
+}
+
+// 4. Verify Sitemap and robots.txt configuration for EA-028
 const sitemapIndex = path.join(distDir, 'sitemap-index.xml');
 const sitemapZero = path.join(distDir, 'sitemap-0.xml');
-assert.ok(
-  !fs.existsSync(sitemapIndex),
-  'sitemap-index.xml must not exist when site is unconfigured'
+const robotsTxt = path.join(distDir, 'robots.txt');
+
+// Verify robots.txt references sitemap index
+assert.ok(fs.existsSync(robotsTxt), 'dist/robots.txt must exist');
+const robotsContent = fs.readFileSync(robotsTxt, 'utf-8');
+assert.match(
+  robotsContent,
+  /Sitemap:\s*https:\/\/tharukamadhuwantha\.dev\/sitemap-index\.xml/i,
+  'robots.txt must reference https://tharukamadhuwantha.dev/sitemap-index.xml'
 );
-assert.ok(!fs.existsSync(sitemapZero), 'sitemap-0.xml must not exist when site is unconfigured');
-console.log('✓ Sitemap suppression confirmed: XML sitemaps absent');
+console.log('✓ robots.txt sitemap reference verified');
+
+// When sitemaps are generated (built with PUBLIC_SITE_URL configured):
+if (process.env.PUBLIC_SITE_URL) {
+  assert.ok(
+    fs.existsSync(sitemapIndex),
+    'sitemap-index.xml must exist when PUBLIC_SITE_URL is configured'
+  );
+}
+
+if (fs.existsSync(sitemapIndex)) {
+  const indexXml = fs.readFileSync(sitemapIndex, 'utf-8');
+  assert.ok(
+    indexXml.includes('https://tharukamadhuwantha.dev/sitemap-0.xml'),
+    'sitemap-index.xml must link to sitemap-0.xml on production domain'
+  );
+
+  assert.ok(fs.existsSync(sitemapZero), 'dist/sitemap-0.xml must exist');
+  const zeroXml = fs.readFileSync(sitemapZero, 'utf-8');
+
+  // Verify all 7 approved published routes exist in sitemap
+  const approvedRoutes = [
+    'https://tharukamadhuwantha.dev/',
+    'https://tharukamadhuwantha.dev/about/',
+    'https://tharukamadhuwantha.dev/contact/',
+    'https://tharukamadhuwantha.dev/projects/',
+    'https://tharukamadhuwantha.dev/projects/agentiam/',
+    'https://tharukamadhuwantha.dev/projects/streamforge/',
+    'https://tharukamadhuwantha.dev/projects/forgetasks/',
+  ];
+  for (const route of approvedRoutes) {
+    assert.ok(
+      zeroXml.includes(`<loc>${route}</loc>`),
+      `sitemap-0.xml must contain approved route: ${route}`
+    );
+  }
+
+  // Verify 404 and unapproved draft projects are strictly excluded from sitemap
+  assert.ok(!zeroXml.includes('/404'), 'sitemap-0.xml must strictly exclude /404');
+  assert.ok(!zeroXml.includes('auditmesh'), 'sitemap-0.xml must strictly exclude draft projects');
+  assert.ok(!zeroXml.includes('cloudpulse'), 'sitemap-0.xml must strictly exclude draft projects');
+  console.log('✓ Production sitemap verified: exactly 7 approved routes, 0 drafts/404');
+}
 
 // 5. Verify exclusion of development fixtures from production output
 const devTestDir = path.join(distDir, 'dev-test');

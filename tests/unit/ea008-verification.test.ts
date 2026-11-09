@@ -97,13 +97,13 @@ console.log('✓ Canonical URL formatting passed all tests');
 
 // 4. Test resolvePageMeta()
 console.log('Testing resolvePageMeta()...');
-// Unconfigured site URL (default development)
+// Unconfigured site URL (production approved baseline)
 const defaultMeta = resolvePageMeta({}, '/');
 assert.equal(defaultMeta.title, siteConfig.defaultTitle);
 assert.equal(
   defaultMeta.robots,
-  'noindex, nofollow',
-  'Default development build must be noindex, nofollow'
+  'index, follow',
+  'Approved production build must emit index, follow on normal routes'
 );
 assert.equal(
   defaultMeta.canonicalUrl,
@@ -115,30 +115,57 @@ assert.equal(defaultMeta.ogUrl, undefined, 'OG URL must be omitted when site is 
 // Custom page title
 const customMeta = resolvePageMeta({ title: 'Baseline Verification' }, '/');
 assert.equal(customMeta.title, 'Baseline Verification | Engineering Atelier');
-assert.equal(customMeta.robots, 'noindex, nofollow');
+assert.equal(customMeta.robots, 'index, follow');
+
+// Explicit noindex override test
+const explicitNoindexMeta = resolvePageMeta({ noindex: true }, '/');
+assert.equal(
+  explicitNoindexMeta.robots,
+  'noindex, nofollow',
+  'Explicit noindex prop must be respected even in production'
+);
 
 // Configured valid site URL
 const configuredMeta = resolvePageMeta(
   { title: 'Projects' },
   '/projects',
-  'https://portfolio.engineering'
+  'https://tharukamadhuwantha.dev'
 );
-assert.equal(configuredMeta.canonicalUrl, 'https://portfolio.engineering/projects');
-assert.equal(configuredMeta.ogUrl, 'https://portfolio.engineering/projects');
+assert.equal(configuredMeta.canonicalUrl, 'https://tharukamadhuwantha.dev/projects');
+assert.equal(configuredMeta.ogUrl, 'https://tharukamadhuwantha.dev/projects');
 assert.equal(
   configuredMeta.robots,
-  'noindex, nofollow',
-  'Still noindex because isProductionApproved is false'
+  'index, follow',
+  'Emits index, follow because isProductionApproved is true'
 );
 assert.equal(configuredMeta.twitterCard, 'summary_large_image');
-assert.equal(configuredMeta.ogImage, 'https://portfolio.engineering/og-image.png');
-assert.equal(configuredMeta.twitterImage, 'https://portfolio.engineering/og-image.png');
+assert.equal(configuredMeta.ogImage, 'https://tharukamadhuwantha.dev/og-image.png');
+assert.equal(configuredMeta.twitterImage, 'https://tharukamadhuwantha.dev/og-image.png');
 assert.ok(configuredMeta.jsonLd, 'JSON-LD must be present on non-404 routes');
 
-// 404 route safety: must omit jsonLd
-const meta404 = resolvePageMeta({ title: 'Not Found' }, '/404');
+// 404 route safety: must omit jsonLd, canonicalUrl, and unconditionally emit noindex, nofollow
+const meta404 = resolvePageMeta({ title: 'Not Found' }, '/404', 'https://tharukamadhuwantha.dev');
 assert.equal(meta404.canonicalUrl, undefined);
+assert.equal(
+  meta404.robots,
+  'noindex, nofollow',
+  '404 route must unconditionally emit noindex, nofollow'
+);
 assert.equal(meta404.jsonLd, undefined, 'JSON-LD must be omitted on 404 route');
+
+// Development/preview fallback test: verifies that if isProductionApproved were false, noindex is restored
+const baselineApproved = siteConfig.isProductionApproved;
+try {
+  (siteConfig as { isProductionApproved: boolean }).isProductionApproved = false;
+  const devMeta = resolvePageMeta({}, '/');
+  assert.equal(
+    devMeta.robots,
+    'noindex, nofollow',
+    'Reverts to noindex, nofollow when isProductionApproved is false'
+  );
+} finally {
+  (siteConfig as { isProductionApproved: boolean }).isProductionApproved = baselineApproved;
+}
 
 console.log('✓ Page metadata resolution passed all tests');
 
