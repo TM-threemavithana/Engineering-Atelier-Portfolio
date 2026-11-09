@@ -8,6 +8,8 @@ import test from 'node:test';
 import {
   fetchProjectsCollection,
   isProjectPublishable,
+  getNextCaseStudy,
+  NEXT_CASE_STUDY_SEQUENCE,
   type GenericProjectEntry,
 } from '../../src/data/projects';
 import {
@@ -324,6 +326,56 @@ test('EA-023: TableOfContents filtering rules and minimum threshold', () => {
   assert.equal(shouldRenderSufficient, true, 'TOC must render when >= 3 headings exist');
 
   console.log('✓ Table of Contents minimum threshold and depth filtering verified');
+});
+
+test('EA-031: Next Case Study sequential navigation sequence and route validity', () => {
+  // Test sequence: AgentIAM -> StreamForge -> ForgeTasks -> AgentIAM
+  const nextFromAgentIAM = getNextCaseStudy('agentiam');
+  assert.ok(nextFromAgentIAM, 'Next from agentiam must exist');
+  assert.equal(nextFromAgentIAM.id, 'streamforge');
+  assert.equal(nextFromAgentIAM.href, '/projects/streamforge/');
+  assert.ok(nextFromAgentIAM.href.endsWith('/'), 'Next href must retain directory trailing slash');
+
+  const nextFromStreamForge = getNextCaseStudy('streamforge');
+  assert.ok(nextFromStreamForge, 'Next from streamforge must exist');
+  assert.equal(nextFromStreamForge.id, 'forgetasks');
+  assert.equal(nextFromStreamForge.href, '/projects/forgetasks/');
+  assert.ok(
+    nextFromStreamForge.href.endsWith('/'),
+    'Next href must retain directory trailing slash'
+  );
+
+  const nextFromForgeTasks = getNextCaseStudy('forgetasks');
+  assert.ok(nextFromForgeTasks, 'Next from forgetasks must exist');
+  assert.equal(nextFromForgeTasks.id, 'agentiam');
+  assert.equal(nextFromForgeTasks.href, '/projects/agentiam/');
+  assert.ok(
+    nextFromForgeTasks.href.endsWith('/'),
+    'Next href must retain directory trailing slash'
+  );
+
+  // Case insensitivity
+  assert.equal(getNextCaseStudy('AgentIAM')?.id, 'streamforge');
+  assert.equal(getNextCaseStudy('FORGETASKS')?.id, 'agentiam');
+
+  // Unknown or empty slug safety
+  assert.equal(getNextCaseStudy('unknown-draft'), undefined);
+  assert.equal(getNextCaseStudy(undefined), undefined);
+
+  // Validate all entries in sequence have valid data
+  for (const [key, target] of Object.entries(NEXT_CASE_STUDY_SEQUENCE)) {
+    assert.ok(target.id.length > 0, `Target id for ${key} required`);
+    assert.ok(target.title.length > 0, `Target title for ${key} required`);
+    assert.ok(target.summary.length > 0, `Target summary for ${key} required`);
+    assert.ok(target.category.length > 0, `Target category for ${key} required`);
+    assert.ok(target.technologies.length > 0, `Target technologies for ${key} required`);
+    assert.ok(
+      target.href.startsWith('/projects/') && target.href.endsWith('/'),
+      `Target href ${target.href} must be valid project directory URL`
+    );
+  }
+
+  console.log('✓ EA-031 Next Case Study sequential navigation verified');
 });
 
 console.log('--- All EA-023 Case Study Unit Tests Passed Cleanly ---');

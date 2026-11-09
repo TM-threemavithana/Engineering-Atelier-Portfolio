@@ -1,0 +1,79 @@
+---
+/**
+ * @file src/components/projects/NextCaseStudy.astro
+ * @description Accessible sequential case study navigation component (EA-031).
+ *
+ * ARCHITECTURAL DESIGN:
+ * - Provides semantic <nav aria-label="Next Case Study"> at the end of project detail routes.
+ * - Circular sequence: AgentIAM -> StreamForge -> ForgeTasks -> AgentIAM.
+ * - Descriptive accessible link text: e.g. "Next Case Study: StreamForge".
+ * - Visible focus states (#F0CF78) matching design tokens and >= 44px touch targets.
+ * - Progressive enhancement: zero client-side JavaScript required.
+ */
+
+import { getNextCaseStudy, type NextCaseStudyTarget } from '../../data/projects';
+import ArrowRightIcon from '../icons/ArrowRightIcon.astro';
+import Tag from '../ui/Tag.astro';
+
+export interface Props {
+  currentSlug: string;
+  class?: string;
+}
+
+const { currentSlug, class: className = '' } = Astro.props;
+const nextProject: NextCaseStudyTarget | undefined = getNextCaseStudy(currentSlug);
+---
+
+{nextProject && <nav
+  aria-label="Next Case Study"
+  class:list={['border-t border-[var(--color-border)]/60 pt-10 mt-12', className]}
+>
+  <div class="space-y-4">
+    <!-- Eyebrow label -->
+    <div
+      class="flex items-center gap-2 text-xs font-mono tracking-wider uppercase text-[var(--color-accent)] font-semibold select-none"
+    >
+      <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
+      <span>Next Case Study</span>
+    </div>
+
+    <!-- Accessible Card Link -->
+    <a
+      href={nextProject.href}
+      rel="next"
+      class="group block p-6 sm:p-8 rounded-[var(--radius-card)] bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--color-accent)] hover:bg-[var(--color-surface-hover)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]"
+      aria-label={`Next Case Study: ${nextProject.title}`}
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="space-y-2 max-w-2xl">
+          <span
+            class="inline-block text-xs font-mono text-[var(--color-muted)] uppercase tracking-wide"
+          >
+            {nextProject.category}
+          </span>
+          <h2
+            class="font-['Space_Grotesk'] text-xl sm:text-2xl font-bold text-[var(--color-fg)] group-hover:text-[var(--color-accent)] transition-colors"
+          >
+            {nextProject.title}
+          </h2>
+          <p class="text-sm text-[var(--color-muted)] leading-relaxed line-clamp-2">
+            {nextProject.summary}
+          </p>
+          <div class="flex flex-wrap gap-1.5 pt-2">
+            {nextProject.technologies.map((tech) => (
+              <Tag label={tech} variant="default" size="sm" />
+            ))}
+          </div>
+        </div>
+
+        <div
+          class="inline-flex items-center gap-2 text-sm font-mono font-medium text-[var(--color-accent)] group-hover:translate-x-1 transition-transform self-start sm:self-center shrink-0"
+        >
+          <span class="hidden sm:inline">Read Study</span>
+          <span class="sm:hidden">Read Next Case Study</span>
+          <ArrowRightIcon class="w-4 h-4" />
+        </div>
+      </div>
+    </a>
+  </div>
+</nav>}

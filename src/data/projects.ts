@@ -203,3 +203,62 @@ export async function getPublishedFeaturedProjects(
   const published = await getPublishedProjects(customEntries);
   return published.filter((item) => item.featured).slice(0, 3);
 }
+
+/**
+ * Target representation for sequential case study navigation (EA-031).
+ */
+export interface NextCaseStudyTarget {
+  id: string;
+  title: string;
+  subtitle: string;
+  summary: string;
+  href: string;
+  category: string;
+  technologies: string[];
+}
+
+/**
+ * Sequential case study navigation sequence:
+ * AgentIAM -> StreamForge -> ForgeTasks -> AgentIAM
+ * Uses exact approved public directory routes with trailing slashes.
+ */
+export const NEXT_CASE_STUDY_SEQUENCE: Record<string, NextCaseStudyTarget> = {
+  agentiam: {
+    id: 'streamforge',
+    title: 'StreamForge: Distributed Mobility Pipeline & Real-Time Anomaly Engine',
+    subtitle: 'High-throughput polyglot streaming pipeline with Kafka and TimescaleDB',
+    summary:
+      'High-throughput polyglot streaming pipeline ingesting NYC TLC datasets with pipelined Kafka batching, fixed-point financial math, and dual-database segregation.',
+    href: '/projects/streamforge/',
+    category: 'Distributed Systems & Streaming',
+    technologies: ['Java', 'Scala', 'Apache Kafka', 'TimescaleDB'],
+  },
+  streamforge: {
+    id: 'forgetasks',
+    title: 'ForgeTasks & ForgeOps: Java Backend Engineering and Platform Reliability',
+    subtitle: 'Java 21 Spring Boot API with Kubernetes GitOps reliability lab',
+    summary:
+      'Java 21 and Spring Boot task API with owner-scoped access, version-based optimistic concurrency, and Kubernetes GitOps reliability lab.',
+    href: '/projects/forgetasks/',
+    category: 'Enterprise Backend & Reliability',
+    technologies: ['Java 21', 'Spring Boot', 'Kubernetes', 'GitOps'],
+  },
+  forgetasks: {
+    id: 'agentiam',
+    title: 'AgentIAM: Semantic SQL Security Proxy',
+    subtitle: 'Wire-protocol database proxy and tenant-isolation engine',
+    summary:
+      'Wire-protocol database security proxy and tenant-isolation engine for autonomous AI agents using C/Wasm AST parsing.',
+    href: '/projects/agentiam/',
+    category: 'Security & Protocol Engineering',
+    technologies: ['Go', 'WebAssembly', 'PostgreSQL', 'AST Parsing'],
+  },
+};
+
+/**
+ * Returns the next case study target in the circular reading sequence.
+ */
+export function getNextCaseStudy(currentSlug?: string): NextCaseStudyTarget | undefined {
+  if (!currentSlug) return undefined;
+  return NEXT_CASE_STUDY_SEQUENCE[currentSlug.toLowerCase()];
+}

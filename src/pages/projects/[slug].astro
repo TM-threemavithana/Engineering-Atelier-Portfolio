@@ -32,6 +32,7 @@ import Tag from '../../components/ui/Tag.astro';
 import Button from '../../components/ui/Button.astro';
 import TextLink from '../../components/ui/TextLink.astro';
 import ArrowRightIcon from '../../components/icons/ArrowRightIcon.astro';
+import NextCaseStudy from '../../components/projects/NextCaseStudy.astro';
 
 export async function getStaticPaths() {
   const entries = await fetchProjectsCollection();
@@ -155,6 +156,9 @@ const primaryCategory =
               }}
             />
           </div>
+
+          <!-- 5. Next Case Study Sequential Navigation (EA-031) -->
+          <NextCaseStudy currentSlug={entry.id} />
 
           <!-- Bottom Case Study Actions -->
           <div

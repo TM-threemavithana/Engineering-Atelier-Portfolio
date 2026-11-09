@@ -22,6 +22,17 @@ const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
 assert.ok(indexHtml.length > 500, 'dist/index.html must not be empty or truncated');
 console.log('✓ dist/index.html exists and contains valid markup');
 
+// EA-031: Verify optimized homepage title with owner name and single brand suffix
+assert.match(
+  indexHtml,
+  /<title>Tharuka Madhuwantha — Software Engineer \| Engineering Atelier<\/title>/,
+  'dist/index.html must contain optimized title: "Tharuka Madhuwantha — Software Engineer | Engineering Atelier"'
+);
+assert.ok(
+  !indexHtml.includes('Engineering Atelier | Engineering Atelier'),
+  'dist/index.html must never duplicate brand suffix'
+);
+
 // 2. Verify approved public page indexing (EA-028 Public Search Launch)
 assert.match(
   indexHtml,
@@ -213,6 +224,13 @@ assert.ok(
   'dist/projects/index.html must contain approved H1 "Engineering Case Studies"'
 );
 
+// EA-031: Verify expanded projects meta description
+assert.match(
+  projectsHtml,
+  /<meta\s+name="description"\s+content="Explore backend engineering case studies by Tharuka Madhuwantha, featuring AgentIAM, StreamForge, and ForgeTasks, with Java, Go, Kafka, and Kubernetes\."\s*\/?>/i,
+  'dist/projects/index.html must contain approved expanded meta description'
+);
+
 // Populated state verification (EA-024/EA-025: AgentIAM and StreamForge case studies are listed)
 assert.ok(
   projectsHtml.includes('Featured Architectures'),
@@ -300,6 +318,12 @@ assert.ok(
   agentiamHtml.includes('42340130837'),
   'AgentIAM case study must link to verified CI run 42340130837'
 );
+// EA-031: Verify Next Case Study sequential link (AgentIAM -> StreamForge)
+assert.match(
+  agentiamHtml,
+  /<a[^>]*href="\/projects\/streamforge\/"[^>]*rel="next"[^>]*>/,
+  'AgentIAM case study must link to next case study /projects/streamforge/'
+);
 
 // Verify StreamForge case study detail page exists and contains required elements (EA-025 Phase B)
 const streamforgeHtmlPath = path.join(distDir, 'projects', 'streamforge', 'index.html');
@@ -333,6 +357,12 @@ assert.ok(
 assert.ok(
   streamforgeHtml.includes('9,792.9 events/sec'),
   'StreamForge case study must link to verified benchmark metric'
+);
+// EA-031: Verify Next Case Study sequential link (StreamForge -> ForgeTasks)
+assert.match(
+  streamforgeHtml,
+  /<a[^>]*href="\/projects\/forgetasks\/"[^>]*rel="next"[^>]*>/,
+  'StreamForge case study must link to next case study /projects/forgetasks/'
 );
 
 // Verify ForgeTasks case study detail page exists and contains required elements (EA-025 Phase D)
@@ -370,6 +400,12 @@ assert.ok(
 assert.ok(
   forgetasksHtml.includes('G12') && forgetasksHtml.includes('G13'),
   'ForgeTasks case study must contain verified GitOps and reliability gate evidence'
+);
+// EA-031: Verify Next Case Study sequential link (ForgeTasks -> AgentIAM)
+assert.match(
+  forgetasksHtml,
+  /<a[^>]*href="\/projects\/agentiam\/"[^>]*rel="next"[^>]*>/,
+  'ForgeTasks case study must link to next case study /projects/agentiam/'
 );
 
 // Draft candidate detail routes must NOT exist
@@ -734,6 +770,17 @@ assert.ok(
   'dist/about/index.html must exist in production build output'
 );
 const aboutHtml = fs.readFileSync(aboutHtmlPath, 'utf8');
+
+// EA-031: Verify optimized about title with owner name and single brand suffix
+assert.match(
+  aboutHtml,
+  /<title>About Tharuka Madhuwantha — Software Engineer \| Engineering Atelier<\/title>/,
+  'dist/about/index.html must contain optimized title: "About Tharuka Madhuwantha — Software Engineer | Engineering Atelier"'
+);
+assert.ok(
+  !aboutHtml.includes('Engineering Atelier | Engineering Atelier'),
+  'dist/about/index.html must never duplicate brand suffix'
+);
 
 // A. Exactly Single H1 Element
 const aboutH1Matches = [...aboutHtml.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi)];
