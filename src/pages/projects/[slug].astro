@@ -33,6 +33,7 @@ import Button from '../../components/ui/Button.astro';
 import TextLink from '../../components/ui/TextLink.astro';
 import ArrowRightIcon from '../../components/icons/ArrowRightIcon.astro';
 import NextCaseStudy from '../../components/projects/NextCaseStudy.astro';
+import ResponsiveTable from '../../components/projects/ResponsiveTable.astro';
 
 export async function getStaticPaths() {
   const entries = await fetchProjectsCollection();
@@ -123,7 +124,7 @@ const primaryCategory =
       <!-- 4. Main Grid: Fact Panel + Narrative MDX Body -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <!-- Left / Sticky Sidebar (Fact Panel & Table of Contents) -->
-        <aside class="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
+        <aside class="lg:col-span-4 min-w-0 max-w-full space-y-8 lg:sticky lg:top-24">
           <ProjectFactPanel
             role={data.role}
             collaborators={data.collaborators}
@@ -141,11 +142,12 @@ const primaryCategory =
 
         <!-- Right / Narrative Prose Column (Constrained to <= 74ch) -->
         <article
-          class="lg:col-span-8 reading-column max-w-[74ch] space-y-8 text-[var(--color-fg)] leading-relaxed"
+          class="lg:col-span-8 reading-column min-w-0 max-w-full lg:max-w-[74ch] space-y-8 text-[var(--color-fg)] leading-relaxed"
         >
-          <div class="prose-atelier space-y-6">
+          <div class="prose-atelier min-w-0 max-w-full space-y-6">
             <Content
               components={{
+                table: ResponsiveTable,
                 DecisionBlock,
                 Figure,
                 CodeBlock,

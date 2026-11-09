@@ -181,6 +181,80 @@ pre {
 }
 
 /* ==========================================================================
+   Case Study Typography & Prose Layout (.prose-atelier)
+   ========================================================================== */
+
+.prose-atelier {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.prose-atelier :where(p, li, dd, figcaption, blockquote) {
+  overflow-wrap: anywhere;
+}
+
+.prose-atelier :where(p, li, dd, figcaption) code {
+  word-break: break-word;
+}
+
+/* Fact panel header mobile reflow guard (WCAG 1.4.10 Reflow at 320px) */
+[aria-labelledby='fact-panel-heading'] > div:first-child {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Technical figure inline SVG responsive scaling */
+figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+   Accessible Responsive Table (.responsive-table-container)
+   ========================================================================== */
+
+.responsive-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table-container table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.responsive-table-container th {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--color-fg);
+  background-color: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border-strong);
+  white-space: nowrap;
+}
+
+.responsive-table-container td {
+  padding: 0.75rem 1rem;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.responsive-table-container tr:last-child td {
+  border-bottom: none;
+}
+
+.responsive-table-container tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ==========================================================================
    Reduced Motion Guard (WCAG 2.2 AA SC 2.3.3)
    ========================================================================== */
 

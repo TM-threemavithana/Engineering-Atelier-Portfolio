@@ -5,6 +5,8 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   fetchProjectsCollection,
   isProjectPublishable,
@@ -376,6 +378,71 @@ test('EA-031: Next Case Study sequential navigation sequence and route validity'
   }
 
   console.log('✓ EA-031 Next Case Study sequential navigation verified');
+});
+
+test('EA-033 Phase B: Shared MDX Mobile Reflow, ResponsiveTable, and Prose Wrapping', () => {
+  const responsiveTablePath = path.resolve('src/components/projects/ResponsiveTable.astro');
+  assert.ok(fs.existsSync(responsiveTablePath), 'ResponsiveTable.astro component must exist');
+
+  const tableSource = fs.readFileSync(responsiveTablePath, 'utf-8');
+  assert.ok(
+    tableSource.includes('role="region"'),
+    'ResponsiveTable must specify role="region" for landmark navigation'
+  );
+  assert.ok(
+    tableSource.includes('tabindex="0"'),
+    'ResponsiveTable must have tabindex="0" for keyboard focusability'
+  );
+  assert.ok(
+    tableSource.includes('overflow-x-auto'),
+    'ResponsiveTable must enable horizontal overflow scrolling'
+  );
+  assert.ok(
+    tableSource.includes('focus-visible:ring'),
+    'ResponsiveTable must provide visible focus indicator'
+  );
+  assert.ok(
+    tableSource.includes('computedAriaLabel'),
+    'ResponsiveTable must compute disambiguated accessible label'
+  );
+
+  // Verify slug template mapping and defensive layout constraints
+  const slugPagePath = path.resolve('src/pages/projects/[slug].astro');
+  const slugSource = fs.readFileSync(slugPagePath, 'utf-8');
+
+  assert.ok(
+    slugSource.includes(
+      "import ResponsiveTable from '../../components/projects/ResponsiveTable.astro'"
+    ),
+    'slug template must import ResponsiveTable'
+  );
+  assert.ok(
+    slugSource.includes('table: ResponsiveTable'),
+    'slug template must map MDX table elements to ResponsiveTable'
+  );
+  assert.ok(
+    slugSource.includes('min-w-0 max-w-full'),
+    'slug template must apply min-w-0 max-w-full defensive constraints to prevent grid blowout'
+  );
+
+  // Verify global.css prose rules
+  const cssPath = path.resolve('src/styles/global.css');
+  const cssSource = fs.readFileSync(cssPath, 'utf-8');
+
+  assert.ok(
+    cssSource.includes('overflow-wrap: anywhere'),
+    'global.css must declare overflow-wrap: anywhere for prose text elements'
+  );
+  assert.ok(
+    cssSource.includes('.responsive-table-container'),
+    'global.css must declare styles for .responsive-table-container'
+  );
+  assert.ok(
+    !cssSource.includes('overflow-x: hidden') && !cssSource.includes('overflow: hidden'),
+    'global.css must NOT globally suppress or hide document-level overflow'
+  );
+
+  console.log('✓ EA-033 Shared MDX mobile reflow and ResponsiveTable integrity confirmed');
 });
 
 console.log('--- All EA-023 Case Study Unit Tests Passed Cleanly ---');

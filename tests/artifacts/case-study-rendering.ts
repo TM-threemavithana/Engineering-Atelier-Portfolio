@@ -30,6 +30,7 @@ import Figure from '../components/projects/Figure.astro';
 import CodeBlock from '../components/projects/CodeBlock.astro';
 import TableOfContents from '../components/projects/TableOfContents.astro';
 import ProjectBlueprintFallback from '../components/projects/ProjectBlueprintFallback.astro';
+import ResponsiveTable from '../components/projects/ResponsiveTable.astro';
 import Button from '../components/ui/Button.astro';
 import ArrowRightIcon from '../components/icons/ArrowRightIcon.astro';
 
@@ -116,74 +117,95 @@ const javaCodeSample = \`public final class StreamDispatcher {
         </aside>
 
         <!-- Narrative Column (<= 74ch) -->
-        <article class="lg:col-span-8 reading-column max-w-[74ch] space-y-10 text-[var(--color-fg)] leading-relaxed">
-          <section id="challenge-and-constraints" class="space-y-4">
-            <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
-              Challenge &amp; Constraints
-            </h2>
-            <p class="text-[var(--color-muted)]">
-              Handling 500,000 incoming telemetry events per second over persistent TLS connections while maintaining strict in-order guarantees per partition without head-of-line blocking.
-            </p>
-          </section>
+        <article class="lg:col-span-8 reading-column min-w-0 max-w-full lg:max-w-[74ch] space-y-10 text-[var(--color-fg)] leading-relaxed">
+          <div class="prose-atelier min-w-0 max-w-full space-y-6">
+            <section id="challenge-and-constraints" class="space-y-4">
+              <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
+                Challenge &amp; Constraints
+              </h2>
+              <p class="text-[var(--color-muted)]">
+                Handling 500,000 incoming telemetry events per second over persistent TLS connections while maintaining strict in-order guarantees per partition without head-of-line blocking.
+              </p>
+            </section>
 
-          <section id="system-architecture" class="space-y-4">
-            <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
-              System Architecture
-            </h2>
-            <p class="text-[var(--color-muted)]">
-              The ingestion layer decouples network I/O from disk writes using a multi-ring buffer queue.
-            </p>
+            <section id="system-architecture" class="space-y-4">
+              <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
+                System Architecture
+              </h2>
+              <p class="text-[var(--color-muted)]">
+                The ingestion layer decouples network I/O from disk writes using a multi-ring buffer queue.
+              </p>
 
-            <Figure
-              caption="Three-tier ingestion topology separating Netty worker event loops from disk serialization workers."
-              figureNumber="1"
-              alt="Architectural schematic of event ingestion pipeline"
-            >
-              <div class="p-6 text-center font-mono text-xs text-[var(--color-accent)]">
-                [INGESTION GATEWAY] ---> [DISRUPTOR RING BUFFER] ---> [WAL SEGMENT COMMITTER]
-              </div>
-            </Figure>
-          </section>
+              <Figure
+                caption="Three-tier ingestion topology separating Netty worker event loops from disk serialization workers."
+                figureNumber="1"
+                alt="Architectural schematic of event ingestion pipeline"
+              >
+                <div class="p-6 text-center font-mono text-xs text-[var(--color-accent)]">
+                  [INGESTION GATEWAY] ---> [DISRUPTOR RING BUFFER] ---> [WAL SEGMENT COMMITTER]
+                </div>
+              </Figure>
+            </section>
 
-          <section id="storage-decision">
-            <DecisionBlock
-              title="Ring Buffer In-Memory Queue vs BlockingQueue"
-              status="Accepted"
-              context="Concurrent event dispatch required zero lock contention across 16 worker threads."
-              options={[
-                'java.util.concurrent.ArrayBlockingQueue with condition locks',
-                'LMAX Disruptor lock-free RingBuffer with memory barriers',
-                'Custom spinlock linked-list queue',
-              ]}
-              selection="Adopted LMAX Disruptor ring buffer pre-allocated to 1,048,576 slots."
-              consequences="Eliminated lock contention; requires fixed pre-allocated JVM heap footprint."
-              verification="Sustained 4.8x higher throughput in empirical 16-thread benchmark."
-            />
-          </section>
+            <section id="storage-decision">
+              <DecisionBlock
+                title="Ring Buffer In-Memory Queue vs BlockingQueue"
+                status="Accepted"
+                context="Concurrent event dispatch required zero lock contention across 16 worker threads."
+                options={[
+                  'java.util.concurrent.ArrayBlockingQueue with condition locks',
+                  'LMAX Disruptor lock-free RingBuffer with memory barriers',
+                  'Custom spinlock linked-list queue',
+                ]}
+                selection="Adopted LMAX Disruptor ring buffer pre-allocated to 1,048,576 slots."
+                consequences="Eliminated lock contention; requires fixed pre-allocated JVM heap footprint."
+                verification="Sustained 4.8x higher throughput in empirical 16-thread benchmark."
+              />
+            </section>
 
-          <section id="implementation-details" class="space-y-4">
-            <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
-              Implementation Details
-            </h2>
-            <p class="text-[var(--color-muted)]">
-              The event dispatcher implementation uses memory sequence barriers for zero-copy handoff:
-            </p>
+            <section id="implementation-details" class="space-y-4">
+              <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
+                Implementation Details
+              </h2>
+              <p class="text-[var(--color-muted)]">
+                The event dispatcher implementation uses memory sequence barriers for zero-copy handoff:
+              </p>
 
-            <CodeBlock
-              filename="StreamDispatcher.java"
-              language="java"
-              code={javaCodeSample}
-            />
-          </section>
+              <CodeBlock
+                filename="StreamDispatcher.java"
+                language="java"
+                code={javaCodeSample}
+              />
+            </section>
 
-          <section id="testing-and-verification" class="space-y-4">
-            <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
-              Testing &amp; Reliability
-            </h2>
-            <p class="text-[var(--color-muted)]">
-              Fault injection tests simulated network partition events and disk stall conditions.
-            </p>
-          </section>
+            <section id="testing-and-verification" class="space-y-4">
+              <h2 class="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--color-fg)]">
+                Testing &amp; Reliability
+              </h2>
+              <p class="text-[var(--color-muted)]">
+                Fault injection tests simulated network partition events and disk stall conditions.
+              </p>
+
+              <ResponsiveTable ariaLabel="Fictional load test benchmark">
+                <thead>
+                  <tr>
+                    <th>Scenario</th>
+                    <th>Target RPS</th>
+                    <th>Observed Latency (p99)</th>
+                    <th>Error Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Peak Burst</td>
+                    <td>50,000 req/s</td>
+                    <td>12.4 ms</td>
+                    <td>0.00%</td>
+                  </tr>
+                </tbody>
+              </ResponsiveTable>
+            </section>
+          </div>
 
           <div class="border-t border-[var(--color-border)]/60 pt-8 mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
             <Button href="/projects/" variant="secondary" size="md" class="w-full sm:w-auto">
@@ -378,6 +400,29 @@ try {
   );
   assert.ok(!html.includes('96.67%'), 'Research metric must not appear in case study harness');
   console.log('✓ Content truth confirmed: zero draft project or metric leakage');
+
+  // 12. EA-033 Phase B: Responsive Table & Mobile Reflow Semantics
+  assert.ok(
+    html.includes('responsive-table-container'),
+    'Rendered HTML must include responsive-table-container'
+  );
+  assert.match(
+    html,
+    /<div[^>]*role="region"[^>]*tabindex="0"[^>]*aria-label="Fictional load test benchmark"[^>]*class="[^"]*responsive-table-container/,
+    'ResponsiveTable must render an accessible scrollable region with role="region", tabindex="0", and aria-label'
+  );
+  assert.ok(
+    html.includes('<table') &&
+      html.includes('<th>Scenario</th>') &&
+      html.includes('<td>Peak Burst</td>'),
+    'ResponsiveTable must preserve full semantic table, header, and cell hierarchy'
+  );
+  assert.ok(
+    html.includes('min-w-0 max-w-full'),
+    'Rendered layout must contain defensive min-w-0 max-w-full column constraints'
+  );
+  assert.ok(html.includes('prose-atelier'), 'Rendered layout must contain prose-atelier wrapper');
+  console.log('✓ Accessible ResponsiveTable and prose reflow semantics confirmed');
 
   console.log('--- All Rendered HTML Case Study Tests Passed Cleanly ---');
 } finally {

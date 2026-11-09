@@ -1,0 +1,46 @@
+---
+/**
+ * @file src/components/projects/ResponsiveTable.astro
+ * @description Accessible horizontally scrollable container for MDX-rendered data tables.
+ *
+ * ACCESSIBILITY & USABILITY (WCAG 2.2 AA):
+ * - SC 2.1.1 Keyboard: The scrollable region has tabindex="0" so keyboard users can focus and scroll horizontally using arrow keys.
+ * - SC 4.1.2 Name, Role, Value: Encapsulated as role="region".
+ * - Disambiguated Labels: Where multiple tables appear on a single page, provides distinct contextual accessible names
+ *   (via prop or page-scoped progressive numbering) avoiding ambiguous duplicate announcements.
+ * - SC 2.4.7 Focus Visible: Clear focus ring matching design tokens (--color-focus).
+ * - Semantics preserved: all table, thead, tbody, tr, th, td elements retain semantic markup and hierarchy.
+ */
+
+import { getNextTableIndex } from '../../utils/tableCounter.ts';
+
+export interface Props {
+  ariaLabel?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { ariaLabel, class: className = '', ...tableProps } = Astro.props;
+
+// Determine unique page identifier for table numbering
+const pathname = Astro.url ? Astro.url.pathname : 'page';
+const tableIndex = getNextTableIndex(pathname);
+const computedAriaLabel = ariaLabel || `Data table ${tableIndex}`;
+---
+
+<div
+  role="region"
+  tabindex="0"
+  aria-label={computedAriaLabel}
+  class:list={[
+    'responsive-table-container',
+    'w-full max-w-full overflow-x-auto my-6 rounded-[var(--radius-card)]',
+    'border border-[var(--color-border)] bg-[var(--color-surface)]',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg)]',
+    className,
+  ]}
+>
+  <table class="w-full text-left border-collapse text-sm text-[var(--color-fg)]" {...tableProps}>
+    <slot />
+  </table>
+</div>

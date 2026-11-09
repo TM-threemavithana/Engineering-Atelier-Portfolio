@@ -1221,4 +1221,43 @@ console.log(
   '✓ EA-025 Phase D Case Study production invariants confirmed: exactly 8 HTML pages, cleared AgentIAM, StreamForge, and ForgeTasks detail routes, zero fixture leaks'
 );
 
+// 18. EA-033 Phase B: Production Case Study Mobile Reflow & Responsive Table Invariants
+for (const slug of ['agentiam', 'streamforge', 'forgetasks']) {
+  const caseStudyHtml = fs.readFileSync(path.join(distDir, 'projects', slug, 'index.html'), 'utf8');
+  assert.ok(
+    caseStudyHtml.includes('prose-atelier'),
+    `dist/projects/${slug}/index.html must contain .prose-atelier`
+  );
+  assert.ok(
+    caseStudyHtml.includes('min-w-0 max-w-full'),
+    `dist/projects/${slug}/index.html must contain defensive min-w-0 max-w-full container constraints`
+  );
+
+  if (slug === 'streamforge' || slug === 'forgetasks') {
+    assert.ok(
+      caseStudyHtml.includes('responsive-table-container'),
+      `dist/projects/${slug}/index.html must wrap data tables in .responsive-table-container`
+    );
+    assert.ok(
+      caseStudyHtml.includes('role="region"'),
+      `dist/projects/${slug}/index.html table container must have role="region"`
+    );
+    assert.ok(
+      caseStudyHtml.includes('tabindex="0"'),
+      `dist/projects/${slug}/index.html table container must have tabindex="0"`
+    );
+    assert.ok(
+      caseStudyHtml.includes('aria-label="Data table 1"'),
+      `dist/projects/${slug}/index.html table 1 must have accessible label Data table 1`
+    );
+    assert.ok(
+      caseStudyHtml.includes('aria-label="Data table 2"'),
+      `dist/projects/${slug}/index.html table 2 must have distinct accessible label Data table 2`
+    );
+  }
+}
+console.log(
+  '✓ EA-033 Phase B Production Invariants confirmed: all case studies enforce min-w-0, prose-atelier, and accessible ResponsiveTable wrappers'
+);
+
 console.log('--- All Production Artifact Verification Tests Passed Cleanly ---');
