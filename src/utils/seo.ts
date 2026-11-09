@@ -62,6 +62,7 @@ export function normalizePathname(rawPath: string): string {
  * - Returns undefined if origin is unconfigured or invalid (omits <link rel="canonical"> completely)
  * - Strips query parameters and fragments
  * - Rejects unapproved foreign/external domains passed via canonicalOverride
+ * - Retains directory trailing slash to match HTTP 200 responses and published sitemaps
  */
 export function formatCanonicalUrl(
   pathname: string,
@@ -70,6 +71,11 @@ export function formatCanonicalUrl(
 ): string | undefined {
   const validatedOrigin = getValidatedProductionSiteUrl(siteOrigin);
   if (!validatedOrigin) return undefined;
+
+  const toCanonicalPath = (rawPath: string): string => {
+    const normalized = normalizePathname(rawPath);
+    return normalized === '/' ? '/' : `${normalized}/`;
+  };
 
   if (override && typeof override === 'string') {
     const trimmed = override.trim();
@@ -80,17 +86,17 @@ export function formatCanonicalUrl(
         if (parsed.origin.toLowerCase() !== validatedOrigin.toLowerCase()) {
           return undefined;
         }
-        return `${validatedOrigin}${normalizePathname(parsed.pathname)}`;
+        return `${validatedOrigin}${toCanonicalPath(parsed.pathname)}`;
       } else {
         // Safe relative override
-        return `${validatedOrigin}${normalizePathname(trimmed)}`;
+        return `${validatedOrigin}${toCanonicalPath(trimmed)}`;
       }
     } catch {
       return undefined;
     }
   }
 
-  return `${validatedOrigin}${normalizePathname(pathname)}`;
+  return `${validatedOrigin}${toCanonicalPath(pathname)}`;
 }
 
 /**

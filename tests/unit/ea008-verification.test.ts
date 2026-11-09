@@ -66,11 +66,18 @@ assert.equal(
 );
 assert.equal(
   formatCanonicalUrl('/projects/', 'https://portfolio.engineering'),
-  'https://portfolio.engineering/projects'
+  'https://portfolio.engineering/projects/',
+  'Must retain directory trailing slash on canonical URL'
+);
+assert.equal(
+  formatCanonicalUrl('/projects', 'https://portfolio.engineering'),
+  'https://portfolio.engineering/projects/',
+  'Must append directory trailing slash when input lacks trailing slash'
 );
 assert.equal(
   formatCanonicalUrl('/projects?sort=date#ref', 'https://portfolio.engineering'),
-  'https://portfolio.engineering/projects'
+  'https://portfolio.engineering/projects/',
+  'Must strip query params and fragments while retaining directory trailing slash'
 );
 
 // Test canonicalOverride safety
@@ -81,8 +88,8 @@ assert.equal(
 );
 assert.equal(
   formatCanonicalUrl('/projects', 'https://portfolio.engineering', '/verified-target'),
-  'https://portfolio.engineering/verified-target',
-  'Must accept safe relative canonicalOverride'
+  'https://portfolio.engineering/verified-target/',
+  'Must accept safe relative canonicalOverride with trailing slash'
 );
 assert.equal(
   formatCanonicalUrl(
@@ -90,7 +97,7 @@ assert.equal(
     'https://portfolio.engineering',
     'https://portfolio.engineering/exact-match/'
   ),
-  'https://portfolio.engineering/exact-match',
+  'https://portfolio.engineering/exact-match/',
   'Must accept same-origin canonicalOverride'
 );
 console.log('✓ Canonical URL formatting passed all tests');
@@ -131,8 +138,8 @@ const configuredMeta = resolvePageMeta(
   '/projects',
   'https://tharukamadhuwantha.dev'
 );
-assert.equal(configuredMeta.canonicalUrl, 'https://tharukamadhuwantha.dev/projects');
-assert.equal(configuredMeta.ogUrl, 'https://tharukamadhuwantha.dev/projects');
+assert.equal(configuredMeta.canonicalUrl, 'https://tharukamadhuwantha.dev/projects/');
+assert.equal(configuredMeta.ogUrl, 'https://tharukamadhuwantha.dev/projects/');
 assert.equal(
   configuredMeta.robots,
   'index, follow',
@@ -142,6 +149,46 @@ assert.equal(configuredMeta.twitterCard, 'summary_large_image');
 assert.equal(configuredMeta.ogImage, 'https://tharukamadhuwantha.dev/og-image.png');
 assert.equal(configuredMeta.twitterImage, 'https://tharukamadhuwantha.dev/og-image.png');
 assert.ok(configuredMeta.jsonLd, 'JSON-LD must be present on non-404 routes');
+
+// Comprehensive Trailing-Slash Parity Suite across all 7 approved production routes
+const allApprovedRoutes = [
+  { path: '/', expected: 'https://tharukamadhuwantha.dev/' },
+  { path: '/about', expected: 'https://tharukamadhuwantha.dev/about/' },
+  { path: '/about/', expected: 'https://tharukamadhuwantha.dev/about/' },
+  { path: '/contact', expected: 'https://tharukamadhuwantha.dev/contact/' },
+  { path: '/contact/', expected: 'https://tharukamadhuwantha.dev/contact/' },
+  { path: '/projects', expected: 'https://tharukamadhuwantha.dev/projects/' },
+  { path: '/projects/', expected: 'https://tharukamadhuwantha.dev/projects/' },
+  { path: '/projects/agentiam', expected: 'https://tharukamadhuwantha.dev/projects/agentiam/' },
+  { path: '/projects/agentiam/', expected: 'https://tharukamadhuwantha.dev/projects/agentiam/' },
+  {
+    path: '/projects/streamforge',
+    expected: 'https://tharukamadhuwantha.dev/projects/streamforge/',
+  },
+  {
+    path: '/projects/streamforge/',
+    expected: 'https://tharukamadhuwantha.dev/projects/streamforge/',
+  },
+  { path: '/projects/forgetasks', expected: 'https://tharukamadhuwantha.dev/projects/forgetasks/' },
+  {
+    path: '/projects/forgetasks/',
+    expected: 'https://tharukamadhuwantha.dev/projects/forgetasks/',
+  },
+];
+
+for (const { path: routePath, expected } of allApprovedRoutes) {
+  const meta = resolvePageMeta({}, routePath, 'https://tharukamadhuwantha.dev');
+  assert.equal(
+    meta.canonicalUrl,
+    expected,
+    `Canonical URL for ${routePath} must match sitemap directory URL ${expected}`
+  );
+  assert.equal(
+    meta.ogUrl,
+    expected,
+    `og:url for ${routePath} must match sitemap directory URL ${expected}`
+  );
+}
 
 // 404 route safety: must omit jsonLd, canonicalUrl, and unconditionally emit noindex, nofollow
 const meta404 = resolvePageMeta({ title: 'Not Found' }, '/404', 'https://tharukamadhuwantha.dev');

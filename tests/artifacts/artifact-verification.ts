@@ -53,7 +53,46 @@ if (indexHtml.includes('rel="canonical"')) {
     /<meta\s+property="og:url"\s+content="https:\/\/tharukamadhuwantha\.dev\/"\s*\/?>/i,
     'og:url meta tag must point to production domain https://tharukamadhuwantha.dev/'
   );
-  console.log('✓ Canonical and og:url verified: pointing to https://tharukamadhuwantha.dev/');
+
+  // EA-029 Phase B: Verify trailing-slash alignment across all 7 approved public routes
+  const approvedRouteCanonicalChecks = [
+    { file: 'index.html', url: 'https://tharukamadhuwantha.dev/' },
+    { file: path.join('about', 'index.html'), url: 'https://tharukamadhuwantha.dev/about/' },
+    { file: path.join('contact', 'index.html'), url: 'https://tharukamadhuwantha.dev/contact/' },
+    { file: path.join('projects', 'index.html'), url: 'https://tharukamadhuwantha.dev/projects/' },
+    {
+      file: path.join('projects', 'agentiam', 'index.html'),
+      url: 'https://tharukamadhuwantha.dev/projects/agentiam/',
+    },
+    {
+      file: path.join('projects', 'streamforge', 'index.html'),
+      url: 'https://tharukamadhuwantha.dev/projects/streamforge/',
+    },
+    {
+      file: path.join('projects', 'forgetasks', 'index.html'),
+      url: 'https://tharukamadhuwantha.dev/projects/forgetasks/',
+    },
+  ];
+
+  for (const { file, url } of approvedRouteCanonicalChecks) {
+    const pagePath = path.join(distDir, file);
+    assert.ok(fs.existsSync(pagePath), `Output page ${file} must exist`);
+    const pageHtml = fs.readFileSync(pagePath, 'utf-8');
+    const escapedUrl = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(
+      pageHtml,
+      new RegExp(`<link\\s+rel="canonical"\\s+href="${escapedUrl}"\\s*\\/?>`, 'i'),
+      `Canonical link tag in ${file} must strictly match directory sitemap URL: ${url}`
+    );
+    assert.match(
+      pageHtml,
+      new RegExp(`<meta\\s+property="og:url"\\s+content="${escapedUrl}"\\s*\\/?>`, 'i'),
+      `og:url meta tag in ${file} must strictly match directory sitemap URL: ${url}`
+    );
+  }
+  console.log(
+    '✓ Canonical and og:url verified across all 7 approved routes with directory trailing slash'
+  );
 } else {
   // When built in local dev environments where PUBLIC_SITE_URL is unconfigured:
   assert.ok(
